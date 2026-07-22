@@ -1,0 +1,40 @@
+<Window x:Class="ACRLiveTiming.UI.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Overlay" Width="460" Height="620" MinWidth="220" MinHeight="90"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResize" Topmost="True" ShowInTaskbar="True" ShowActivated="False">
+  <!-- Streaming overlay: borderless + transparent canvas, always-on-top. Resizing
+       is done in code-behind via a WM_NCHITTEST hook over the transparent ring
+       AROUND the WebView2 (its own HWND swallows the mouse over its area, so no
+       WPF/DWM resize grip underneath it ever fires — the inset ring is our window). -->
+  <Grid>
+    <!-- faint outline at the very window edge so the draggable/resizable border is
+         visible; hideable via the frame toggle for a clean capture. -->
+    <Border x:Name="Frame" BorderBrush="#59FFFFFF" BorderThickness="1" CornerRadius="2"/>
+
+    <!-- content, inset by the 4px resize ring -->
+    <Grid Margin="4">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <!-- slim drag strip: overlay controls (open/close, always-on-top, lock) now
+           live in the main window, so the bar only needs to move the overlay -->
+      <Border x:Name="DragBar" Grid.Row="0" Background="#CC0E1116"
+              MouseLeftButtonDown="DragBar_Down" Cursor="SizeAll">
+        <TextBlock x:Name="TitleLabel" Text="Overlay" Foreground="#B8C0CC"
+                   FontSize="10" Margin="8,2" VerticalAlignment="Center"/>
+      </Border>
+
+      <wv2:WebView2 x:Name="Web" Grid.Row="1"/>
+    </Grid>
+
+    <!-- bottom-right resize affordance (hint; actual hit-test is the ring corner) -->
+    <TextBlock x:Name="Grip" Text="&#x25E2;" FontSize="12" Foreground="#77FFFFFF"
+               HorizontalAlignment="Right" VerticalAlignment="Bottom"
+               Margin="0,0,2,0" IsHitTestVisible="False"/>
+  </Grid>
+</Window>

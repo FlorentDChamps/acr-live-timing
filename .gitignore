@@ -1,0 +1,20 @@
+# Debug captures / inputs (local only)
+inputs/
+*.pcap
+*.pcapng
+
+# Python
+__pycache__/
+*.pyc
+
+# Local tooling / IDE
+.*/
+
+# .NET build output
+bin/
+obj/
+*.user
+publish/
+
+# screenshot fixture (tools/demo-page.js output; only docs/*.png is committed)
+demo.html

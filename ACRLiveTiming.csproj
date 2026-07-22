@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ACRLiveTiming</RootNamespace>
+    <AssemblyName>ACRLiveTiming</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Multi-size .ico built from assets/icon.svg (+ icon-16.svg simplified variant). -->
+    <ApplicationIcon>assets\icon.ico</ApplicationIcon>
+    <LangVersion>latest</LangVersion>
+    <!-- x64 only: the overlay P/Invokes Get/SetWindowLongPtr, which 32-bit
+         user32.dll does not export (they are macros over Get/SetWindowLong). -->
+    <PlatformTarget>x64</PlatformTarget>
+    <Copyright>Copyright (C) 2026 Florent DESCHAMPS</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <!-- Base number, single source of truth. Only the release workflow clears the
+         suffix, by passing -p:Version=x.y.z from the tag (an explicit Version wins
+         over prefix+suffix), so anything not built from a tag is visibly a
+         prerelease; AppInfo then appends the commit sha to tell those apart. -->
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix>dev</VersionSuffix>
+    <Authors>Florent DESCHAMPS</Authors>
+    <Company>Florent DESCHAMPS</Company>
+    <Product>ACR Live Timing</Product>
+    <AssemblyTitle>ACR Live Timing</AssemblyTitle>
+    <Description>Live shared leaderboard for Assetto Corsa Rally multiplayer lobbies — passive cleartext traffic decoding, embedded web view, optional Cloudflare tunnel.</Description>
+    <RepositoryUrl>https://github.com/FlorentDChamps/acr-live-timing</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- App.xaml lives under src/, so the root-only auto-glob misses it:
+         declare it as the entry point and drop it from the Page glob. -->
+    <ApplicationDefinition Include="src\App.xaml" />
+    <Page Remove="src\App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Web UI served over HTTP; embedded so it ships inside the exe. -->
+    <EmbeddedResource Include="src\Web\index.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Streaming overlay windows host the local page in an embedded browser. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+  </ItemGroup>
+
+</Project>
