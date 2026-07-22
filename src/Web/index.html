@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- link-preview metadata (Discord / Facebook / Twitter …) injected server-side
+     from the operator-set title & description; crawlers don't run JS. -->
+<!--HEAD_META-->
+<title>ACR Live Timing</title>
+<!-- favicon inlined as a data URI so the page stays a single self-contained file
+     (works offline / "Save page as" too); 32px PNG of Assets/icon.ico's artwork -->
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAHYAAAB2AH6XKZyAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAABkBJREFUWIWtl+1vXMUVxn9n5q7XdpwEsNfr+K1KYkIwpfQFNY0SYVQC2FBooZHaT1XVF9F+bPutf0lVpWqkgsRLK5CgamkraBQLpEAVEUWgEBKTRvFbglk7ze7e3Xvn9MPM3b0bvE5VMavRSnNnz/PMOc957qzQOczk7i8/pIafKsygDPN5DGFVkDdT5djixdNvAK79KIzRPfdMikangPLnAtqNi8qSs8mBxQtnLwOYFrizC6iWUeX/mUaEn/3kB9x37/SW+xS3S1Lz8djUl8YzAgZnTilqlFt/Hj4y85m1iYlRfvWLn/PmiXm+/72niArRreIYmnoKMDI6+cWHVfjb/5K+w4cOUKlsMPPAQf7w7IvUanUOH/oGqsqJk2+hqgyXhjj63Sf53e+fI47jLeMZNUdkZPKelwSObrWxv7+Po08/wauvvU6lsk5fb5HZR48wOTnGCy++wsrKKgA9xSJxHGMjy0PfnOG9M2dZXl7tGleVF2TkC9PL6ObCE+DOvbt54vFH+c1vjxPX66B+XcOeffum2L9/H7VqlZXVq5TLJd7450mSJGVqag+pUz66uLA5A2FFRibu1s41P4dLJb7z5BzVao3nn/8jqtpqmchaHpg5xNDQILVqjXPnznP+/AUU2DawjWee+RHHjz/HtWtrlMvDzDx4mL+8/g8q6xvozRzK4/s1A46s5f6v3sfk+DifrK0xf/It1DkEBQQjwmPfmiWylnff+ReLV5Y6Uxq+bWSZnXuEG9UqJ07Mo8Dc7CPYQsSfXn4Vze2V8thdaoDS0CBDg3fw70uXiet1DIogrVP3FAp8/cD9vH/2A9Y/rWxe03CSDEBEKPYWqdZqOISpfVNMT+/n5VdeQ/FuJLvG7lKjvrAGAqi2SiHaLkvGRj6L3ZEBtE1Cc4QUYcfO7QwNlzj/4QWcCDI6eqd6M/CBTQeogOTI5GvXDZw8oGfge9+TcWHdhRkZbQNk4EagIMKDA9tZaNRZiGMEYbu1TPf2Yrcg0JaqB6065Uy9SqKKcz62y+FFgtLKgApGfKhf31Zirn+AJsoPl6/wqUt4dniMoch2KUD3MV+7wS+vLXvwHEYrA0bBiCA4nwGEwXqdq40mAKMoRQR3fYPuttJ9jKliFRyKQVEV/24QiExIC+oQJGhBOXZ9naed4YpRThufzpcqa0y7vA21090encVJRPm7KGJ8lr0GHAZfC9lb3q2+DAFcFSO0yGQhO4SoXTQgnQLMaHlQxSmoSBCgoghRdvKs9VpCRJEoQtIU0W6dIAFcW8Q6CUhIuydhAJeLpTgiE8AyIWazZ3gXxbEJtBHTOPc+pCmF3VOYHTtBujlBGGlC49JFkvVKAPIHdJtsNf7kGkhosF0oDA76U/YUMQMD2L4+zM7bbg0OYCOiwZI/jPg8+Ix14giKaaVX1adewaiSrF316Y3ryMZ1qNbQWu3W4OBvPpU1TIgpKFm3iUIH5t1DE2oAq16IIu0yWGPBOf9DUUQE6SkgKiGtAS+crlX7NEETF4QGTtrOp6Ed0yDGSNDASDxIJkgF0tSLUrRt0XFjy3eBn4oTMOpBRBWRnLUriDpEpG1E2ZmyGtE3QGN4BBPX6V9ZRFRp3D5Ism2gdeaOkab0X1vBNBvhqe+AFjPa7ieqocWVCG0zzBNplkZwxV5csZd0YwObxNRKW9/Ya8DA4mWfgdyBNMteMCDNMoxgxOmqF4kvUKstG3UAxClRo45JUsSlWxKwjUZQuNeUzce7CSOUeSkS9G2Bb0OWFq+B3qXL6MY6ttEgasYY4I6PP6LZPxB2dQ5JEnpu/IfsfeiEVgdIEDEhIynZXcO9LffePvJYQfmzDdA2dIHFl8SKtG5H+XuD3OQHqtrxnvdlEFL1gkzDeqr+WQrERmYFMF/ZObIYoWWDYCSAA1YzQpk4PXBGooNABqwaSHgRpgqp+LUUcKENE5Gl05XlcQO4FD3of9O+TgjBNXKu5T2iXc+OmTmc0NpPiJG5q7/WKZ6rHAScATizvrLQFNmLsuodUf3lJKtfMClzk7BsmBkh/ywYWuas+FhZXFWWEzF7TleWLm2mJfO1HSNzveJ+XFA5bIVSpgeLtEtDuEPkvNBprs5AGuoc6n61KTofqzn27sbyX8n9Pf8vmUVx5eVVIv0AAAAASUVORK5CYII="/>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b22; --line: #263041; --txt: #e6edf3;
+    --dim: #8b949e; --accent: #f2b705; --sub: #ff7b72; --ok: #3fb950;
+    /* near-white grey for penalty (italic) times: readable, just off the main text */
+    --faint: #d9e0e8;
+    --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+    /* pinned column widths (border-box, so offsets = cumulative widths) */
+    --w-pos: 46px; --w-name: 200px; --w-time: 116px;
+    /* overlay background opacity (0..1); set per-overlay via the ?bg= param / host JS */
+    --ov-alpha: 0.8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt);
+         font: 15px/1.4 system-ui, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 16px 20px; border-bottom: 1px solid var(--line);
+           display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 18px; margin: 0; letter-spacing: .5px; }
+  /* app icon beside the title; the header row aligns on baselines, so the image
+     centers itself instead. Its src is the favicon's data URI, set from JS, so
+     the artwork is embedded once. Negative margin tightens the icon-title pair
+     against the header's uniform gap. */
+  #logo { align-self: center; display: block; margin-right: -6px; }
+  .meta { color: var(--dim); font-size: 13px; }
+  /* GitHub link: neutral pill fixed beside the gear button (same top/height, 8px
+     gap => right = 12 + 34 + 8). Lives inside <header>, so overlay mode hides it
+     with the rest for free (display:none on the parent beats position:fixed). */
+  .ghlink { position: fixed; top: 10px; right: 54px; z-index: 20; height: 34px;
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 0 12px; border: 1px solid var(--line); border-radius: 8px;
+            background: var(--panel); color: var(--dim); font-size: 13px;
+            text-decoration: none; white-space: nowrap; }
+  .ghlink:hover { border-color: var(--accent); color: var(--txt); }
+  .ghlink svg { flex: none; }
+  /* operator-set page title + description: own full-width row inside the header,
+     just under the "ACR Live Timing" / status line */
+  .pageinfo { flex-basis: 100%; margin-top: -8px; }
+  .pagetitle { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+  .pagedesc { color: var(--dim); font-size: 13px; margin-top: 4px;
+              white-space: pre-wrap; overflow-wrap: anywhere; }
+  .pagetitle a, .pagedesc a { color: var(--accent); text-decoration: underline; }
+  .pagetitle a { color: inherit; }
+  /* current-stage bar: phase badge + stage name + start time / length.
+     Sits BELOW the header's separator line, as its own row. */
+  .stagebar { padding: 12px 20px 0; display: flex; align-items: center; gap: 22px;
+              flex-wrap: wrap; }
+  .phasebadge { font-size: 12px; font-weight: 700; letter-spacing: .5px;
+                text-transform: uppercase; padding: 2px 12px; border-radius: 10px;
+                background: var(--panel); border: 1px solid var(--line);
+                color: var(--dim); white-space: nowrap;
+                /* fixed width (fits the longest label, "LOADING NEXT STAGE") so the
+                   bar never shifts and the status always stays on one line */
+                width: 190px; text-align: center; box-sizing: border-box; }
+  .phasebadge.racing { background: var(--ok); border-color: var(--ok); color: #0e1116; }
+  .phasebadge.results { background: var(--accent); border-color: var(--accent); color: #0e1116; }
+  .curstage { font-weight: 600; font-size: 14px; }
+  /* live stage progression: an AUTO-FITTING window — the right edge is the
+     leader's position (km figure beside the track), the left edge is the last
+     running car, so the range stretches to fit the field. The configured value
+     is the MAX span: past it the leader stays right-pinned and cars further back
+     than the cap are hidden. Finished cars pin the right edge (the stage end
+     stops moving); only DNF/retired cars are kept off the edges. */
+  .progwrap { padding: 12px 20px 0; display: flex; align-items: center; gap: 12px; }
+  .progtrack { position: relative; flex: 1; height: 84px; background: var(--panel);
+               border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .progline { position: absolute; left: 0; right: 0; top: 50%; height: 2px;
+              margin-top: -1px; background: var(--line); }
+  .progcar { position: absolute; top: 50%; width: 12px; height: 12px;
+             border-radius: 50%; transform: translate(-50%, -50%);
+             border: 2px solid var(--bg); box-sizing: border-box;
+             transition: left .9s linear; z-index: 1; }
+  .progcar.fin { border-radius: 2px; }          /* square = crossed the line */
+  .progcar.out { opacity: .35; }                /* retired / disqualified */
+  .progcar.anon { opacity: .55; }               /* unidentified car: dot only, no label */
+  .proglbl { position: absolute; transform: translateX(-50%); font-size: 10px;
+             line-height: 1.1; color: var(--txt); white-space: nowrap;
+             transition: left .9s linear; }
+  /* 4 label rows (2 above, 2 below the line) so clustered markers stay readable */
+  .proglbl.t1 { top: 5px; }  .proglbl.t2 { top: 19px; }
+  .proglbl.b1 { bottom: 5px; } .proglbl.b2 { bottom: 19px; }
+  .proglbl.ph { color: var(--dim); font-style: italic; }  /* unidentified car */
+  /* leader's absolute km, to the RIGHT of the track (= right edge of the window) */
+  .progkm { font-size: 13px; font-weight: 700; color: var(--txt);
+            min-width: 62px; white-space: nowrap; }
+  .progkm small { display: block; font-size: 9px; font-weight: 400;
+                  color: var(--dim); text-transform: uppercase; letter-spacing: .4px; }
+  /* current window span ("−2 km"), bottom-left corner of the track */
+  /* z-index over the labels (which are appended after it): the JS keeps the b1 row
+     clear of this corner, but on a layout it can't predict the figure still wins */
+  .proglo { position: absolute; left: 6px; bottom: 3px; font-size: 9px;
+            color: var(--dim); z-index: 2; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+         background: var(--dim); margin-right: 6px; vertical-align: middle; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .wrap { padding: 16px 20px; overflow-x: auto; }
+  table { border-collapse: collapse; }
+  th, td { padding: 8px 12px; text-align: right; white-space: nowrap;
+           border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; font-size: 12px;
+       text-transform: uppercase; letter-spacing: .4px; line-height: 1.3;
+       vertical-align: top;   /* stage names top-aligned when they wrap over lines */
+       position: sticky; top: 0; background: var(--bg); z-index: 1; }
+
+  /* fixed-width time columns (stage cells + Total) */
+  .cell, .total { width: var(--w-time); min-width: var(--w-time);
+                  max-width: var(--w-time); }
+
+  /* left-pinned block: #, Driver, Total — stay put while stages scroll */
+  th.pos,  td.pos  { position: sticky; left: 0;
+                     width: var(--w-pos); min-width: var(--w-pos); max-width: var(--w-pos); }
+  th.name, td.name { position: sticky; left: var(--w-pos); text-align: left;
+                     width: var(--w-name); min-width: var(--w-name); max-width: var(--w-name);
+                     overflow: hidden; text-overflow: ellipsis; }
+  th.total, td.total { position: sticky; left: calc(var(--w-pos) + var(--w-name)); }
+  th.pos, td.pos, th.name, td.name, th.total, td.total {
+    background: var(--bg); z-index: 2; }
+  th.pos, th.name, th.total { z-index: 3; }
+  /* subtle divider between the pinned block and the scrolling stages */
+  td.total, th.total { border-right: 2px solid var(--line); }
+
+  td.pos { color: var(--dim); }
+  .stagename { display: block; color: var(--txt); text-transform: none;
+               font-weight: 500; font-size: 12px;
+               white-space: normal; overflow-wrap: anywhere; }
+  .flag { width: 18px; height: 13px; margin-right: 6px; vertical-align: middle;
+          border-radius: 2px; object-fit: cover; }
+  /* keeps pseudos aligned when a driver has no known flag yet */
+  .flag-ph { display: inline-block; width: 18px; height: 13px; margin-right: 6px;
+             vertical-align: middle; }
+  .car { display: block; font-size: 10px; font-weight: 400; color: var(--dim);
+         overflow: hidden; text-overflow: ellipsis; }
+  tbody tr:hover td { background: var(--panel); }
+  td.name { font-weight: 700; }
+  td.total { font-weight: 700; }
+  /* second line in a time cell: gap to the column leader, small + dim */
+  .t-diff { display: block; font-size: 10px; line-height: 1.1; min-height: 11px;
+            font-weight: 400; font-style: normal; color: var(--dim); }
+  /* stage time over the cap (real stage time shown) -> grey italic */
+  td.pen { color: var(--faint); font-style: italic; }
+  /* live cumulative split: visible for comparison, never counted as a finish */
+  td.split { color: var(--dim); }
+  /* started the stage but never crossed the line -> light grey italic, like a penalized time */
+  td.dnf { color: var(--faint); font-style: italic; letter-spacing: .5px; }
+  .gold { color: var(--gold); }
+  .silver { color: var(--silver); }
+  .bronze { color: var(--bronze); }
+  td.name.gold, td.name.silver, td.name.bronze { font-weight: 700; }
+  footer { padding: 12px 20px; color: var(--dim); font-size: 12px; }
+  footer a { color: var(--dim); text-decoration: underline; }
+  footer a:hover { color: var(--accent); }
+  .empty-state { padding: 40px 20px; color: var(--dim); text-align: center; }
+
+  /* ---- streaming-overlay modes (?view=classification / ?view=progress) --------------
+     Transparent window canvas, only the requested widget visible. Used by the
+     embedded overlay windows (WebView2) so OBS / on-top capture shows one widget
+     on a see-through background. */
+  body.overlay { background: transparent; overflow: hidden; }
+  /* overlays never scroll — content is clipped to the window (resize to reveal) */
+  body.overlay .wrap { overflow: hidden; }
+  body.overlay header, body.overlay .stagebar, body.overlay footer { display: none !important; }
+  body.view-classification .progwrap { display: none !important; }
+  body.view-classification .wrap { padding: 0; }
+  /* table keeps a solid dark card so the rows read against any background. Only
+     #/Driver/Total remain (no horizontal scroll) so sticky pinning is dropped;
+     the table stays its NATURAL width — the overlay window fits+zooms to it. */
+  /* semi-transparent fill so the game/desktop shows through the classification overlay
+     (opacity set per-overlay from the IHM via --ov-alpha) */
+  body.view-classification table { background: rgba(14, 17, 22, var(--ov-alpha)); border-radius: 8px; }
+  body.view-classification th, body.view-classification td { position: static; }
+  /* the header + pinned #/Driver/Total cells paint an opaque var(--bg) for scrolling;
+     clear it in the overlay so the table's translucent fill (--ov-alpha) shows through */
+  body.view-classification thead th,
+  body.view-classification th.pos, body.view-classification td.pos,
+  body.view-classification th.name, body.view-classification td.name,
+  body.view-classification th.total, body.view-classification td.total { background: transparent; }
+  /* the three columns keep a FIXED total width (34 + 182 + 96 = the old 46 + 150 +
+     116) so the overlay never resizes with the entry list: # and Total give up the
+     slack they never used, Driver gets it and fits longer names before the ellipsis. */
+  body.view-classification th.pos, body.view-classification td.pos {
+    --w-pos: 34px; padding-left: 8px; padding-right: 6px; }
+  body.view-classification th.name, body.view-classification td.name {
+    --w-name: 178px; padding-left: 8px; padding-right: 8px; }
+  /* 100px minus 14px of padding = 86px of text, and a full-hour "1:02:34.567" at
+     bold 15px measures 81px — the widest total the column ever has to hold. */
+  body.view-classification th.total, body.view-classification td.total {
+    --w-time: 100px; padding-left: 4px; padding-right: 10px; }
+  /* general classification only: drop the per-stage columns, keep #/Driver/Total */
+  body.view-classification th.cell, body.view-classification td.cell { display: none !important; }
+  /* Total is the last column now — no divider needed on its right edge */
+  body.view-classification td.total, body.view-classification th.total { border-right: none; }
+  body.view-progress .wrap { display: none !important; }
+  /* progression floats flush to the window: no padding, only the track shows */
+  body.view-progress .progwrap { padding: 0; }
+  /* semi-transparent track fill (opacity set per-overlay from the IHM via --ov-alpha) */
+  body.view-progress .progtrack { background: rgba(22, 27, 34, var(--ov-alpha)); }
+
+  /* ---- viewer settings panel (normal page only; hidden in OBS overlay modes) ----
+     Mirrors the IHM's ranking/display controls locally: stage exclusion, penalty %,
+     progression window, hide nationalities, finish gating. Held in SESSION MEMORY
+     (no persistence) so a reload reverts; "Reset" restores the host's config. */
+  #cfgbtn { position: fixed; top: 10px; right: 12px; z-index: 20;
+            width: 34px; height: 34px; border-radius: 8px; cursor: pointer; padding: 0;
+            background: var(--panel); border: 1px solid var(--line); color: var(--dim);
+            font-size: 17px; line-height: 32px; text-align: center; }
+  #cfgbtn:hover { border-color: var(--accent); color: var(--txt); }
+  #cfgbtn.on { color: var(--accent); border-color: var(--accent); }  /* overrides live */
+  #cfgpanel { position: fixed; top: 52px; right: 12px; z-index: 20; width: 284px;
+              max-height: 82vh; overflow-y: auto; display: none;
+              background: var(--panel); border: 1px solid var(--line);
+              border-radius: 10px; padding: 12px 16px 16px;
+              box-shadow: 0 10px 34px rgba(0,0,0,.55); }
+  #cfgpanel.open { display: block; }
+  #cfgpanel h3 { margin: 10px 0 4px; font-size: 12px; letter-spacing: .4px;
+                 text-transform: uppercase; color: var(--dim); font-weight: 600; }
+  #cfgpanel .cfgnote { color: var(--dim); font-size: 11px; margin: 2px 0 4px;
+                       line-height: 1.35; }
+  .cfgsec { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; }
+  .cfgsec.first { border-top: none; margin-top: 4px; }
+  .cfgrow { display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; margin: 8px 0; font-size: 13px; }
+  .cfgrow label { color: var(--txt); }
+  .cfgrow input[type=number] { width: 76px; background: var(--bg); color: var(--txt);
+            border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
+            font: inherit; text-align: right; }
+  .cfgstages { display: flex; flex-direction: column; gap: 5px; max-height: 34vh;
+               overflow-y: auto; margin-top: 6px; }
+  .cfgstage { display: flex; align-items: center; gap: 8px; font-size: 12px;
+              color: var(--txt); cursor: pointer; }
+  .cfgstage input { flex: none; margin: 0; }
+  .cfgstage span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #cfgreset { width: 100%; margin-top: 12px; padding: 8px; cursor: pointer;
+              background: var(--bg); color: var(--txt); border: 1px solid var(--line);
+              border-radius: 8px; font: inherit; }
+  #cfgreset:hover:not(:disabled) { border-color: var(--sub); color: var(--sub); }
+  #cfgreset:disabled { opacity: .45; cursor: default; color: var(--dim); }
+  body.overlay #cfgbtn, body.overlay #cfgpanel { display: none !important; }
+
+  /* narrow screens (phones): shrink columns, tighten spacing, drop Diff 1st so
+     the pinned block (#, Driver, Total) stays within the viewport. Scoped to the
+     NORMAL page only: an overlay window's CSS viewport is width/zoom, so zooming
+     it in would cross this breakpoint and flip the widget into phone layout
+     (smaller track / columns) — the overlay must keep desktop metrics. */
+  @media (max-width: 640px) {
+    body:not(.overlay) { --w-pos: 24px; --w-name: 108px; --w-time: 74px;
+                         font-size: 13px; }
+    body:not(.overlay) header { padding: 12px 14px; gap: 10px; }
+    body:not(.overlay) .ghlink .lbl { display: none; }
+    body:not(.overlay) .ghlink { padding: 0 8px; }
+    body:not(.overlay) #server, body:not(.overlay) #thresh,
+    body:not(.overlay) #state { display: none; }
+    body:not(.overlay) h1 { font-size: 16px; }
+    body:not(.overlay) .wrap { padding: 8px 10px; }
+    body:not(.overlay) th, body:not(.overlay) td { padding: 5px 6px; }
+    body:not(.overlay) th { font-size: 10px; letter-spacing: .2px; }
+    body:not(.overlay) .stagename { font-size: 10px; }
+    body:not(.overlay) th.name, body:not(.overlay) td.name { left: var(--w-pos); }
+    body:not(.overlay) .t-diff, body:not(.overlay) .car { font-size: 9px; }
+    body:not(.overlay) footer { padding: 10px 14px; font-size: 11px; }
+    body:not(.overlay) .stagebar { padding: 8px 14px 0; gap: 10px; }
+    body:not(.overlay) .progwrap { padding: 8px 10px 0; }
+    body:not(.overlay) .progtrack { height: 74px; }
+    body:not(.overlay) .proglbl { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+  <button id="cfgbtn" title="Display settings" aria-label="Display settings">⚙</button>
+  <div id="cfgpanel" role="dialog" aria-label="Display settings">
+    <h3 style="margin-top:2px">Display settings</h3>
+    <p class="cfgnote">Local to your view · not saved (reload reverts).
+      <em>Reset</em> restores the host's setup.</p>
+    <div class="cfgsec first">
+      <div class="cfgrow" title="A driver who misses a stage, or is slower than (fastest + this %), is counted at that threshold time (shown in grey italic).">
+        <label for="cfgPct">Penalty threshold %</label>
+        <input type="number" id="cfgPct" min="0" max="500" step="1" /></div>
+      <div class="cfgrow" title="Maximum span of the progression bar. The bar auto-fits the field (leader on the right); this caps how wide it can stretch. Once the field spreads past it, cars further back are hidden.">
+        <label for="cfgWin">Progression window km</label>
+        <input type="number" id="cfgWin" min="0.1" max="50" step="0.1" /></div>
+      <div class="cfgrow" title="On: reveal a time only once the car has crossed the finish line, hiding intermediate sector splits. Off: show each driver's latest cumulative split as it arrives.">
+        <label for="cfgGate">Finish gating</label>
+        <input type="checkbox" id="cfgGate" /></div>
+      <div class="cfgrow" title="Remove driver nationality flags from your view.">
+        <label for="cfgNat">Hide nationalities</label>
+        <input type="checkbox" id="cfgNat" /></div>
+    </div>
+    <div class="cfgsec">
+      <h3>Stages — uncheck to exclude</h3>
+      <div class="cfgstages" id="cfgStages"></div>
+    </div>
+    <button id="cfgreset" disabled>Reset to host config</button>
+  </div>
+  <header>
+    <img id="logo" alt="" width="22" height="22">
+    <h1>ACR Live Timing</h1>
+    <span class="meta"><span id="dot" class="dot"></span><span id="state">connecting…</span></span>
+    <span class="meta" id="server"></span>
+    <span class="meta" id="thresh"></span>
+    <a class="ghlink" href="https://github.com/FlorentDChamps/acr-live-timing"
+       target="_blank" rel="noopener"
+       title="Free & open source — star it, or leave a tip to support the project">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>
+      <span class="lbl">Star on GitHub</span>
+    </a>
+    <div class="pageinfo" id="pageinfo" style="display:none">
+      <div class="pagetitle" id="pagetitle"></div>
+      <div class="pagedesc" id="pagedesc"></div>
+    </div>
+  </header>
+  <div class="stagebar" id="stagebar" style="display:none">
+    <span class="phasebadge" id="phasebadge"></span>
+    <span class="curstage" id="curstage"></span>
+    <span class="meta" id="stagemeta"></span>
+  </div>
+  <div class="progwrap" id="progwrap" style="display:none">
+    <div class="progtrack" id="progtrack">
+      <div class="progline"></div>
+      <span class="proglo">−2 km</span>
+    </div>
+    <span class="progkm"><span id="progkm"></span><small>leader</small></span>
+  </div>
+  <div class="wrap" id="wrap">
+    <div class="empty-state" id="empty">Waiting for data…</div>
+    <table id="tbl" style="display:none">
+      <thead><tr id="head"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+  <footer>Updates automatically ·
+    <span class="gold">gold</span>/<span class="silver">silver</span>/<span class="bronze">bronze</span> = top 3 ·
+    <span style="color:var(--faint);font-style:italic">grey italic</span> = stage time capped in total ·
+    small line = gap to fastest ·
+    <a href="https://github.com/FlorentDChamps/acr-live-timing" target="_blank" rel="noopener">GitHub</a><span id="ver"></span></footer>
+
+<!-- Latest /state payload. The server bakes the current state in here when serving
+     the page, and the page re-mirrors every later update, so BOTH "Save page as"
+     modes capture it: "HTML only" keeps the served (load-time) state, "Complete"
+     keeps the live serialized DOM (save-time state). Reopened offline (file://, no
+     server), the page renders from this and the viewer settings stay fully
+     functional — they recompute client-side. type=application/json: never runs. -->
+<script type="application/json" id="statecache"></script>
+
+<script>
+// header logo = the favicon artwork, reused so the data URI lives in the file once
+document.getElementById("logo").src = document.querySelector('link[rel="icon"]').href;
+
+// overlay mode: ?view=classification / ?view=progress strips the page down to one widget
+// on a transparent canvas (streaming overlay windows load these).
+const VIEW = new URLSearchParams(location.search).get("view");
+if (VIEW === "classification" || VIEW === "progress") {
+  document.body.classList.add("overlay", "view-" + VIEW);
+  // per-overlay background opacity: ?bg=<0..100> from the host (may be re-set live
+  // via document.documentElement.style setProperty('--ov-alpha', …) from the IHM).
+  const bg = new URLSearchParams(location.search).get("bg");
+  if (bg !== null && bg !== "") {
+    const a = Math.max(0, Math.min(100, parseFloat(bg)));
+    if (!isNaN(a)) document.documentElement.style.setProperty("--ov-alpha", a / 100);
+  }
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+// fill an element with text where URLs become clickable anchors. Accepts an
+// explicit scheme (http/https), a "www." prefix, or a bare domain (example.com,
+// discord.gg/…) — the last two get an https:// href. Builds DOM nodes (no
+// innerHTML) so surrounding text is never interpreted as markup.
+function setLinkified(el, text) {
+  el.textContent = "";
+  // 1) http(s)://…   2) www.…   3) bare domain: label(.label)+/optional-path,
+  //    TLD ≥2 letters. Case-insensitive.
+  const re = /(https?:\/\/[^\s]+|www\.[^\s]+|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:\/[^\s]*)?)/gi;
+  let last = 0, m;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+    let url = m[0], trail = "";
+    // don't swallow trailing punctuation that's clearly sentence-level, not URL
+    const cut = url.match(/[.,;:!?)\]]+$/);
+    if (cut) { trail = cut[0]; url = url.slice(0, -trail.length); }
+    const a = document.createElement("a");
+    a.href = /^https?:\/\//i.test(url) ? url : "https://" + url;
+    a.textContent = url;
+    a.target = "_blank"; a.rel = "noopener noreferrer";
+    el.appendChild(a);
+    if (trail) el.appendChild(document.createTextNode(trail));
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+}
+
+function fmt(sec) {
+  if (sec == null) return "—";
+  // round to ms FIRST, then split: toFixed on the seconds remainder can round
+  // 59.9996 up to "60.000" without carrying into the minutes
+  const ms = Math.round(sec * 1000);
+  const m = Math.floor(ms / 60000);
+  const s = (ms - m * 60000) / 1000;
+  return String(m).padStart(2, "0") + ":" + s.toFixed(3).padStart(6, "0");
+}
+
+// gap to the column leader; blank when this cell IS the leader (or no value)
+function fmtGap(sec) {
+  if (sec == null || sec <= 0.0005) return "";
+  const ms = Math.round(sec * 1000);
+  const m = Math.floor(ms / 60000);
+  const s = (ms - m * 60000) / 1000;
+  return "+" + String(m).padStart(2, "0") + ":" + s.toFixed(3).padStart(6, "0");
+}
+
+// a time cell: main time on line 1, small gap-to-leader on line 2
+function setCell(td, mainText, diffText) {
+  td.appendChild(document.createTextNode(mainText));
+  const d = document.createElement("span");
+  d.className = "t-diff";
+  d.textContent = diffText || "";
+  td.appendChild(d);
+}
+
+function medalClass(n) {
+  return n === 1 ? "gold" : n === 2 ? "silver" : n === 3 ? "bronze" : "";
+}
+
+// Every nationality the game exposes -> flagcdn code (ISO 3166-1 alpha-2, or a
+// gb-* subdivision). Keys match the game's exact tokens, INCLUDING its own typos
+// (Irleand, Zimbawe, Kazakhastan, Camerun, Lichtenstein, CapoVerde, PapaNewGuinea)
+// so backend tokens map 1:1 with no cleanup. "Other" = unknown -> no flag (absent).
+const NATION_ISO = {
+  Afghanistan:"af", Albania:"al", Algeria:"dz", Andorra:"ad", Angola:"ao",
+  AntiguaAndBarbuda:"ag", Argentina:"ar", Armenia:"am", Australia:"au", Austria:"at",
+  Azerbaijan:"az", Bahamas:"bs", Bahrain:"bh", Bangladesh:"bd", Barbados:"bb",
+  Belarus:"by", Belgium:"be", Belize:"bz", Benin:"bj", Bolivia:"bo",
+  BosniaHerzegovina:"ba", Botswana:"bw", Brazil:"br", Brunei:"bn", Bulgaria:"bg",
+  BurkinaFaso:"bf", Burundi:"bi", Cambodia:"kh", Camerun:"cm", Canada:"ca",
+  CapoVerde:"cv", CentralAfricanRepublic:"cf", Chad:"td", Chile:"cl", China:"cn",
+  Colombia:"co", Comoros:"km", CostaRica:"cr", Croatia:"hr", Cuba:"cu", Cyprus:"cy",
+  CzechRepublic:"cz", DemocraticRepublicOfCongo:"cd", Denmark:"dk", Djibouti:"dj",
+  Dominica:"dm", DominicanRepublic:"do", Ecuador:"ec", Egypt:"eg", ElSalvador:"sv",
+  EquatorialGuinea:"gq", Eritrea:"er", Estonia:"ee", Eswatini:"sz", Ethiopia:"et",
+  Fiji:"fj", Finland:"fi", France:"fr", Gabon:"ga", Gambia:"gm", Georgia:"ge",
+  Germany:"de", Ghana:"gh", Greece:"gr", Grenada:"gd", Guatemala:"gt", Guinea:"gn",
+  GuineaBissau:"gw", Guyana:"gy", Haiti:"ht", Honduras:"hn", HongKong:"hk",
+  Hungary:"hu", Iceland:"is", India:"in", Indonesia:"id", Iran:"ir", Iraq:"iq",
+  Irleand:"ie", Israel:"il", Italy:"it", Jamaica:"jm", Japan:"jp", Jordan:"jo",
+  Kazakhastan:"kz", Kenya:"ke", Kiribati:"ki", Kuwait:"kw", Kyrgyzstan:"kg", Laos:"la",
+  Latvia:"lv", Lebanon:"lb", Lesotho:"ls", Liberia:"lr", Libya:"ly",
+  Lichtenstein:"li", Lithuania:"lt", Luxembourg:"lu", Macau:"mo", Madagascar:"mg",
+  Malawi:"mw", Malaysia:"my", Maldives:"mv", Mali:"ml", Malta:"mt", Mauritania:"mr",
+  Mauritius:"mu", Mexico:"mx", Micronesia:"fm", Moldova:"md", Monaco:"mc",
+  Mongolia:"mn", Montenegro:"me", Morocco:"ma", Mozambique:"mz", Myanmar:"mm",
+  Namibia:"na", Nauru:"nr", Nepal:"np", Netherlands:"nl", NewZealand:"nz",
+  Nicaragua:"ni", Niger:"ne", Nigeria:"ng", NorthKorea:"kp", NorthMacedonia:"mk",
+  Norway:"no", Oman:"om", Pakistan:"pk", Palau:"pw", Panama:"pa", PapaNewGuinea:"pg",
+  Paraguay:"py", Peru:"pe", Philippines:"ph", Poland:"pl", Portugal:"pt", Qatar:"qa",
+  RepublicOfCongo:"cg", Romania:"ro", Russia:"ru", Rwanda:"rw", SaintKittsAndNevis:"kn",
+  SaintLucia:"lc", SaintVincentAndGrenadines:"vc", Samoa:"ws", SanMarino:"sm",
+  SaoTomeAndPrincipe:"st", SaudiArabia:"sa", Senegal:"sn", Serbia:"rs", Seychelles:"sc",
+  SierraLeone:"sl", Singapore:"sg", Slovakia:"sk", Slovenia:"si", SolomonIslands:"sb",
+  Somalia:"so", SouthAfrica:"za", SouthKorea:"kr", SouthSudan:"ss", Spain:"es",
+  SriLanka:"lk", Sudan:"sd", Suriname:"sr", Sweden:"se", Switzerland:"ch", Syria:"sy",
+  TaipeiChina:"tw", Tajikistan:"tj", Tanzania:"tz", Thailand:"th", TimorLeste:"tl",
+  Togo:"tg", Tonga:"to", TrinidadAndTobago:"tt", Tunisia:"tn", Turkey:"tr",
+  Turkmenistan:"tm", Tuvalu:"tv", Uganda:"ug", Ukraine:"ua", UnitedArabEmirates:"ae",
+  UnitedKingdom:"gb", UnitedStates:"us", Uruguay:"uy", Uzbekistan:"uz", Vanuatu:"vu",
+  Vatican:"va", Venezuela:"ve", Vietnam:"vn", Wales:"gb-wls", Yemen:"ye", Zambia:"zm",
+  Zimbawe:"zw",
+  // not in the game list but harmless if a future build splits the UK out
+  England:"gb-eng", Scotland:"gb-sct", Ireland:"ie"
+};
+
+// flagcdn image code (emoji flags don't render on Windows — use images instead)
+function flagCode(nat) {
+  if (!nat) return null;
+  const code = NATION_ISO[nat];
+  return code || null;
+}
+
+// raw CarId straight from the wire (e.g. "SkodaFabiaRSRally2") — no brand list, no
+// space-insertion. The backend already sends the exact token; show it verbatim.
+function carLabel(car) {
+  return car || "";
+}
+
+// "SS1 AlsaceS4Saverne" -> "SS1" over "AlsaceS4Saverne" (two lines)
+function stageHeaderHtml(label) {
+  const m = /^(SS\d+)\s+(.+)$/.exec(label);
+  if (m) return esc(m[1]) + '<span class="stagename">' + esc(m[2]) + "</span>";
+  return esc(label);
+}
+
+// distinct marker colors; a driver keeps their color (stable name hash)
+const CAR_COLORS = ["#e6194b","#3cb44b","#ffe119","#4363d8","#f58231","#911eb4",
+                    "#42d4f4","#f032e6","#bfef45","#fabed4","#469990","#dcbeff",
+                    "#9a6324","#fffac8","#800000","#aaffc3"];
+function carColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return CAR_COLORS[h % CAR_COLORS.length];
+}
+
+// live progression track: keyed DOM elements so the markers slide (CSS transition)
+const progEls = new Map();   // name -> { dot, lbl }
+function renderProgress(list, windowKm) {
+  const wrap = document.getElementById("progwrap");
+  const track = document.getElementById("progtrack");
+  list = list || [];
+  // the bar is ALWAYS shown now (even with no data): an empty track with its axis
+  // labels, so the overlay/page keeps a stable footprint before anyone is driving.
+  wrap.style.display = "";
+  // auto-fitting window: the range STRETCHES in real time between the leader
+  // (right edge) and the last car (left edge), so the field always spans the
+  // whole track. windowKm is now the MAX span (a cap): once the field spreads
+  // wider than it, the right edge stays on the leader and cars further back than
+  // the cap are hidden. Finished cars DO define the edges — once the fastest
+  // crosses the line the right edge pins to the stage end and stops moving.
+  // Excluded from the edges: DNF/retired cars (frozen mid-track) and cars still on
+  // the start line (dist ~0 — a mid-stage joiner / not-yet-launched car that would
+  // otherwise peg the tail at 0 and the span at the cap for the whole stage).
+  const CAP = Math.max(100, (windowKm || 2) * 1000);
+  const setLo = s => document.querySelector(".proglo").textContent =
+    "−" + (s >= 1000 ? (s / 1000).toFixed(s % 1000 ? 1 : 0) + " km" : Math.round(s) + " m");
+  if (list.length === 0) {
+    for (const e of progEls.values()) { e.dot.remove(); e.lbl.remove(); }
+    progEls.clear();
+    setLo(CAP);
+    document.getElementById("progkm").textContent = "0.00 km";
+    return;
+  }
+  // edges over cars that have actually STARTED and are not DNF. A car still on the
+  // start line (dist ~0: a mid-stage joiner, a spectator, someone not yet launched)
+  // would otherwise pin the tail to 0 and peg the span at the cap for the whole
+  // stage; a DNF is frozen mid-track. Neither may define the leader/tail.
+  const edge = list.filter(p => !p.out && p.dist > 1);
+  const fit = edge.length ? edge : list;        // pre-start (all at the line) fallback
+  const maxd = Math.max(...fit.map(p => p.dist));
+  const mind = Math.min(...fit.map(p => p.dist));
+  // span fits the field [tail, leader] but never exceeds the configured cap, and
+  // has a 100 m floor so a bunched grid (everyone near 0) doesn't collapse to /0
+  const span = Math.min(Math.max(maxd - mind, 100), CAP);
+  const left = maxd - span;
+  setLo(span);
+  document.getElementById("progkm").textContent = (maxd / 1000).toFixed(2) + " km";
+  const W = track.clientWidth;
+  const seen = new Set();
+  const rows = { t1: [], b1: [], t2: [], b2: [] };   // label rows, for de-overlap
+  const ROW = ["t1", "b1", "t2", "b2"];
+  // the span caption ("−2 km") owns the bottom-left corner and shares its band with
+  // the b1 row only. A label that would land on it is moved UP to b2 rather than
+  // pushed right: the name stays centred on its marker, which is what identifies it.
+  const lo = document.querySelector(".proglo");
+  const loFloor = lo.offsetLeft + lo.offsetWidth + 6;
+  list.forEach((p, i) => {
+    seen.add(p.name);
+    let e = progEls.get(p.name);
+    if (!e) {
+      e = { dot: document.createElement("span"), lbl: document.createElement("span") };
+      track.appendChild(e.dot); track.appendChild(e.lbl);
+      progEls.set(p.name, e);
+    }
+    const rel = (p.dist - left) / span;              // 1 = leader edge, 0 = tail edge
+    // cars further back than the window are hidden entirely (not clamped left)
+    if (rel < 0) { e.dot.style.display = "none"; e.lbl.style.display = "none"; e.lbl.textContent = ""; return; }
+    e.dot.style.display = "";
+    const x = W * (0.03 + 0.94 * Math.min(1, rel));
+    e.dot.className = "progcar" + (p.finished ? " fin" : "") + (p.out ? " out" : "")
+                    + (p.named ? "" : " anon");
+    // named cars keep a stable per-driver colour; an unnamed car is a neutral dot
+    e.dot.style.background = p.named ? carColor(p.name) : "var(--dim)";
+    e.dot.style.left = x.toFixed(1) + "px";
+    const gap = Math.round(maxd - p.dist);
+    const t = (p.named ? p.name : "Unknown car") + " — " + (p.dist / 1000).toFixed(2) + " km" +
+              (gap > 0 ? " (−" + gap + " m)" : "") +
+              (p.out ? " (out)" : p.finished ? " (finished)" : "");
+    e.dot.title = t;
+    // only IDENTIFIED cars get a text label (no "Car N" placeholders); the dot
+    // alone conveys an unknown car's position. Labels rotate over 4 rows (the list
+    // is distance-sorted, so neighbours land on different rows) then de-overlap.
+    if (p.named) {
+      let row = ROW[i % 4];
+      e.lbl.className = "proglbl " + row;
+      const short = p.name.length > 14 ? p.name.slice(0, 13) + "…" : p.name;
+      e.lbl.textContent = short + (p.out ? " ✕" : p.finished ? " ✓" : "");
+      // measured with the text in place: a bottom-row label that would sit over the
+      // span caption goes up one row instead of being nudged off its marker
+      if (row === "b1" && x - e.lbl.offsetWidth / 2 < loFloor) {
+        row = "b2";
+        e.lbl.className = "proglbl " + row;
+      }
+      e.lbl.title = t;
+      e.lbl.style.display = "";
+      rows[row].push({ lbl: e.lbl, x });
+    } else {
+      e.lbl.style.display = "none";
+      e.lbl.textContent = "";
+    }
+  });
+  for (const [name, e] of progEls)
+    if (!seen.has(name)) { e.dot.remove(); e.lbl.remove(); progEls.delete(name); }
+  // per row: keep labels centred on their marker but push colliding ones apart
+  // (finish pile-ups put several markers on the same pixel)
+  for (const row of ROW) {
+    const items = rows[row].sort((a, b) => a.x - b.x);
+    for (let i = 0; i < items.length; i++) {
+      const half = items[i].lbl.offsetWidth / 2 || 30;
+      items[i].min = items[i].x - half;       // left edge if centred on the marker
+      items[i].w = half * 2;
+    }
+    for (let i = 1; i < items.length; i++)   // forward: no overlap with the left
+      items[i].min = Math.max(items[i].min, items[i - 1].min + items[i - 1].w + 6);
+    if (items.length) {                       // backward: keep inside the track
+      const last = items.length - 1;
+      items[last].min = Math.min(items[last].min, W - items[last].w - 4);
+      for (let i = last - 1; i >= 0; i--)
+        items[i].min = Math.min(items[i].min, items[i + 1].min - items[i].w - 6);
+    }
+    for (const it of items)
+      it.lbl.style.left = (Math.max(2, it.min) + it.w / 2).toFixed(1) + "px";
+  }
+}
+
+// ---- viewer overrides (session memory; null on a field = follow the host) --------
+// The host publishes its config in /state; a viewer may locally diverge on any of
+// these. Only stage-exclusion / penalty% / finish-gating change the standings and
+// trigger a client-side recompute from the ungated `rawCells`; hide-nations and the
+// progression window are purely presentational. Nothing is persisted — a reload
+// (or Reset) drops back to the host's published config.
+const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, progKm: null };
+let lastServer = null;
+
+const hasOverride = () =>
+  ov.discarded !== null || ov.pct !== null || ov.finishGating !== null ||
+  ov.hideNations !== null || ov.progKm !== null;
+
+const hostDiscarded = v => new Set((v.allStages || []).filter(s => s.discarded).map(s => s.id));
+const effDiscarded  = v => ov.discarded !== null ? ov.discarded : hostDiscarded(v);
+const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
+const hideNatOn     = () => ov.hideNations === true;
+
+// THE board computation — the single implementation. The host ships data, never a
+// rendered classification: reveal gating, penalty substitution, totals, ranking and
+// sort all happen here, from the ungated per-column `rawCells` (t=time, f=matched a
+// real finish peak, s=sectors), parameterised by cfg (excluded stage ids, penalty
+// fraction, finish gating). A viewer override is just a different cfg.
+function computeView(v, cfg) {
+  const all = v.allStages || [];
+  const N = all.length;
+  const currentCol = N > 0 ? all[N - 1].id : null;
+  const src = v.rows || [];
+
+  const incl = [];
+  for (let c = 0; c < N; c++) if (!cfg.discarded.has(all[c].id)) incl.push(c);
+
+  const maxSec = {}, confirmed = {}, fastest = {};
+  for (const c of incl) {
+    let ms = 0, conf = false;
+    for (const r of src) {
+      const rc = r.rawCells && r.rawCells[c];
+      if (!rc) continue;
+      if (rc.s > ms) ms = rc.s;
+      if (v.hasRaceState && rc.f) conf = true;
+    }
+    maxSec[c] = ms; confirmed[c] = conf;
+  }
+  // Completion is independent from display mode: a split must NEVER enter the
+  // aggregate total. Prefer the exact per-car finish peak; peer confirmation recovers
+  // a missed peak at the same (final) sector count. With NO RaceState stream at all
+  // there is no finish signal to wait for, so a complete sector chain is the only
+  // proxy available and counts immediately — gating it on "a later column exists"
+  // would leave the last stage of a rally permanently uncounted.
+  const completed = (rc, c) => rc != null && (v.hasRaceState
+    ? (rc.f || (confirmed[c] && rc.s === maxSec[c]))
+    : rc.s === maxSec[c]);
+  // With gating off, show one comparable split level at a time: the furthest sector
+  // the field has reached. As soon as S2/S3/finish appears, older levels disappear.
+  const revealed = (rc, c) => rc != null &&
+    (cfg.finishGating ? completed(rc, c) : rc.s === maxSec[c]);
+  for (const c of incl) {
+    let best = Infinity;
+    for (const r of src) {
+      const rc = r.rawCells && r.rawCells[c];
+      if (completed(rc, c) && rc.t < best) best = rc.t;
+    }
+    if (best < Infinity) fastest[c] = best;
+  }
+
+  const rows = src.map(r => {
+    const cells = [];
+    let total = 0, totalSubstituted = false;
+    for (const c of incl) {
+      const rc = r.rawCells ? r.rawCells[c] : null;
+      const has = rc != null;
+      const final = has && completed(rc, c);
+      const real = (has && revealed(rc, c)) ? rc.t : null;
+      const finalTime = final ? rc.t : null;
+      // Two ways to know a driver abandoned a stage they posted splits on. On a CLOSED
+      // column it is an inference: a peer finished, they never did. On the RUNNING
+      // column only the car's own Retire/Disqualify phase can tell — a driver still
+      // out on the road is otherwise indistinguishable from one who stopped.
+      const dnf = v.hasRaceState && !final && has &&
+                  (all[c].id !== currentCol ? confirmed[c] : !!r.retired);
+      if (!(c in fastest)) {
+        cells.push({ real, effective: finalTime == null ? 0 : finalTime,
+                     substituted: false, empty: true, dnf, final });
+        if (finalTime != null) total += finalTime;
+        continue;
+      }
+      const threshold = fastest[c] * (1 + cfg.pct);
+      let effective, substituted;
+      if (finalTime == null) { effective = threshold; substituted = true; }
+      else if (finalTime > threshold) { effective = threshold; substituted = true; }
+      else { effective = finalTime; substituted = false; }
+      total += effective;
+      if (substituted) totalSubstituted = true;
+      cells.push({ real, effective, substituted, empty: false, dnf, final });
+    }
+    // `timed` = has at least one completed stage time, so it is classified. Computed
+    // once here: the sort comparator would otherwise rescan every cell per comparison.
+    return { driver: r.driver, cells, total, totalSubstituted,
+             timed: cells.some(c => c.final), nation: r.nation, car: r.car };
+  });
+
+  // Timed drivers first, then capped total asc and ordinal name tiebreak. A row
+  // without any completed time must never outrank a classified driver on a cap tie.
+  rows.sort((a, b) => {
+    if (a.timed !== b.timed) return a.timed ? -1 : 1;
+    return (a.total - b.total) ||
+      (a.driver < b.driver ? -1 : a.driver > b.driver ? 1 : 0);
+  });
+  rows.forEach((r, i) => r.rank = i + 1);
+
+  return Object.assign({}, v, { stages: incl.map(c => all[c].name), rows, pct: cfg.pct });
+}
+
+// the view actually rendered: always computed here, using the host's published
+// config unless the viewer has overridden a board-affecting field.
+function effectiveView(v) {
+  return computeView(v, {
+    discarded: effDiscarded(v),
+    pct: ov.pct !== null ? ov.pct : (v.pct || 0),
+    finishGating: ov.finishGating !== null ? ov.finishGating : !!v.finishGating
+  });
+}
+
+// ---- settings panel: build/sync from the latest host payload + current overrides --
+const cfgEls = {};
+let stageIdsKey = "";
+function initPanel() {
+  const $ = id => document.getElementById(id);
+  Object.assign(cfgEls, {
+    btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), win: $("cfgWin"),
+    gate: $("cfgGate"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset")
+  });
+  cfgEls.btn.addEventListener("click", () => {
+    const open = cfgEls.panel.classList.toggle("open");
+    if (open && lastServer) syncPanel(lastServer);
+  });
+  // click anywhere outside the panel (and not on the gear) closes it. The gear's own
+  // handler runs first and is excluded here, so a gear click still just toggles.
+  document.addEventListener("click", e => {
+    if (!cfgEls.panel.classList.contains("open")) return;
+    if (cfgEls.panel.contains(e.target) || cfgEls.btn.contains(e.target)) return;
+    cfgEls.panel.classList.remove("open");
+  });
+  const reRender = () => { if (lastServer) { render(effectiveView(lastServer)); syncPanel(lastServer); } };
+  cfgEls.pct.addEventListener("input", () => {
+    const n = parseFloat(cfgEls.pct.value);
+    ov.pct = isNaN(n) ? null : Math.max(0, n) / 100; reRender();
+  });
+  cfgEls.win.addEventListener("input", () => {
+    const n = parseFloat(cfgEls.win.value);
+    ov.progKm = isNaN(n) ? null : Math.max(0.1, n); reRender();
+  });
+  cfgEls.gate.addEventListener("change", () => { ov.finishGating = cfgEls.gate.checked; reRender(); });
+  cfgEls.nat.addEventListener("change", () => { ov.hideNations = cfgEls.nat.checked; reRender(); });
+  cfgEls.reset.addEventListener("click", () => {
+    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.progKm = null;
+    reRender();
+  });
+}
+function buildStages(v) {
+  const all = v.allStages || [];
+  const key = all.map(s => s.id).join("|");
+  const eff = effDiscarded(v);
+  if (key !== stageIdsKey) {                 // rebuild only when the column set changes
+    stageIdsKey = key;
+    cfgEls.stages.innerHTML = "";
+    all.forEach(s => {
+      const lab = document.createElement("label");
+      lab.className = "cfgstage";
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.dataset.id = s.id;
+      cb.addEventListener("change", () => {
+        if (ov.discarded === null) ov.discarded = hostDiscarded(lastServer);
+        if (cb.checked) ov.discarded.delete(s.id); else ov.discarded.add(s.id);
+        render(effectiveView(lastServer)); syncPanel(lastServer);
+      });
+      const span = document.createElement("span");
+      span.textContent = s.name; span.title = s.name;
+      lab.appendChild(cb); lab.appendChild(span);
+      cfgEls.stages.appendChild(lab);
+    });
+  }
+  cfgEls.stages.querySelectorAll("input").forEach(cb => { cb.checked = !eff.has(cb.dataset.id); });
+}
+// refresh the controls from host defaults + overrides; never clobber an input the
+// user is actively editing (poll re-renders call this every second).
+function syncPanel(v) {
+  if (!cfgEls.btn) return;
+  const active = document.activeElement;
+  if (cfgEls.pct !== active)
+    cfgEls.pct.value = Math.round(((ov.pct !== null ? ov.pct : (v.pct || 0)) * 100));
+  if (cfgEls.win !== active) {
+    const w = progKmOf(v);
+    cfgEls.win.value = (w != null ? +(+w).toFixed(1) : "");
+  }
+  if (cfgEls.gate !== active)
+    cfgEls.gate.checked = ov.finishGating !== null ? ov.finishGating : !!v.finishGating;
+  if (cfgEls.nat !== active) cfgEls.nat.checked = hideNatOn();
+  buildStages(v);
+  cfgEls.reset.disabled = !hasOverride();
+  cfgEls.btn.classList.toggle("on", hasOverride());
+}
+
+// ---- offline "Save page as" support ---------------------------------------------
+// Mirror each state payload into the #statecache <script> so the browser's own
+// "Save page as" bakes it into the file. Reopened with no server, the page renders
+// from it and the settings panel keeps working (it recomputes client-side).
+const stateCacheEl = document.getElementById("statecache");
+function writeStateCache(v) {
+  // '<' -> < keeps a driver name from closing the <script> in the saved file;
+  // still valid JSON, so JSON.parse restores it verbatim.
+  if (stateCacheEl) stateCacheEl.textContent = JSON.stringify(v).replaceAll("<", "\\u003c");
+}
+function readStateCache() {
+  const t = stateCacheEl && stateCacheEl.textContent.trim();
+  if (!t) return null;
+  try { return JSON.parse(t); } catch { return null; }
+}
+
+// host payload -> effective view -> render + refresh the panel
+function applyServer(v) {
+  lastServer = v;
+  writeStateCache(v);
+  render(effectiveView(v));
+  syncPanel(v);
+}
+
+function render(v) {
+  document.getElementById("state").textContent = v.state || "";
+  document.getElementById("server").textContent = v.server ? ("Server " + v.server) : "";
+  document.getElementById("thresh").textContent =
+    "Penalty threshold: 1st +" + Math.round((v.pct || 0) * 100) + "%";
+  document.getElementById("dot").className = "dot" + (v.state === "Connected" ? " on" : "");
+  // host version: separator lives here so the whole thing vanishes when absent
+  document.getElementById("ver").textContent = v.version ? " · v" + v.version : "";
+
+  // operator-set title / description block (hidden entirely when both empty)
+  const title = v.title || "", desc = v.description || "";
+  const info = document.getElementById("pageinfo");
+  const dt = document.getElementById("pagetitle");
+  setLinkified(dt, title);
+  dt.style.display = title ? "" : "none";
+  const dd = document.getElementById("pagedesc");
+  setLinkified(dd, desc);
+  dd.style.display = desc ? "" : "none";
+  info.style.display = (title || desc) ? "" : "none";
+
+  // current-stage bar: phase badge + stage + start time / length estimate
+  const bar = document.getElementById("stagebar");
+  if (v.phase || v.currentStage) {
+    bar.style.display = "";
+    const badge = document.getElementById("phasebadge");
+    badge.textContent = v.phase || "";
+    badge.style.display = v.phase ? "" : "none";
+    badge.className = "phasebadge" +
+      (v.phase === "Racing" ? " racing" :
+       v.phase === "Results" || v.phase === "Finishing" ? " results" : "");
+    document.getElementById("curstage").textContent = v.currentStage || "";
+    // in-game start time (weather timeline) + stage weather forecast
+    const meta = [];
+    if (v.stageStart) meta.push("Start " + v.stageStart);
+    if (v.stageWeather) meta.push(v.stageWeather);
+    document.getElementById("stagemeta").textContent = meta.join(" · ");
+  } else {
+    bar.style.display = "none";
+  }
+
+  renderProgress(v.progress, progKmOf(v));
+
+  const stages = v.stages || [];
+  const rows = v.rows || [];
+  const tbl = document.getElementById("tbl");
+  const empty = document.getElementById("empty");
+
+  // build the header first so it can stay visible even with no rows (the stage
+  // columns carry class "cell" and are hidden in the classification overlay).
+  const head = document.getElementById("head");
+  head.innerHTML = "";
+  function addTh(html, cls) {
+    const th = document.createElement("th");
+    if (cls) th.className = cls;
+    th.innerHTML = html;
+    head.appendChild(th);
+  }
+  addTh("#", "pos");
+  addTh("Driver", "name");
+  addTh("Total", "total");
+  stages.forEach(label => addTh(stageHeaderHtml(label), "cell"));
+
+  if (rows.length === 0) {
+    document.getElementById("body").innerHTML = "";
+    // classification overlay keeps the header row (#, Driver, Total) on screen;
+    // the normal page shows the "waiting for data" placeholder instead.
+    const overlayTable = document.body.classList.contains("view-classification");
+    empty.style.display = overlayTable ? "none" : "block";
+    tbl.style.display = overlayTable ? "" : "none";
+    return;
+  }
+  empty.style.display = "none";
+  tbl.style.display = "";
+
+  const leader = rows[0] ? rows[0].total : 0;
+
+  // per stage column: the 3 fastest real times get gold/silver/bronze
+  const stageMedal = stages.map((_, s) => {
+    const m = new Map();
+    rows.map(r => ({ d: r.driver, c: r.cells ? r.cells[s] : null }))
+        // finish times only — an intermediate split never takes a podium slot
+        .filter(x => x.c && x.c.final && !x.c.substituted && x.c.real != null)
+        .sort((a, b) => a.c.real - b.c.real)
+        .slice(0, 3)
+        .forEach((x, i) => m.set(x.d, i + 1));
+    return m;
+  });
+
+  // per stage column: fastest real time (reference for the small gap line)
+  const stageFastest = stages.map((_, s) => {
+    let best = Infinity;
+    rows.forEach(r => {
+      const c = r.cells && r.cells[s];
+      if (c && c.real != null && c.real < best) best = c.real;
+    });
+    return best === Infinity ? null : best;
+  });
+
+  const body = document.getElementById("body");
+  body.innerHTML = "";
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    const nmc = medalClass(r.rank);   // overall top-3 for name + total
+
+    const tdPos = document.createElement("td");
+    tdPos.className = "pos"; tdPos.textContent = r.rank; tr.appendChild(tdPos);
+
+    const tdName = document.createElement("td");
+    tdName.className = "name" + (nmc ? " " + nmc : "");
+    const fc = hideNatOn() ? null : flagCode(r.nation);
+    if (fc) {
+      const img = document.createElement("img");
+      img.className = "flag";
+      img.src = "https://flagcdn.com/20x15/" + fc + ".png";
+      img.srcset = "https://flagcdn.com/40x30/" + fc + ".png 2x";
+      img.width = 20; img.height = 15; img.alt = r.nation; img.title = r.nation;
+      img.onerror = () => { const ph = document.createElement("span");
+                            ph.className = "flag-ph"; img.replaceWith(ph); };
+      tdName.appendChild(img);
+    } else {
+      // no known flag: reserve the same space so pseudos stay aligned
+      const ph = document.createElement("span");
+      ph.className = "flag-ph";
+      tdName.appendChild(ph);
+    }
+    tdName.appendChild(document.createTextNode(r.driver));
+    const car = carLabel(r.car);
+    if (car) {
+      const c = document.createElement("span");
+      c.className = "car"; c.textContent = car; tdName.appendChild(c);
+    }
+    tdName.title = r.driver + (car ? " — " + car : "");
+    tr.appendChild(tdName);
+
+    const tdTot = document.createElement("td");
+    // The overall classification always shows the CAPPED ranking total. Real times
+    // in grey italic belong to individual stage cells only. Keep the aggregate blank
+    // until the driver has at least one completed stage time; after that, absent/DNF
+    // stages contribute their configured cap exactly as they do to the sort.
+    tdTot.className = "total" + (nmc ? " " + nmc : "");
+    if (!r.timed) {
+      setCell(tdTot, "", "");
+      tdTot.title = "No stage time yet";
+    } else {
+      setCell(tdTot, fmt(r.total), fmtGap(r.total - leader));
+      if (r.totalSubstituted)
+        tdTot.title = "Classification total including capped stage times";
+    }
+    tr.appendChild(tdTot);
+
+    (r.cells || []).forEach((cell, s) => {
+      const td = document.createElement("td");
+      td.classList.add("cell");
+      const fastest = stageFastest[s];
+      const gap = (cell.real != null && fastest != null) ? fmtGap(cell.real - fastest) : "";
+      if (cell.dnf) {
+        // started the stage (posted splits) but never crossed the line
+        td.classList.add("dnf");
+        setCell(td, "DNF", "");
+        td.title = "Did not finish — counted as penalty in total";
+      } else if (cell.real != null && !cell.final) {
+        // Latest cumulative split at the field's current sector level. Display-only:
+        // it is never used as a stage finish or added to the aggregate total.
+        td.classList.add("split");
+        setCell(td, fmt(cell.real), gap);
+        td.title = "Cumulative split time — not counted in total";
+      } else if (cell.empty || cell.substituted) {
+        // penalized in the total: real time (or blank if none), grey italic
+        td.classList.add("pen");
+        setCell(td, cell.real != null ? fmt(cell.real) : "", gap);
+        td.title = cell.real != null
+          ? "Real time " + fmt(cell.real) + " — over threshold, counted as penalty in total"
+          : "No time — counted as penalty in total";
+      } else {
+        setCell(td, fmt(cell.effective), gap);
+        const mc = medalClass(stageMedal[s].get(r.driver));  // top 3 of this stage
+        if (mc) td.classList.add(mc);
+      }
+      tr.appendChild(td);
+    });
+
+    body.appendChild(tr);
+  });
+}
+
+// Poll /state on a short interval. Plain short GETs proxy reliably through
+// Cloudflare Tunnel, unlike a long-lived SSE stream (HTTP/2 stream resets).
+let polling = false;
+async function poll() {
+  if (polling) return;
+  polling = true;
+  try {
+    const r = await fetch("/state", { cache: "no-store" });
+    if (r.ok) applyServer(await r.json());
+  } catch (_) { /* transient; retry next tick */ }
+  finally { polling = false; }
+}
+initPanel();
+// The server bakes the current state into #statecache, so first paint comes from it
+// with no /state round-trip. A copy saved via the browser's "Save page as" opens as
+// file:// with no server behind it: the baked state renders and the settings panel
+// stays functional (recomputes are client-side) — so only poll when actually served.
+const saved = readStateCache();
+if (saved) applyServer(saved);
+if (location.protocol !== "file:") {
+  poll();
+  setInterval(poll, 1000);
+}
+</script>
+</body>
+</html>
