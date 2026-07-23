@@ -31,6 +31,9 @@ namespace ACRLiveTiming.UI
         readonly CloudflaredRunner _tunnel = new();
         DispatcherTimer? _timer;
         List<string> _lastStageKey = new();
+        readonly HashSet<string> _selectedStageIds = new();
+        readonly HashSet<string> _knownStageIds = new();
+        readonly HashSet<int> _collapsedStageGroups = new();
         PcapWriter? _pcap;
         volatile bool _replaying;
         volatile bool _stopReplay;
@@ -721,48 +724,165 @@ namespace ACRLiveTiming.UI
         void RebuildStagesIfChanged()
         {
             var view = _engine.Matrix.BuildView();
-            var key = view.AllStages.Select(s => s.Id + "=" + s.Name).ToList();
+            var key = view.AllStages.Select(s => s.Id + "=" + s.Name + "=" + s.Group + "=" + s.GroupName + "=" + s.Discarded).ToList();
             if (key.SequenceEqual(_lastStageKey)) return;   // avoid churn
             _lastStageKey = key;
 
             StagesPanel.Children.Clear();
+            foreach (var stage in view.AllStages)
+                if (_knownStageIds.Add(stage.Id) && !stage.Discarded) _selectedStageIds.Add(stage.Id);
+            _selectedStageIds.RemoveWhere(id => !view.AllStages.Any(s => s.Id == id));
             if (view.AllStages.Count == 0)
             {
+                _knownStageIds.Clear();
+                _collapsedStageGroups.Clear();
                 StagesPanel.Children.Add(new TextBlock
                 {
                     Text = "(no stage yet)",
                     Foreground = new SolidColorBrush(Color.FromRgb(0x65, 0x6D, 0x76))
                 });
+                StageSelectAllBtn.Content = "Select all";
                 return;
             }
-            foreach (var stage in view.AllStages)
+
+            foreach (var group in view.AllStages.Where(s => s.Group > 0)
+                         .GroupBy(s => s.Group).OrderBy(g => g.Key))
             {
-                // full special name, ellipsized if it overflows the narrow panel,
-                // with the untruncated name available on hover
-                var label = new TextBlock
+                bool collapsed = _collapsedStageGroups.Contains(group.Key);
+                var toggle = new Button
                 {
-                    Text = stage.Name,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    ToolTip = stage.Name
+                    Content = collapsed ? "+" : "−",
+                    Tag = group.Key,
+                    HorizontalContentAlignment = HorizontalAlignment.Left,
+                    Margin = new Thickness(0, 4, 6, 1),
+                    Padding = new Thickness(2, 0, 2, 0)
                 };
-                var checkBox = new CheckBox
+                toggle.Click += StageGroupExpand_Click;
+                var selectGroup = new CheckBox
                 {
-                    Content = label,
-                    IsChecked = !stage.Discarded,
-                    Margin = new Thickness(0, 2, 0, 2),
-                    Tag = stage.Id
+                    IsChecked = group.All(stage => _selectedStageIds.Contains(stage.Id)),
+                    Tag = group.Select(stage => stage.Id).ToList(),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(0, 4, 6, 1),
+                    ToolTip = "Select or unselect every stage in this rally."
                 };
-                checkBox.Checked += StageToggle;
-                checkBox.Unchecked += StageToggle;
-                StagesPanel.Children.Add(checkBox);
+                selectGroup.Checked += StageGroupSelection_Changed;
+                selectGroup.Unchecked += StageGroupSelection_Changed;
+                var name = new TextBox
+                {
+                    Text = group.First().GroupName,
+                    Tag = group.Key,
+                    ToolTip = "Rally name shown on the web page. Press Enter or click elsewhere to apply.",
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
+                name.LostKeyboardFocus += StageGroupName_LostKeyboardFocus;
+                name.KeyDown += StageGroupName_KeyDown;
+                var header = new DockPanel { Margin = new Thickness(0, 4, 0, 1) };
+                DockPanel.SetDock(toggle, Dock.Left);
+                DockPanel.SetDock(selectGroup, Dock.Left);
+                header.Children.Add(toggle);
+                header.Children.Add(selectGroup);
+                header.Children.Add(name);
+                StagesPanel.Children.Add(header);
+                if (!collapsed)
+                    foreach (var stage in group) AddStageSelection(stage, 16);
             }
+            foreach (var stage in view.AllStages.Where(s => s.Group == 0))
+                AddStageSelection(stage, 0);
+
+            StageSelectAllBtn.Content = _selectedStageIds.Count < view.AllStages.Count
+                ? "Select all" : "Unselect all";
         }
 
-        void StageToggle(object sender, RoutedEventArgs e)
+        void AddStageSelection(StageInfo stage, double leftMargin)
+        {
+            var label = new TextBlock
+            {
+                Text = stage.Name,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                ToolTip = stage.Name
+            };
+            var checkBox = new CheckBox
+            {
+                Content = label,
+                IsChecked = _selectedStageIds.Contains(stage.Id),
+                Margin = new Thickness(leftMargin, 2, 0, 2),
+                Tag = stage.Id
+            };
+            checkBox.Checked += StageSelection_Changed;
+            checkBox.Unchecked += StageSelection_Changed;
+            StagesPanel.Children.Add(checkBox);
+        }
+
+        void StageSelection_Changed(object sender, RoutedEventArgs e)
         {
             var checkBox = (CheckBox)sender;
+            if (checkBox.IsChecked == true) _selectedStageIds.Add((string)checkBox.Tag);
+            else _selectedStageIds.Remove((string)checkBox.Tag);
             _engine.Matrix.SetDiscarded((string)checkBox.Tag, checkBox.IsChecked != true);
+            var count = _engine.Matrix.BuildView().AllStages.Count;
+            StageSelectAllBtn.Content = _selectedStageIds.Count < count ? "Select all" : "Unselect all";
         }
+
+        void StageGroupExpand_Click(object sender, RoutedEventArgs e)
+        {
+            int group = (int)((Button)sender).Tag;
+            if (!_collapsedStageGroups.Add(group)) _collapsedStageGroups.Remove(group);
+            _lastStageKey.Clear();
+            RebuildStagesIfChanged();
+        }
+
+        void StageGroupSelection_Changed(object sender, RoutedEventArgs e)
+        {
+            var checkBox = (CheckBox)sender;
+            if (checkBox.Tag is not List<string> ids) return;
+            bool selected = checkBox.IsChecked == true;
+            foreach (var id in ids)
+            {
+                if (selected) _selectedStageIds.Add(id); else _selectedStageIds.Remove(id);
+                _engine.Matrix.SetDiscarded(id, !selected);
+            }
+            var count = _engine.Matrix.BuildView().AllStages.Count;
+            StageSelectAllBtn.Content = _selectedStageIds.Count < count ? "Select all" : "Unselect all";
+        }
+
+        void CommitStageGroupName(TextBox textBox)
+            => _engine.Matrix.SetGroupName((int)textBox.Tag, textBox.Text);
+
+        void StageGroupName_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+            => CommitStageGroupName((TextBox)sender);
+
+        void StageGroupName_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            CommitStageGroupName((TextBox)sender);
+            Keyboard.ClearFocus();
+            e.Handled = true;
+        }
+
+        void StageSelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            var stages = _engine.Matrix.BuildView().AllStages;
+            if (_selectedStageIds.Count < stages.Count)
+                foreach (var stage in stages) _selectedStageIds.Add(stage.Id);
+            else _selectedStageIds.Clear();
+            foreach (var stage in stages)
+                _engine.Matrix.SetDiscarded(stage.Id, !_selectedStageIds.Contains(stage.Id));
+            _lastStageKey.Clear();
+            RebuildStagesIfChanged();
+        }
+
+        IEnumerable<string> SelectedGroupStages() => _selectedStageIds;
+
+        void GroupStages_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = SelectedGroupStages().ToList();
+            if (selected.Count == 0) { AppendLog("Select at least one stage to group."); return; }
+            _engine.Matrix.GroupStages(selected);
+        }
+
+        void UngroupStages_Click(object sender, RoutedEventArgs e)
+            => _engine.Matrix.UngroupStages(SelectedGroupStages());
 
         // ---- helpers ---------------------------------------------------------
 

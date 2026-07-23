@@ -33,6 +33,8 @@ namespace ACRLiveTiming.Model
         public string Id { get; set; } = "";      // stable column key (UI checkboxes)
         public string Name { get; set; } = "";    // display label, e.g. "SS1 AlsaceS4Saverne"
         public bool Discarded { get; set; }
+        public int Group { get; set; }             // 0 = ungrouped; positive values are host group ids
+        public string GroupName { get; set; } = ""; // host-set rally name (empty = default "Rally N")
     }
 
     public sealed class CarProgressView
@@ -119,6 +121,8 @@ namespace ACRLiveTiming.Model
         readonly Dictionary<long, int> _carSeq = new();                  // guid -> "Car N" number
         long _version;
         readonly HashSet<string> _discarded = new();                       // ids
+        readonly Dictionary<string, int> _groups = new();                  // id -> group id (0/absent = ungrouped)
+        readonly Dictionary<int, string> _groupNames = new();              // group id -> host-set label
         readonly Dictionary<string, string?> _nations = new();
         // Latest known car is carried to the next stage when its first time arrives;
         // the per-column map preserves the car actually used on each stage.
@@ -540,6 +544,8 @@ namespace ACRLiveTiming.Model
                 _columnOrder.Clear();
                 _driverOrder.Clear();
                 _discarded.Clear();
+                _groups.Clear();
+                _groupNames.Clear();
                 _nations.Clear();
                 _lastCars.Clear();
                 _carsByColumn.Clear();
@@ -585,6 +591,8 @@ namespace ACRLiveTiming.Model
                 _columnOrder.Clear();
                 _driverOrder.Clear();
                 _discarded.Clear();
+                _groups.Clear();
+                _groupNames.Clear();
                 _carsByColumn.Clear();
                 _finishTimes.Clear();
                 _hasRaceState = false;
@@ -604,6 +612,63 @@ namespace ACRLiveTiming.Model
                 else _discarded.Remove(id);
             }
             RaiseChanged();
+        }
+
+        /// <summary>Put the selected stage columns in one new group. Group ids are
+        /// session-local labels for the UI/page; timings and totals are unaffected.</summary>
+        public void GroupStages(IEnumerable<string> ids)
+        {
+            var selected = ids.Distinct().Where(id => !string.IsNullOrWhiteSpace(id)).ToList();
+            if (selected.Count == 0) return;
+            lock (_lock)
+            {
+                var valid = selected.Where(id => _columnOrder.Contains(id)).ToList();
+                if (valid.Count == 0) return;
+                int next = _groups.Count == 0 ? 1 : _groups.Values.Max() + 1;
+                foreach (var id in valid) _groups[id] = next;
+                _groupNames[next] = $"Rally {next}";
+                RemoveUnusedGroups();
+            }
+            RaiseChanged();
+        }
+
+        /// <summary>Set the published display name for a rally group. An empty name
+        /// restores the stable default, <c>Rally N</c>.</summary>
+        public void SetGroupName(int group, string? name)
+        {
+            string value = string.IsNullOrWhiteSpace(name) ? $"Rally {group}" : name.Trim();
+            bool changed = false;
+            lock (_lock)
+            {
+                if (!_groups.Values.Contains(group)) return;
+                if (!_groupNames.TryGetValue(group, out var current) || current != value)
+                {
+                    _groupNames[group] = value;
+                    changed = true;
+                }
+            }
+            if (changed) RaiseChanged();
+        }
+
+        /// <summary>Remove the selected stage columns from whatever groups they are in.</summary>
+        public void UngroupStages(IEnumerable<string> ids)
+        {
+            bool changed = false;
+            lock (_lock)
+            {
+                foreach (var id in ids.Distinct()) changed |= _groups.Remove(id);
+                if (changed) RemoveUnusedGroups();
+            }
+            if (changed) RaiseChanged();
+        }
+
+        // Single-stage rallies are valid too. Only clean up names whose group no
+        // longer has any stage after an ungroup or a regroup operation.
+        void RemoveUnusedGroups()
+        {
+            var used = _groups.Values.ToHashSet();
+            foreach (var id in _groupNames.Keys.Where(id => !used.Contains(id)).ToList())
+                _groupNames.Remove(id);
         }
 
         public double Pct
@@ -657,7 +722,10 @@ namespace ACRLiveTiming.Model
                     {
                         Id = id,
                         Name = _labels.TryGetValue(id, out var label) ? label : id,
-                        Discarded = _discarded.Contains(id)
+                        Discarded = _discarded.Contains(id),
+                        Group = _groups.TryGetValue(id, out var group) ? group : 0,
+                        GroupName = _groups.TryGetValue(id, out group)
+                            ? _groupNames.GetValueOrDefault(group, $"Rally {group}") : ""
                     })
                     .ToList();
                 // Drivers whose car is currently retired/disqualified. This is a DIRECT

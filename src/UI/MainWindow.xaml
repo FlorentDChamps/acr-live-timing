@@ -456,16 +456,27 @@
     <ScrollViewer Grid.Row="2" Grid.Column="1" Margin="12,0,0,0"
                   VerticalScrollBarVisibility="Visible">
       <StackPanel>
-        <GroupBox Header="Stages — uncheck to exclude">
+        <GroupBox Header="Stages — select to group">
           <StackPanel>
-            <TextBlock Text="Excluded stages disappear from the page and the total."
+            <TextBlock Text="Checked stages are shown as columns and selected for grouping."
                        Foreground="{DynamicResource Brush.Muted}" TextWrapping="Wrap" Margin="0,0,0,6"/>
             <StackPanel x:Name="StagesPanel">
               <TextBlock Text="(no stage yet)" Foreground="{DynamicResource Brush.Muted}"/>
             </StackPanel>
-            <Button x:Name="ResetBtn" Content="Reset session" Margin="0,8,0,0"
-                    HorizontalAlignment="Right" Click="ResetBtn_Click"
-                    ToolTip="Clear the whole session (all stages and times)."/>
+            <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <WrapPanel Grid.Column="0">
+                <Button x:Name="StageSelectAllBtn" Content="Select all" Click="StageSelectAll_Click" Margin="0,0,4,0"/>
+                <Button Content="Group" Click="GroupStages_Click" Margin="0,0,4,0"/>
+                <Button Content="Ungroup" Click="UngroupStages_Click"/>
+              </WrapPanel>
+              <Button x:Name="ResetBtn" Grid.Column="1" Content="Reset session" Margin="12,0,0,0"
+                      HorizontalAlignment="Right" Click="ResetBtn_Click"
+                      ToolTip="Clear the whole session (all stages and times)."/>
+            </Grid>
           </StackPanel>
         </GroupBox>
 
