@@ -112,6 +112,12 @@
        text-transform: uppercase; letter-spacing: .4px; line-height: 1.3;
        vertical-align: top;   /* stage names top-aligned when they wrap over lines */
        position: sticky; top: 0; background: var(--bg); z-index: 1; }
+  .sorthead { position: relative; width: 100%; padding: 0 12px 0 0; border: 0; background: transparent;
+              color: inherit; font: inherit; text-align: inherit;
+              text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
+  .sorthead:hover { color: var(--txt); }
+  .sortarrow { position: absolute; top: 0; right: 0; color: var(--dim); opacity: .5; }
+  .sorthead.active .sortarrow { color: var(--accent); opacity: 1; }
 
   /* fixed-width time columns (stage cells + Total) */
   .cell, .total { width: var(--w-time); min-width: var(--w-time);
@@ -139,13 +145,13 @@
   /* keeps pseudos aligned when a driver has no known flag yet */
   .flag-ph { display: inline-block; width: 18px; height: 13px; margin-right: 6px;
              vertical-align: middle; }
-  .car { display: block; font-size: 10px; font-weight: 400; color: var(--dim);
+  .car { display: block; font-size: 12px; font-weight: 400; color: var(--dim);
          overflow: hidden; text-overflow: ellipsis; }
   tbody tr:hover td { background: var(--panel); }
   td.name { font-weight: 700; }
   td.total { font-weight: 700; }
   /* second line in a time cell: gap to the column leader, small + dim */
-  .t-diff { display: block; font-size: 10px; line-height: 1.1; min-height: 11px;
+  .t-diff { display: block; font-size: 12px; line-height: 1.1; min-height: 14px;
             font-weight: 400; font-style: normal; color: var(--dim); }
   /* stage time over the cap (real stage time shown) -> grey italic */
   td.pen { color: var(--faint); font-style: italic; }
@@ -638,6 +644,8 @@ function renderProgress(list, windowKm) {
 // (or Reset) drops back to the host's published config.
 const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, progKm: null };
 let lastServer = null;
+let lastRendered = null;
+let sortKey = "total";  // total by default; stage keys are their zero-based column index
 
 const hasOverride = () =>
   ov.discarded !== null || ov.pct !== null || ov.finishGating !== null ||
@@ -858,6 +866,7 @@ function applyServer(v) {
 }
 
 function render(v) {
+  lastRendered = v;
   document.getElementById("state").textContent = v.state || "";
   document.getElementById("server").textContent = v.server ? ("Server " + v.server) : "";
   document.getElementById("thresh").textContent =
@@ -900,7 +909,8 @@ function render(v) {
   renderProgress(v.progress, progKmOf(v));
 
   const stages = v.stages || [];
-  const rows = v.rows || [];
+  const rankedRows = v.rows || [];
+  const rows = rankedRows.slice();
   const tbl = document.getElementById("tbl");
   const empty = document.getElementById("empty");
 
@@ -908,16 +918,26 @@ function render(v) {
   // columns carry class "cell" and are hidden in the classification overlay).
   const head = document.getElementById("head");
   head.innerHTML = "";
-  function addTh(html, cls) {
+  function addTh(html, cls, key) {
     const th = document.createElement("th");
     if (cls) th.className = cls;
-    th.innerHTML = html;
+    if (key == null) th.innerHTML = html;
+    else {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "sorthead" + (sortKey === key ? " active" : "");
+      button.innerHTML = html + '<span class="sortarrow" aria-hidden="true">&#8593;</span>';
+      button.title = "Sort fastest to slowest (no time last)";
+      button.setAttribute("aria-sort", sortKey === key ? "ascending" : "none");
+      button.addEventListener("click", () => { sortKey = key; render(lastRendered); });
+      th.appendChild(button);
+    }
     head.appendChild(th);
   }
   addTh("#", "pos");
   addTh("Driver", "name");
-  addTh("Total", "total");
-  stages.forEach(label => addTh(stageHeaderHtml(label), "cell"));
+  addTh("Total", "total", "total");
+  stages.forEach((label, s) => addTh(stageHeaderHtml(label), "cell", s));
 
   if (rows.length === 0) {
     document.getElementById("body").innerHTML = "";
@@ -931,7 +951,20 @@ function render(v) {
   empty.style.display = "none";
   tbl.style.display = "";
 
-  const leader = rows[0] ? rows[0].total : 0;
+  const leader = rankedRows[0] ? rankedRows[0].total : 0;
+
+  // One ascending order only: a real/displayed time first, then DNF or no time.
+  // Keep the overall classification rank as a stable tiebreaker and in the # column.
+  const sortValue = r => {
+    if (sortKey === "total") return r.timed ? r.total : null;
+    const cell = r.cells && r.cells[sortKey];
+    return cell && !cell.dnf && cell.real != null ? cell.real : null;
+  };
+  rows.sort((a, b) => {
+    const av = sortValue(a), bv = sortValue(b);
+    if (av == null || bv == null) return av == null ? (bv == null ? a.rank - b.rank : 1) : -1;
+    return (av - bv) || (a.rank - b.rank);
+  });
 
   // per stage column: the 3 fastest real times get gold/silver/bronze
   const stageMedal = stages.map((_, s) => {
