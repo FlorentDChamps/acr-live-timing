@@ -48,7 +48,6 @@ namespace ACRLiveTiming.Model
         public List<StageInfo> AllStages { get; set; } = new();  // every run column (for UI checkboxes)
         public List<RowView> Rows { get; set; } = new();         // arrival order; the page sorts
         public double Pct { get; set; }
-        public string Server { get; set; } = "";
         public string State { get; set; } = "";
         public string Phase { get; set; } = "";        // lobby FSM phase ("Racing", "Results", …)
         public string CurrentStage { get; set; } = ""; // label of the latest run column
@@ -676,7 +675,6 @@ namespace ACRLiveTiming.Model
                     AllStages = all,
                     Rows = rows,
                     Pct = _pct,
-                    Server = ServerLabel,
                     State = StateLabel,
                     Phase = _lobbyPhase,
                     CurrentStage = _columnOrder.Count > 0

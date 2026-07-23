@@ -252,6 +252,10 @@
   #cfgreset:hover:not(:disabled) { border-color: var(--sub); color: var(--sub); }
   #cfgreset:disabled { opacity: .45; cursor: default; color: var(--dim); }
   body.overlay #cfgbtn, body.overlay #cfgpanel { display: none !important; }
+  /* A browser-saved page is a static final result: live status, current stage
+     and the live progression have no useful meaning once it is offline. */
+  body.saved-page #connectionstatus, body.saved-page .stagebar,
+  body.saved-page .progwrap { display: none !important; }
 
   /* narrow screens (phones): shrink columns, tighten spacing, drop Diff 1st so
      the pinned block (#, Driver, Total) stays within the viewport. Scoped to the
@@ -310,8 +314,7 @@
   <header>
     <img id="logo" alt="" width="22" height="22">
     <h1>ACR Live Timing</h1>
-    <span class="meta"><span id="dot" class="dot"></span><span id="state">connecting…</span></span>
-    <span class="meta" id="server"></span>
+    <span class="meta" id="connectionstatus"><span id="dot" class="dot"></span><span id="state">connecting…</span></span>
     <span class="meta" id="thresh"></span>
     <a class="ghlink" href="https://github.com/FlorentDChamps/acr-live-timing"
        target="_blank" rel="noopener"
@@ -364,6 +367,7 @@ document.getElementById("logo").src = document.querySelector('link[rel="icon"]')
 // overlay mode: ?view=classification / ?view=progress strips the page down to one widget
 // on a transparent canvas (streaming overlay windows load these).
 const VIEW = new URLSearchParams(location.search).get("view");
+if (location.protocol === "file:") document.body.classList.add("saved-page");
 if (VIEW === "classification" || VIEW === "progress") {
   document.body.classList.add("overlay", "view-" + VIEW);
   // per-overlay background opacity: ?bg=<0..100> from the host (may be re-set live
@@ -860,6 +864,13 @@ function readStateCache() {
 // host payload -> effective view -> render + refresh the panel
 function applyServer(v) {
   lastServer = v;
+  // Browsers use document.title as the default name for "Save page as".
+  if (location.protocol !== "file:") {
+    const now = new Date();
+    const date = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, "0") +
+      String(now.getDate()).padStart(2, "0");
+    document.title = (v.title || "ACR Live Timing") + " " + date;
+  }
   writeStateCache(v);
   render(effectiveView(v));
   syncPanel(v);
@@ -868,7 +879,6 @@ function applyServer(v) {
 function render(v) {
   lastRendered = v;
   document.getElementById("state").textContent = v.state || "";
-  document.getElementById("server").textContent = v.server ? ("Server " + v.server) : "";
   document.getElementById("thresh").textContent =
     "Penalty threshold: 1st +" + Math.round((v.pct || 0) * 100) + "%";
   document.getElementById("dot").className = "dot" + (v.state === "Connected" ? " on" : "");
