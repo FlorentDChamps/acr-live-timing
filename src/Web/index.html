@@ -133,10 +133,10 @@
   .wrap { padding: 16px 20px; overflow-x: auto; }
   table { border-collapse: collapse; }
   th, td { padding: 8px 12px; text-align: right; white-space: nowrap;
-           border-bottom: 1px solid var(--line); }
+           border-bottom: 1px solid var(--line); vertical-align: middle; }
   th { color: var(--dim); font-weight: 600; font-size: 12px;
        text-transform: uppercase; letter-spacing: .4px; line-height: 1.3;
-       vertical-align: top;   /* stage names top-aligned when they wrap over lines */
+       vertical-align: middle;
        position: sticky; top: 0; background: var(--bg); z-index: 1; }
   .sorthead { width: 100%; padding: 0; border: 0; background: transparent;
               color: inherit; font: inherit; text-align: inherit;
@@ -181,6 +181,7 @@
   tbody tr:hover td { background: var(--panel); }
   td.name { font-weight: 700; }
   td.total { font-weight: 700; }
+  .rallypoints .t-diff { display: none; }
   /* second line in a time cell: gap to the column leader, small + dim */
   .t-diff { display: block; font-size: 12px; line-height: 1.1; min-height: 14px;
             font-weight: 400; font-style: normal; color: var(--dim); }
@@ -216,6 +217,7 @@
   body.overlay .wrap { overflow: hidden; }
   body.overlay header, body.overlay .stagebar, body.overlay footer { display: none !important; }
   body.view-classification .progwrap { display: none !important; }
+  body.view-classification .boardbar { display: none !important; }
   body.view-classification .wrap { padding: 0; }
   /* table keeps a solid dark card so the rows read against any background. Only
      #/Driver/Total remain (no horizontal scroll) so sticky pinning is dropped;
@@ -290,12 +292,39 @@
               color: var(--txt); cursor: pointer; }
   .cfgstage input { flex: none; margin: 0; }
   .cfgstage span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cfgactions { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0; }
+  .cfgactions button { padding: 4px 7px; cursor: pointer; background: var(--bg); color: var(--txt);
+                       border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 11px; }
+  .cfgactions button:hover { border-color: var(--accent); }
+  .cfggroup { width: 100%; padding: 3px 0; border: 0; background: transparent; color: var(--txt);
+              text-align: left; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+  .cfggroup:hover { color: var(--txt); text-decoration: underline; }
+  .groupfilter { display: flex; align-items: center; gap: 8px; margin: 0 0 10px;
+                 color: var(--dim); font-size: 12px; }
+  .groupfilter select { background: var(--bg); color: var(--txt); border: 1px solid var(--line);
+                        border-radius: 6px; padding: 4px 6px; font: inherit; }
+  .boardbar { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+              margin: 0 0 10px; flex-wrap: wrap; }
+  .boardbar .groupfilter { margin: 0; }
+  .viewtools { display: flex; align-items: center; gap: 16px; }
+  .exporttools { display: flex; align-items: center; gap: 6px; }
+  .viewtabs { display: flex; gap: 4px; }
+  .viewtab { padding: 4px 9px; border: 1px solid var(--line); border-radius: 6px;
+             background: var(--bg); color: var(--dim); cursor: pointer; font: inherit; font-size: 12px; }
+  .viewtab:hover { color: var(--txt); border-color: var(--accent); }
+  .viewtab.active { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .exportbtn { width: 28px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 6px;
+               background: var(--bg); color: var(--dim); cursor: pointer; font: inherit; font-size: 15px; }
+  .exportbtn:hover:not(:disabled) { color: var(--txt); border-color: var(--accent); }
+  .exportbtn:disabled { opacity: .5; cursor: wait; }
+  .exportbtn.csv { width: 36px; font-size: 10px; font-weight: 700; }
   #cfgreset { width: 100%; margin-top: 12px; padding: 8px; cursor: pointer;
               background: var(--bg); color: var(--txt); border: 1px solid var(--line);
               border-radius: 8px; font: inherit; }
   #cfgreset:hover:not(:disabled) { border-color: var(--sub); color: var(--sub); }
   #cfgreset:disabled { opacity: .45; cursor: default; color: var(--dim); }
-  body.overlay #cfgbtn, body.overlay #cfgpanel { display: none !important; }
+  body.overlay #cfgbtn, body.overlay #themebtn, body.overlay #cfgpanel { display: none !important; }
+  body.view-classification .groupfilter { display: none !important; }
   /* A browser-saved page is a static final result: live status, current stage
      and the live progression have no useful meaning once it is offline. */
   body.saved-page #connectionstatus, body.saved-page .stagebar,
@@ -352,8 +381,11 @@
         <input type="checkbox" id="cfgNat" /></div>
     </div>
     <div class="cfgsec">
-      <h3>Stages — uncheck to exclude</h3>
+      <h3>Stages</h3>
       <div class="cfgstages" id="cfgStages"></div>
+      <div class="cfgactions">
+        <button type="button" id="cfgGroupToggle">Select all</button>
+    </div>
     </div>
     <button id="cfgreset" disabled>Reset to host config</button>
   </div>
@@ -386,6 +418,22 @@
     <span class="progkm"><span id="progkm"></span><small>leader</small></span>
   </div>
   <div class="wrap" id="wrap">
+    <div class="boardbar">
+      <div class="viewtools">
+        <div class="viewtabs" role="tablist" aria-label="Results view">
+          <button type="button" class="viewtab active" id="tabStages" role="tab" aria-selected="true">Stages</button>
+          <button type="button" class="viewtab" id="tabStandings" role="tab" aria-selected="false">Standings</button>
+        </div>
+        <div class="groupfilter" id="groupFilter" style="display:none">
+          <label for="groupSelect">Rally</label><select id="groupSelect"></select>
+        </div>
+      </div>
+      <div class="exporttools">
+        <button type="button" class="exportbtn" id="copyTable" title="Copy table as text" aria-label="Copy table as text">&#128203;</button>
+        <button type="button" class="exportbtn csv" id="exportCsv" title="Export table as CSV for Excel" aria-label="Export table as CSV for Excel">CSV</button>
+        <button type="button" class="exportbtn" id="exportPng" title="Export table as PNG" aria-label="Export table as PNG">&#128247;</button>
+      </div>
+    </div>
     <div class="empty-state" id="empty">Waiting for data…</div>
     <table id="tbl" style="display:none">
       <thead><tr id="head"></tr></thead>
@@ -695,17 +743,24 @@ function renderProgress(list, windowKm) {
 // trigger a client-side recompute from the ungated `rawCells`; hide-nations and the
 // progression window are purely presentational. Nothing is persisted — a reload
 // (or Reset) drops back to the host's published config.
-const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, theme: null, progKm: null };
+const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, theme: null, progKm: null,
+             groupFilter: null };
 let lastServer = null;
 let lastRendered = null;
-let sortKey = "total";  // total by default; stage keys are their zero-based column index
+let sortKey = "total";  // total by default; stage keys are stable stage ids
+let standingsSortKey = "total"; // points are naturally sorted from highest to lowest
+let activeTab = "stages";
+let groupSelection = new Set();
+const seenStageIds = new Set();
 
 const hasOverride = () =>
   ov.discarded !== null || ov.pct !== null || ov.finishGating !== null ||
-  ov.hideNations !== null || ov.theme !== null || ov.progKm !== null;
+  ov.hideNations !== null || ov.theme !== null || ov.progKm !== null || ov.groupFilter !== null;
 
 const hostDiscarded = v => new Set((v.allStages || []).filter(s => s.discarded).map(s => s.id));
 const effDiscarded  = v => ov.discarded !== null ? ov.discarded : hostDiscarded(v);
+const hostGroups = v => new Map((v.allStages || []).filter(s => s.group > 0).map(s => [s.id, s.group]));
+const effGroups = hostGroups;  // rally definitions always come from the host
 const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
 const hideNatOn     = () => ov.hideNations === true;
 function applyTheme(theme) {
@@ -826,7 +881,8 @@ function computeView(v, cfg, withPositionChange = true) {
   // without any completed time must never outrank a classified driver on a cap tie.
   rows.sort((a, b) => {
     if (a.timed !== b.timed) return a.timed ? -1 : 1;
-    return (a.total - b.total) ||
+    const finishedDiff = b.cells.filter(c => c.final).length - a.cells.filter(c => c.final).length;
+    return (a.total - b.total) || finishedDiff ||
       (a.driver < b.driver ? -1 : a.driver > b.driver ? 1 : 0);
   });
   rows.forEach((r, i) => r.rank = i + 1);
@@ -846,7 +902,10 @@ function computeView(v, cfg, withPositionChange = true) {
     rows.forEach(r => r.rankChange = null);
   }
 
-  return Object.assign({}, v, { stages: incl.map(c => all[c].name), rows, pct: cfg.pct });
+  return Object.assign({}, v, {
+    stages: incl.map(c => ({ id: all[c].id, name: all[c].name, group: cfg.groups.get(all[c].id) || 0 })),
+    rows, pct: cfg.pct
+  });
 }
 
 // the view actually rendered: always computed here, using the host's published
@@ -854,9 +913,30 @@ function computeView(v, cfg, withPositionChange = true) {
 function effectiveView(v) {
   return computeView(v, {
     discarded: effDiscarded(v),
+    groups: effGroups(v),
     pct: ov.pct !== null ? ov.pct : (v.pct || 0),
     finishGating: ov.finishGating !== null ? ov.finishGating : !!v.finishGating
   });
+}
+
+// The standings board deliberately ignores the viewer's stage checkboxes: it always
+// ranks every configured rally from all of the stages assigned to that rally.
+function standingsView(v) {
+  const groups = effGroups(v);
+  const discarded = new Set((v.allStages || [])
+    .filter(s => !(groups.get(s.id) > 0)).map(s => s.id));
+  return computeView(v, {
+    discarded, groups,
+    pct: ov.pct !== null ? ov.pct : (v.pct || 0),
+    finishGating: ov.finishGating !== null ? ov.finishGating : !!v.finishGating
+  });
+}
+function displayedView(v) { return activeTab === "standings" ? standingsView(v) : effectiveView(v); }
+
+// Host-assigned group names travel with their stages.
+function rallyName(all, groups, group) {
+  const named = all.find(s => groups.get(s.id) === group && s.group === group && s.groupName);
+  return named ? named.groupName : "Rally " + group;
 }
 
 // ---- settings panel: build/sync from the latest host payload + current overrides --
@@ -866,7 +946,11 @@ function initPanel() {
   const $ = id => document.getElementById(id);
   Object.assign(cfgEls, {
     btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), win: $("cfgWin"),
-    gate: $("cfgGate"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset")
+    gate: $("cfgGate"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
+    groupToggle: $("cfgGroupToggle"),
+    groupFilter: $("groupFilter"), groupSelect: $("groupSelect"),
+    tabStages: $("tabStages"), tabStandings: $("tabStandings"),
+    copyTable: $("copyTable"), exportCsv: $("exportCsv"), exportPng: $("exportPng")
   });
   cfgEls.btn.addEventListener("click", () => {
     const open = cfgEls.panel.classList.toggle("open");
@@ -879,7 +963,16 @@ function initPanel() {
     if (cfgEls.panel.contains(e.target) || cfgEls.btn.contains(e.target)) return;
     cfgEls.panel.classList.remove("open");
   });
-  const reRender = () => { if (lastServer) { render(effectiveView(lastServer)); syncPanel(lastServer); } };
+  const reRender = () => { if (lastServer) { render(displayedView(lastServer)); syncPanel(lastServer); } };
+  const setTab = tab => {
+    activeTab = tab;
+    if (lastServer) { render(displayedView(lastServer)); syncPanel(lastServer); }
+  };
+  cfgEls.tabStages.addEventListener("click", () => setTab("stages"));
+  cfgEls.tabStandings.addEventListener("click", () => setTab("standings"));
+  cfgEls.copyTable.addEventListener("click", () => copyVisibleTable(cfgEls.copyTable));
+  cfgEls.exportCsv.addEventListener("click", () => exportVisibleTableCsv(cfgEls.exportCsv));
+  cfgEls.exportPng.addEventListener("click", () => exportVisibleTablePng(cfgEls.exportPng));
   cfgEls.pct.addEventListener("input", () => {
     const n = parseFloat(cfgEls.pct.value);
     ov.pct = isNaN(n) ? null : Math.max(0, n) / 100; reRender();
@@ -890,38 +983,129 @@ function initPanel() {
   });
   cfgEls.gate.addEventListener("change", () => { ov.finishGating = cfgEls.gate.checked; reRender(); });
   cfgEls.nat.addEventListener("change", () => { ov.hideNations = cfgEls.nat.checked; reRender(); });
+  cfgEls.groupToggle.addEventListener("click", () => {
+    if (!lastServer) return;
+    const all = (lastServer.allStages || []).map(s => s.id);
+    groupSelection = all.some(id => !groupSelection.has(id)) ? new Set(all) : new Set();
+    ov.groupFilter = null; applyStageSelection(lastServer);
+  });
+  cfgEls.groupSelect.addEventListener("change", () => {
+    ov.groupFilter = cfgEls.groupSelect.value === "" ? null : Number(cfgEls.groupSelect.value);
+    sortKey = "total";
+    if (lastServer) {
+      const all = lastServer.allStages || [];
+      if (ov.groupFilter == null) {
+        // Back to "All stages" = back in sync with the HOST's published selection,
+        // not "every stage": re-seed the checkboxes from the host discards and
+        // drop the override entirely instead of pinning an all-visible set.
+        groupSelection = new Set(all.filter(s => !hostDiscarded(lastServer).has(s.id)).map(s => s.id));
+        seenStageIds.clear();
+        all.forEach(s => seenStageIds.add(s.id));
+        ov.discarded = null;
+        render(displayedView(lastServer)); syncPanel(lastServer);
+      } else {
+        groupSelection = new Set(all.filter(s => effGroups(lastServer).get(s.id) === ov.groupFilter).map(s => s.id));
+        applyStageSelection(lastServer);
+      }
+    }
+  });
   cfgEls.reset.addEventListener("click", () => {
-    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.theme = ov.progKm = null;
+    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.theme = ov.progKm = ov.groupFilter = null;
     applyTheme("system");
     syncThemeButton();
-    sortKey = "total";
+    groupSelection.clear(); seenStageIds.clear(); sortKey = "total";
     reRender();
   });
 }
+const collapsedGroups = new Set();
 function buildStages(v) {
   const all = v.allStages || [];
-  const key = all.map(s => s.id).join("|");
-  const eff = effDiscarded(v);
-  if (key !== stageIdsKey) {                 // rebuild only when the column set changes
+  const discardedByHost = hostDiscarded(v);
+  for (const stage of all) {
+    if (seenStageIds.has(stage.id)) continue;
+    seenStageIds.add(stage.id);
+    if (!discardedByHost.has(stage.id)) groupSelection.add(stage.id);
+  }
+  const known = new Set(all.map(s => s.id));
+  groupSelection = new Set([...groupSelection].filter(id => known.has(id)));
+  const groups = effGroups(v);
+  const key = all.map(s => s.id + "=" + (groups.get(s.id) || 0) + "=" + (s.groupName || "")).join("|");
+  if (key !== stageIdsKey) {
     stageIdsKey = key;
     cfgEls.stages.innerHTML = "";
-    all.forEach(s => {
+    const addStage = (s, indent) => {
       const lab = document.createElement("label");
       lab.className = "cfgstage";
+      lab.style.marginLeft = indent + "px";
       const cb = document.createElement("input");
       cb.type = "checkbox"; cb.dataset.id = s.id;
       cb.addEventListener("change", () => {
-        if (ov.discarded === null) ov.discarded = hostDiscarded(lastServer);
-        if (cb.checked) ov.discarded.delete(s.id); else ov.discarded.add(s.id);
-        render(effectiveView(lastServer)); syncPanel(lastServer);
+        if (cb.checked) groupSelection.add(s.id); else groupSelection.delete(s.id);
+        ov.groupFilter = null; applyStageSelection(v);
       });
       const span = document.createElement("span");
       span.textContent = s.name; span.title = s.name;
-      lab.appendChild(cb); lab.appendChild(span);
-      cfgEls.stages.appendChild(lab);
+      lab.append(cb, span); cfgEls.stages.appendChild(lab);
+    };
+    const grouped = new Map();
+    all.forEach(s => {
+      const group = groups.get(s.id) || 0;
+      if (group > 0) {
+        if (!grouped.has(group)) grouped.set(group, []);
+        grouped.get(group).push(s);
+      }
     });
+    [...grouped.keys()].sort((a, b) => a - b).forEach(group => {
+      const collapsed = collapsedGroups.has(group);
+      const button = document.createElement("button");
+      button.type = "button"; button.className = "cfggroup";
+      button.textContent = (collapsed ? "+ " : "- ") + rallyName(all, groups, group);
+      button.addEventListener("click", e => {
+        e.stopPropagation();
+        if (collapsedGroups.has(group)) collapsedGroups.delete(group); else collapsedGroups.add(group);
+        stageIdsKey = ""; buildStages(v);
+      });
+      cfgEls.stages.appendChild(button);
+      if (!collapsed) grouped.get(group).forEach(s => addStage(s, 14));
+    });
+    all.filter(s => !(groups.get(s.id) > 0)).forEach(s => addStage(s, 0));
   }
-  cfgEls.stages.querySelectorAll("input").forEach(cb => { cb.checked = !eff.has(cb.dataset.id); });
+  cfgEls.stages.querySelectorAll("input").forEach(cb => { cb.checked = groupSelection.has(cb.dataset.id); });
+  updateGroupToggle(all);
+}
+function updateGroupToggle(all) {
+  cfgEls.groupToggle.textContent = all.some(s => !groupSelection.has(s.id)) ? "Select all" : "Unselect all";
+}
+function applyStageSelection(v) {
+  ov.discarded = new Set((v.allStages || []).filter(s => !groupSelection.has(s.id)).map(s => s.id));
+  if (lastServer) { render(displayedView(lastServer)); syncPanel(lastServer); }
+}
+function syncGroupFilter() {
+  const all = lastServer ? (lastServer.allStages || []) : [];
+  const groupMap = lastServer ? effGroups(lastServer) : new Map();
+  const groups = [...new Set(all.map(s => groupMap.get(s.id) || 0).filter(g => g > 0))].sort((a, b) => a - b);
+  cfgEls.groupFilter.style.display = "flex";
+  if (!groups.includes(ov.groupFilter)) ov.groupFilter = null;
+  const key = groups.map(g => g + "=" + rallyName(all, groupMap, g)).join("|");
+  if (cfgEls.groupSelect.dataset.key !== key) {
+    cfgEls.groupSelect.dataset.key = key;
+    cfgEls.groupSelect.innerHTML = "";
+    const allOption = document.createElement("option"); allOption.value = ""; allOption.textContent = "All stages";
+    cfgEls.groupSelect.appendChild(allOption);
+    groups.forEach(g => { const opt = document.createElement("option"); opt.value = g; opt.textContent = rallyName(all, groupMap, g); cfgEls.groupSelect.appendChild(opt); });
+  }
+  cfgEls.groupSelect.value = ov.groupFilter == null ? "" : String(ov.groupFilter);
+}
+function syncTabBar() {
+  const standings = activeTab === "standings";
+  cfgEls.tabStages.classList.toggle("active", !standings);
+  cfgEls.tabStandings.classList.toggle("active", standings);
+  cfgEls.tabStages.setAttribute("aria-selected", String(!standings));
+  cfgEls.tabStandings.setAttribute("aria-selected", String(standings));
+  // Every rally is intentionally present in this board, so filtering is disabled.
+  cfgEls.groupSelect.disabled = standings;
+  cfgEls.groupSelect.title = standings ? "All rallies are shown in this view" : "";
+  cfgEls.groupFilter.style.display = standings ? "none" : "flex";
 }
 // refresh the controls from host defaults + overrides; never clobber an input the
 // user is actively editing (poll re-renders call this every second).
@@ -950,7 +1134,11 @@ const stateCacheEl = document.getElementById("statecache");
 function writeStateCache(v) {
   // '<' -> < keeps a driver name from closing the <script> in the saved file;
   // still valid JSON, so JSON.parse restores it verbatim.
-  if (stateCacheEl) stateCacheEl.textContent = JSON.stringify(v).replaceAll("<", "\\u003c");
+  const groups = effGroups(v);
+  const cached = Object.assign({}, v, {
+    allStages: (v.allStages || []).map(s => Object.assign({}, s, { group: groups.get(s.id) || 0 }))
+  });
+  if (stateCacheEl) stateCacheEl.textContent = JSON.stringify(cached).replaceAll("<", "\\u003c");
 }
 function readStateCache() {
   const t = stateCacheEl && stateCacheEl.textContent.trim();
@@ -969,7 +1157,7 @@ function applyServer(v) {
     document.title = (v.title || "ACR Live Timing") + " " + date;
   }
   writeStateCache(v);
-  render(effectiveView(v));
+  render(displayedView(v));
   syncPanel(v);
 }
 
@@ -1014,12 +1202,23 @@ function render(v) {
   }
 
   renderProgress(v.progress, progKmOf(v));
+  syncTabBar();
+  if (activeTab === "standings") {
+    renderStandings(v);
+    return;
+  }
 
   const stages = v.stages || [];
   const rankedRows = v.rows || [];
   const rows = rankedRows.slice();
+  syncGroupFilter();
+  const stageCols = stages
+    .map((stage, cellIndex) => ({ ...stage, cellIndex }))
+    .filter(stage => ov.groupFilter == null || stage.group === ov.groupFilter);
+  if (sortKey !== "total" && !stageCols.some(stage => stage.id === sortKey)) sortKey = "total";
   const tbl = document.getElementById("tbl");
   const empty = document.getElementById("empty");
+  empty.textContent = "Waiting for data…";
 
   // build the header first so it can stay visible even with no rows (the stage
   // columns carry class "cell" and are hidden in the classification overlay).
@@ -1032,7 +1231,7 @@ function render(v) {
     else {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "sorthead" + (sortKey === key ? " active" : "");
+      button.className = "sorthead";
       button.innerHTML = html;
       button.title = "Sort fastest to slowest (no time last)";
       button.setAttribute("aria-sort", sortKey === key ? "ascending" : "none");
@@ -1044,7 +1243,7 @@ function render(v) {
   addTh("#", "pos");
   addTh("Driver", "name");
   addTh("Total", "total", "total");
-  stages.forEach((label, s) => addTh(stageHeaderHtml(label), "cell", s));
+  stageCols.forEach(stage => addTh(stageHeaderHtml(stage.name), "cell", stage.id));
 
   if (rows.length === 0) {
     document.getElementById("body").innerHTML = "";
@@ -1064,7 +1263,8 @@ function render(v) {
   // Keep the overall classification rank as a stable tiebreaker and in the # column.
   const sortValue = r => {
     if (sortKey === "total") return r.timed ? r.total : null;
-    const cell = r.cells && r.cells[sortKey];
+    const cellIndex = stages.findIndex(stage => stage.id === sortKey);
+    const cell = cellIndex < 0 ? null : r.cells && r.cells[cellIndex];
     return cell && !cell.dnf && cell.real != null ? cell.real : null;
   };
   rows.sort((a, b) => {
@@ -1074,9 +1274,9 @@ function render(v) {
   });
 
   // per stage column: the 3 fastest real times get gold/silver/bronze
-  const stageMedal = stages.map((_, s) => {
+  const stageMedal = stageCols.map(({ cellIndex }) => {
     const m = new Map();
-    rows.map(r => ({ d: r.driver, c: r.cells ? r.cells[s] : null }))
+    rows.map(r => ({ d: r.driver, c: r.cells ? r.cells[cellIndex] : null }))
         // finish times only — an intermediate split never takes a podium slot
         .filter(x => x.c && x.c.final && !x.c.substituted && x.c.real != null)
         .sort((a, b) => a.c.real - b.c.real)
@@ -1086,10 +1286,10 @@ function render(v) {
   });
 
   // per stage column: fastest real time (reference for the small gap line)
-  const stageFastest = stages.map((_, s) => {
+  const stageFastest = stageCols.map(({ cellIndex }) => {
     let best = Infinity;
     rows.forEach(r => {
-      const c = r.cells && r.cells[s];
+      const c = r.cells && r.cells[cellIndex];
       if (c && c.real != null && c.real < best) best = c.real;
     });
     return best === Infinity ? null : best;
@@ -1162,7 +1362,8 @@ function render(v) {
     }
     tr.appendChild(tdTot);
 
-    (r.cells || []).forEach((cell, s) => {
+    stageCols.forEach(({ cellIndex }, s) => {
+      const cell = r.cells && r.cells[cellIndex];
       const td = document.createElement("td");
       td.classList.add("cell");
       const fastest = stageFastest[s];
@@ -1196,6 +1397,518 @@ function render(v) {
     body.appendChild(tr);
   });
 }
+
+const RALLY_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+function renderStandings(v) {
+  // Recompute each group from the original host payload. `v.rows` is already a
+  // derived result, whereas this needs an independent classification per rally.
+  const source = lastServer || v;
+  const all = source.allStages || [];
+  const groups = effGroups(source);
+  const rallies = [...new Set(all.map(s => groups.get(s.id) || 0).filter(g => g > 0))]
+    .sort((a, b) => a - b);
+  const tbl = document.getElementById("tbl");
+  const empty = document.getElementById("empty");
+  const head = document.getElementById("head");
+  const body = document.getElementById("body");
+  head.innerHTML = "";
+  body.innerHTML = "";
+
+  const addTh = (text, cls, key) => {
+    const th = document.createElement("th");
+    if (cls) th.className = cls;
+    if (key == null) th.textContent = text;
+    else {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "sorthead";
+      button.textContent = text;
+      button.title = "Sort highest to lowest (no points last)";
+      button.setAttribute("aria-sort", standingsSortKey === key ? "descending" : "none");
+      button.addEventListener("click", () => { standingsSortKey = key; render(lastRendered); });
+      th.appendChild(button);
+    }
+    head.appendChild(th);
+  };
+  addTh("#", "pos");
+  addTh("Driver", "name");
+  addTh("Points", "total", "total");
+  rallies.forEach(group => addTh(rallyName(all, groups, group), "cell", String(group)));
+
+  if (!rallies.length) {
+    empty.textContent = "No rally groups configured yet.";
+    empty.style.display = "block";
+    tbl.style.display = "none";
+    return;
+  }
+
+  const scores = new Map((v.rows || []).map(row => [row.driver, { row, total: 0, byRally: new Map() }]));
+  rallies.forEach(group => {
+    const discarded = new Set(all.filter(s => groups.get(s.id) !== group).map(s => s.id));
+    const standing = computeView(source, {
+      discarded, groups,
+      pct: ov.pct !== null ? ov.pct : (source.pct || 0),
+      finishGating: ov.finishGating !== null ? ov.finishGating : !!source.finishGating
+    }).rows.filter(row => row.timed);
+    standing.forEach((row, index) => {
+      const score = RALLY_POINTS[index] || 0;
+      const item = scores.get(row.driver);
+      if (!item) return;
+      item.byRally.set(group, { score, rank: index + 1 });
+      item.total += score;
+    });
+  });
+
+  const pointValue = item => {
+    if (standingsSortKey === "total") return item.total;
+    const result = item.byRally.get(Number(standingsSortKey));
+    return result ? result.score : null;
+  };
+  const rows = [...scores.values()].sort((a, b) => {
+    const av = pointValue(a), bv = pointValue(b);
+    if (av == null || bv == null) return av == null ? (bv == null ? a.row.rank - b.row.rank : 1) : -1;
+    return (bv - av) || (a.row.rank - b.row.rank);
+  });
+  if (!rows.length) {
+    empty.textContent = "Waiting for data…";
+    empty.style.display = "block";
+    tbl.style.display = "none";
+    return;
+  }
+  empty.style.display = "none";
+  tbl.style.display = "";
+
+  rows.forEach((item, index) => {
+    const r = item.row;
+    const tr = document.createElement("tr");
+    const mc = medalClass(index + 1);
+    const tdPos = document.createElement("td");
+    tdPos.className = "pos"; tdPos.textContent = index + 1; tr.appendChild(tdPos);
+
+    const tdName = document.createElement("td");
+    tdName.className = "name" + (mc ? " " + mc : "");
+    const fc = hideNatOn() ? null : flagCode(r.nation);
+    if (fc) {
+      const img = document.createElement("img");
+      img.className = "flag";
+      img.src = "https://flagcdn.com/20x15/" + fc + ".png";
+      img.srcset = "https://flagcdn.com/40x30/" + fc + ".png 2x";
+      img.width = 20; img.height = 15; img.alt = r.nation; img.title = r.nation;
+      img.onerror = () => { const ph = document.createElement("span"); ph.className = "flag-ph"; img.replaceWith(ph); };
+      tdName.appendChild(img);
+    } else {
+      const ph = document.createElement("span"); ph.className = "flag-ph"; tdName.appendChild(ph);
+    }
+    tdName.appendChild(document.createTextNode(r.driver));
+    const car = carLabels(r.cars);
+    if (car) { const c = document.createElement("span"); c.className = "car"; c.textContent = car; tdName.appendChild(c); }
+    tdName.title = r.driver + (car ? " — " + car : "");
+    tr.appendChild(tdName);
+
+    const tdTotal = document.createElement("td");
+    tdTotal.className = "total rallypoints" + (mc ? " " + mc : "");
+    setCell(tdTotal, String(item.total), "");
+    tr.appendChild(tdTotal);
+    rallies.forEach(group => {
+      const td = document.createElement("td");
+      td.className = "cell rallypoints";
+      const result = item.byRally.get(group);
+      const mc = result ? medalClass(result.rank) : "";
+      if (mc) td.classList.add(mc);
+      setCell(td, result == null ? "" : String(result.score), "");
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+// ---- sharing -----------------------------------------------------------------
+// Export from the rendered DOM so the copied text and PNG exactly follow the
+// active tab, selected stages and current column sort.
+function visibleTableData() {
+  const headerCells = [...document.getElementById("head").children];
+  const headers = headerCells.map(th => {
+    const copy = th.cloneNode(true);
+    return copy.textContent.trim().replace(/\s+/g, " ");
+  });
+  const cellData = td => {
+    const medal = td.classList.contains("gold") ? "gold" :
+      td.classList.contains("silver") ? "silver" : td.classList.contains("bronze") ? "bronze" : "";
+    if (td.classList.contains("name")) {
+      const primary = [...td.childNodes].filter(n => n.nodeType === 3)
+        .map(n => n.textContent).join("").trim();
+      const car = td.querySelector(".car");
+      const flag = td.querySelector("img.flag");
+      return { primary, secondary: car ? car.textContent.trim() : "", medal, flag: flag ? flag.src : "" };
+    }
+    const primary = [...td.childNodes].filter(n => n.nodeType === 3)
+      .map(n => n.textContent).join("").trim();
+    const diff = td.querySelector(".t-diff");
+    return { primary, secondary: diff ? diff.textContent.trim() : "", medal, flag: "" };
+  };
+  const rows = [...document.getElementById("body").rows]
+    .map(tr => [...tr.cells].map(cellData));
+  // A row without a classification total (or without points in the Standings
+  // board) is useful live, but does not belong in a shareable final result.
+  const exportedRows = activeTab === "standings"
+    ? rows.filter(row => Number(row[2] && row[2].primary) > 0)
+    : rows.filter(row => !!(row[2] && row[2].primary));
+  return { headers, rows: exportedRows };
+}
+
+function tableText(data) {
+  if (!data.rows.length) return "";
+  // Stage deltas are a visual aid on the page; keep copied results to the actual
+  // times. Standings has no deltas today, but keeps the generic secondary support.
+  const includeSecondary = activeTab !== "stages";
+  const values = [data.headers, ...data.rows.map(row => row.map((cell, index) =>
+    cell.primary + (includeSecondary && index !== 1 && cell.secondary ? " " + cell.secondary : "")))];
+  const widths = data.headers.map((_, i) => Math.max(...values.map(row => textDisplayWidth(row[i]))));
+  const line = row => row.map((value, i) => padTextDisplayWidth(value, widths[i])).join("  ").trimEnd();
+  return "```text\n" + line(values[0]) + "\n" + widths.map(w => "-".repeat(w)).join("  ") + "\n" +
+    values.slice(1).map(line).join("\n") + "\n```";
+}
+
+// Plain string.length counts UTF-16 code units, whereas CJK and emoji each take
+// two cells in the monospaced text renderers used for the copied table. Work in
+// grapheme clusters so accents and joined emoji stay with their base character.
+const textGraphemes = typeof Intl.Segmenter === "function"
+  ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
+function isZeroWidthCodePoint(code) {
+  return (code >= 0x0000 && code <= 0x001f) || (code >= 0x007f && code <= 0x009f) ||
+    code === 0x200d || code === 0x200c || code === 0xfe0e || code === 0xfe0f ||
+    (code >= 0x0300 && code <= 0x036f) || (code >= 0x1ab0 && code <= 0x1aff) ||
+    (code >= 0x1dc0 && code <= 0x1dff) || (code >= 0x20d0 && code <= 0x20ff) ||
+    (code >= 0xfe20 && code <= 0xfe2f) || (code >= 0xe0100 && code <= 0xe01ef);
+}
+function isWideCodePoint(code) {
+  return code >= 0x1100 && (
+    code <= 0x115f || code === 0x2329 || code === 0x232a ||
+    (code >= 0x2e80 && code <= 0xa4cf && code !== 0x303f) ||
+    (code >= 0xac00 && code <= 0xd7a3) || (code >= 0xf900 && code <= 0xfaff) ||
+    (code >= 0xfe10 && code <= 0xfe19) || (code >= 0xfe30 && code <= 0xfe6f) ||
+    (code >= 0xff00 && code <= 0xff60) || (code >= 0xffe0 && code <= 0xffe6) ||
+    (code >= 0x1f000 && code <= 0x1faff) || (code >= 0x20000 && code <= 0x3fffd));
+}
+function textDisplayWidth(value) {
+  const text = String(value || "");
+  const clusters = textGraphemes
+    ? [...textGraphemes.segment(text)].map(part => part.segment) : [...text];
+  return clusters.reduce((width, cluster) => {
+    const codePoints = [...cluster].map(char => char.codePointAt(0));
+    const visible = codePoints.find(code => !isZeroWidthCodePoint(code));
+    // A keycap or variation-selector emoji starts with an ASCII character, but
+    // consumes two terminal cells just like a normal pictograph.
+    const emoji = codePoints.includes(0xfe0f) || codePoints.includes(0x20e3) ||
+      codePoints.some(code => code >= 0x1f000 && code <= 0x1faff);
+    return width + (visible == null ? 0 : emoji || isWideCodePoint(visible) ? 2 : 1);
+  }, 0);
+}
+function padTextDisplayWidth(value, width) {
+  const text = String(value || "");
+  return text + " ".repeat(Math.max(0, width - textDisplayWidth(text)));
+}
+
+// Excel normally expects the local list separator. Infer it from the browser's
+// decimal convention: decimal comma locales use semicolons; decimal point locales
+// use commas. The UTF-8 BOM preserves accented driver, stage and car names.
+function csvDelimiter(locale) {
+  const preferred = locale || (navigator.languages && navigator.languages[0]) || navigator.language;
+  const decimal = new Intl.NumberFormat(preferred).formatToParts(1.1)
+    .find(part => part.type === "decimal");
+  return decimal && decimal.value === "," ? ";" : ",";
+}
+function csvField(value, delimiter) {
+  const text = String(value == null ? "" : value);
+  const safe = /^[=+\-@]/.test(text) && !/^[+-]?[\d.,:\s]+$/.test(text) ? "'" + text : text;
+  return safe.includes(delimiter) || /["\r\n]/.test(safe)
+    ? '"' + safe.replaceAll('"', '""') + '"' : safe;
+}
+function tableCsv(data, delimiter = csvDelimiter()) {
+  if (!data.rows.length) return "";
+  const values = [
+    [data.headers[0], data.headers[1], "Car", ...data.headers.slice(2)],
+    ...data.rows.map(row => [row[0].primary, row[1].primary, row[1].secondary,
+      ...row.slice(2).map(cell => cell.primary)])
+  ];
+  return "\ufeff" + values.map(row => row.map(value => csvField(value, delimiter)).join(delimiter)).join("\r\n") + "\r\n";
+}
+
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const area = document.createElement("textarea");
+  area.value = text; area.style.position = "fixed"; area.style.opacity = "0";
+  document.body.appendChild(area); area.select();
+  const copied = document.execCommand("copy");
+  area.remove();
+  if (!copied) throw new Error("Clipboard access is unavailable");
+}
+
+function flashExportButton(button, symbol, title) {
+  const original = button.innerHTML, originalTitle = button.title;
+  button.innerHTML = symbol; button.title = title;
+  setTimeout(() => { button.innerHTML = original; button.title = originalTitle; }, 1400);
+}
+
+async function copyVisibleTable(button) {
+  const text = tableText(visibleTableData());
+  if (!text) return;
+  try {
+    await copyText(text);
+    flashExportButton(button, "&#10003;", "Copied");
+  } catch (error) {
+    console.error("Could not copy results", error);
+    button.title = "Could not copy";
+  }
+}
+
+const exportFlagCache = new Map();
+function loadExportFlag(src) {
+  if (!src) return Promise.resolve(null);
+  if (!exportFlagCache.has(src)) exportFlagCache.set(src, new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null); // a missing flag must never block the PNG
+    img.src = src;
+  }));
+  return exportFlagCache.get(src);
+}
+function exportPalette() {
+  const css = getComputedStyle(document.body);
+  const value = name => css.getPropertyValue(name).trim();
+  return {
+    bg: value("--bg"), panel: value("--panel"), line: value("--line"),
+    txt: value("--txt"), dim: value("--dim"), gold: value("--gold"),
+    silver: value("--silver"), bronze: value("--bronze")
+  };
+}
+function exportColor(medal, palette) {
+  return medal === "gold" ? palette.gold : medal === "silver" ? palette.silver :
+    medal === "bronze" ? palette.bronze : palette.txt;
+}
+function fitCanvasText(ctx, value, maxWidth) {
+  value = String(value || "");
+  if (ctx.measureText(value).width <= maxWidth) return value;
+  let end = value.length;
+  while (end > 1 && ctx.measureText(value.slice(0, end) + "…").width > maxWidth) end--;
+  return value.slice(0, end) + "…";
+}
+// Canvas has no CSS overflow-wrap, so split at spaces when possible and otherwise
+// at any character (stage tokens such as AlsaceS4Saverne contain no spaces).
+function wrapCanvasText(ctx, value, maxWidth, maxLines = 3) {
+  let rest = String(value || "");
+  const lines = [];
+  while (rest && lines.length < maxLines) {
+    if (ctx.measureText(rest).width <= maxWidth) { lines.push(rest); break; }
+    if (lines.length === maxLines - 1) { lines.push(fitCanvasText(ctx, rest, maxWidth)); break; }
+    let end = rest.length;
+    while (end > 1 && ctx.measureText(rest.slice(0, end)).width > maxWidth) end--;
+    const space = rest.lastIndexOf(" ", end);
+    const cut = space > 0 ? space : end;
+    lines.push(rest.slice(0, cut));
+    rest = rest.slice(cut).trimStart();
+  }
+  return lines;
+}
+function pngHeaderLayout(data, widths, ctx) {
+  const paddingY = 10, stageLineHeight = 14, nameLineHeight = 13;
+  const cells = data.headers.map((header, i) => {
+    const stage = i > 2 && /^(SS\d+)\s*(.*)$/.exec(header);
+    if (!stage) return { header, stage: null, lines: [] };
+    ctx.font = "500 12px system-ui, Segoe UI, Roboto, sans-serif";
+    return { header, stage, lines: stage[2] ? wrapCanvasText(ctx, stage[2], widths[i] - 24) : [] };
+  });
+  const headerHeight = Math.max(40, ...cells.map(cell => cell.stage
+    ? paddingY * 2 + stageLineHeight + cell.lines.length * nameLineHeight
+    : paddingY * 2 + 14));
+  return { cells, headerHeight, paddingY, stageLineHeight, nameLineHeight };
+}
+function pngExportScope() {
+  if (activeTab === "standings") return "Standings";
+  if (ov.groupFilter == null || !lastServer) return "Stages";
+  const all = lastServer.allStages || [];
+  return rallyName(all, effGroups(lastServer), ov.groupFilter);
+}
+function drawResultsPng(data, flags, includeTitle = true) {
+  const palette = exportPalette();
+  // Keep the horizontal breathing room, but tighten the vertical title-to-table
+  // gap so the result board starts closer to its export title.
+  const paddingX = 20, paddingTop = includeTitle ? 16 : 12, paddingBottom = 20;
+  const titleHeight = includeTitle ? 30 : 0, rowHeight = 50;
+  // These are the same column widths and typography scale as the HTML board.
+  const widths = data.headers.map((_, i) => i === 0 ? 46 : i === 1 ? 200 : 116);
+  const width = paddingX * 2 + widths.reduce((sum, value) => sum + value, 0);
+  const measureContext = document.createElement("canvas").getContext("2d");
+  const headerLayout = pngHeaderLayout(data, widths, measureContext);
+  const { headerHeight } = headerLayout;
+  const height = paddingTop + paddingBottom + titleHeight + headerHeight + data.rows.length * rowHeight;
+  const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(width * scale); canvas.height = Math.ceil(height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = palette.bg; ctx.fillRect(0, 0, width, height);
+  if (includeTitle) {
+    ctx.fillStyle = palette.txt; ctx.font = "700 18px system-ui, Segoe UI, Roboto, sans-serif";
+    const pageTitle = document.getElementById("pagetitle").textContent.trim();
+    const now = new Date();
+    const date = String(now.getFullYear()) + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" +
+      String(now.getDate()).padStart(2, "0");
+    ctx.fillText((pageTitle || "ACR Live Timing") + " · " + pngExportScope() + " · " + date,
+      paddingX, paddingTop + 16);
+  }
+
+  const top = paddingTop + titleHeight;
+  ctx.fillStyle = palette.bg; ctx.fillRect(paddingX, top, width - paddingX * 2, headerHeight);
+  let x = paddingX;
+  headerLayout.cells.forEach((cell, i) => {
+    const cellWidth = widths[i];
+    ctx.fillStyle = palette.dim; ctx.font = "600 12px system-ui, Segoe UI, Roboto, sans-serif";
+    if (cell.stage) {
+      ctx.textAlign = "right";
+      const textX = x + cellWidth - 12;
+      ctx.fillText(cell.stage[1], textX, top + headerLayout.paddingY + 11);
+      ctx.fillStyle = palette.txt; ctx.font = "500 12px system-ui, Segoe UI, Roboto, sans-serif";
+      cell.lines.forEach((line, lineIndex) =>
+        ctx.fillText(line, textX, top + headerLayout.paddingY + headerLayout.stageLineHeight + 11 + lineIndex * headerLayout.nameLineHeight));
+    } else {
+      ctx.textAlign = i === 1 ? "left" : i === 0 ? "center" : "right";
+      const textX = i === 1 ? x + 12 : i === 0 ? x + cellWidth / 2 : x + cellWidth - 12;
+      ctx.fillText(fitCanvasText(ctx, cell.header.toUpperCase(), cellWidth - 24), textX, top + (headerHeight + 12) / 2);
+    }
+    x += cellWidth;
+  });
+  ctx.strokeStyle = palette.line; ctx.beginPath(); ctx.moveTo(paddingX, top + headerHeight + .5);
+  ctx.lineTo(width - paddingX, top + headerHeight + .5); ctx.stroke();
+
+  data.rows.forEach((row, rowIndex) => {
+    const y = top + headerHeight + rowIndex * rowHeight;
+    let cellX = paddingX;
+    row.forEach((cell, colIndex) => {
+      const cellWidth = widths[colIndex];
+      ctx.fillStyle = exportColor(cell.medal, palette);
+      if (colIndex === 1) {
+        const flag = flags.get(cell.flag);
+        let textX = cellX + 12;
+        if (flag) { ctx.drawImage(flag, cellX + 12, y + 10, 18, 13); textX += 24; }
+        ctx.textAlign = "left"; ctx.font = "700 15px system-ui, Segoe UI, Roboto, sans-serif";
+        const primaryY = cell.secondary ? y + 22 : y + 30;
+        ctx.fillText(fitCanvasText(ctx, cell.primary, cellWidth - (textX - cellX) - 10), textX, primaryY);
+        if (cell.secondary) {
+          ctx.fillStyle = palette.dim; ctx.font = "12px system-ui, Segoe UI, Roboto, sans-serif";
+          ctx.fillText(fitCanvasText(ctx, cell.secondary, cellWidth - (textX - cellX) - 10), textX, y + 40);
+        }
+      } else {
+        ctx.textAlign = colIndex === 0 ? "center" : "right";
+        const textX = colIndex === 0 ? cellX + cellWidth / 2 : cellX + cellWidth - 12;
+        ctx.font = "15px system-ui, Segoe UI, Roboto, sans-serif";
+        const primaryY = cell.secondary ? y + 18 : y + 30;
+        ctx.fillText(fitCanvasText(ctx, cell.primary, cellWidth - 20), textX, primaryY);
+        if (cell.secondary) {
+          ctx.fillStyle = palette.dim; ctx.font = "12px system-ui, Segoe UI, Roboto, sans-serif";
+          ctx.fillText(fitCanvasText(ctx, cell.secondary, cellWidth - 20), textX, y + 37);
+        }
+      }
+      cellX += cellWidth;
+    });
+    ctx.strokeStyle = palette.line; ctx.beginPath(); ctx.moveTo(paddingX, y + rowHeight + .5);
+    ctx.lineTo(width - paddingX, y + rowHeight + .5); ctx.stroke();
+  });
+  return canvas;
+}
+function exportFilename(extension) {
+  const now = new Date();
+  const date = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0");
+  const title = (document.getElementById("pagetitle").textContent || "acr-live-timing")
+    .trim().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+  let htmlStem = "";
+  try { htmlStem = decodeURIComponent(location.pathname.split("/").pop() || "").replace(/\.html?$/i, ""); }
+  catch (_) { /* malformed URL encoding: use the title fallback */ }
+  htmlStem = htmlStem.replace(/[\\/:*?"<>|]/g, "-").trim();
+  const base = htmlStem || title || "acr-live-timing";
+  const datedBase = /\d{8}/.test(base) ? base : base + "-" + date;
+  const scope = activeTab === "stages"
+    ? "stages-" + (ov.groupFilter == null ? "all" : pngExportScope())
+    : "standings";
+  const safeScope = scope.replace(/[\\/:*?\"<>|]/g, "-").trim();
+  return datedBase + "-" + safeScope + "." + extension;
+}
+function downloadBlob(blob, extension) {
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url; link.download = exportFilename(extension);
+  link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function downloadPng(blob) { downloadBlob(blob, "png"); }
+function exportVisibleTableCsv(button) {
+  const csv = tableCsv(visibleTableData());
+  if (!csv) return;
+  button.disabled = true;
+  try {
+    downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "csv");
+    flashExportButton(button, "&#10003;", "CSV downloaded");
+  } catch (error) {
+    console.error("Could not export results CSV", error);
+    button.title = "CSV export failed";
+  } finally {
+    button.disabled = false;
+  }
+}
+async function exportVisibleTablePng(button) {
+  button.disabled = true;
+  try {
+    const blob = await buildVisibleTablePng();
+    if (!blob) return;
+    downloadPng(blob);
+    flashExportButton(button, "&#10003;", "PNG downloaded");
+  } catch (error) {
+    console.error("Could not export results PNG", error);
+    button.title = "PNG export failed";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// Shared PNG pipeline: the visible-page button downloads this blob, while the
+// host's hidden WebView2 asks for the same blob to attach it to a Discord embed.
+async function buildVisibleTablePng({ includeTitle = true } = {}) {
+  const data = visibleTableData();
+  if (!data.rows.length) return null;
+  const flagSources = [...new Set(data.rows.map(row => row[1] && row[1].flag).filter(Boolean))];
+  const loaded = await Promise.all(flagSources.map(async src => [src, await loadExportFlag(src)]));
+  const flags = new Map(loaded.filter(([, image]) => image));
+  const canvas = drawResultsPng(data, flags, includeTitle);
+  return new Promise((resolve, reject) => canvas.toBlob(value =>
+    value ? resolve(value) : reject(new Error("PNG encoding failed")), "image/png"));
+}
+
+// Deliberately small host bridge. It never receives the Discord webhook: it only
+// returns the exact standings PNG already used by the page export, in forced dark
+// mode so the Discord image is stable across the operator's local page settings.
+window.acrLiveTimingExport = {
+  async standingsPng() {
+    if (!lastServer) throw new Error("No live state is available");
+    activeTab = "standings";
+    ov.theme = "dark";
+    applyTheme("dark");
+    syncThemeButton();
+    render(displayedView(lastServer));
+    await new Promise(requestAnimationFrame);
+    const blob = await buildVisibleTablePng({ includeTitle: false });
+    if (!blob) throw new Error("No standings with points to export");
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read PNG"));
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  }
+};
 
 // Poll /state on a short interval. Plain short GETs proxy reliably through
 // Cloudflare Tunnel, unlike a long-lived SSE stream (HTTP/2 stream resets).
