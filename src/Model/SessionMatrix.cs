@@ -22,8 +22,10 @@ namespace ACRLiveTiming.Model
         public string Driver { get; set; } = "";
         public bool Retired { get; set; }     // car is in Retire/Disqualify on the RUNNING stage
         public string? Nation { get; set; }   // token, e.g. "France" (null if unknown)
-        public string? Car { get; set; }      // token, e.g. "SkodaFabiaRSRally2"
         public List<RawCell?> RawCells { get; set; } = new();  // ungated, aligned to AllStages
+        // CarId per stage, aligned to AllStages. The page selects and de-duplicates
+        // these client-side, so its list follows the viewer's selected stages.
+        public List<string?> Cars { get; set; } = new();
     }
 
     public sealed class StageInfo
@@ -117,7 +119,11 @@ namespace ACRLiveTiming.Model
         readonly Dictionary<long, int> _carSeq = new();                  // guid -> "Car N" number
         long _version;
         readonly HashSet<string> _discarded = new();                       // ids
-        readonly Dictionary<string, (string? nation, string? car)> _info = new();
+        readonly Dictionary<string, string?> _nations = new();
+        // Latest known car is carried to the next stage when its first time arrives;
+        // the per-column map preserves the car actually used on each stage.
+        readonly Dictionary<string, string> _lastCars = new();
+        readonly Dictionary<string, Dictionary<string, string>> _carsByColumn = new();
         double _pct = 0.20;
         double _progressWindowKm = 2.0;   // MAX span of the auto-fitting progression window (km)
         bool _finishGating = true;   // true: hide splits, reveal only real finishes
@@ -214,20 +220,52 @@ namespace ACRLiveTiming.Model
             lock (_lock) return _times.TryGetValue(id, out var column) && column.Count > 0;
         }
 
-        /// <summary>Set a driver's nationality + car (from the lobby decoder).</summary>
-        public void SetDriverInfo(string driver, string? nation, string? car)
+        /// <summary>Record a driver's latest identity data. A car is attached to the
+        /// current race column only while racing; service-park changes are retained
+        /// for the next column instead of rewriting the stage just completed.</summary>
+        public void SetDriverInfo(string? columnId, string driver, string? nation, string? car)
         {
             bool changed = false;
             lock (_lock)
             {
-                _info.TryGetValue(driver, out var cur);
-                if (cur.nation != nation || cur.car != car)
+                _nations.TryGetValue(driver, out var currentNation);
+                if (currentNation != nation)
                 {
-                    _info[driver] = (nation, car);
+                    _nations[driver] = nation;
                     changed = true;
+                }
+                if (!string.IsNullOrWhiteSpace(car))
+                {
+                    if (!_lastCars.TryGetValue(driver, out var last) || last != car)
+                    {
+                        _lastCars[driver] = car;
+                        changed = true;
+            }
+                    if (columnId != null)
+                    {
+                        if (!_carsByColumn.TryGetValue(columnId, out var columnCars))
+                            _carsByColumn[columnId] = columnCars = new Dictionary<string, string>();
+                        if (!columnCars.TryGetValue(driver, out var stageCar) || stageCar != car)
+                        {
+                            columnCars[driver] = car;
+                            changed = true;
+                        }
+                    }
                 }
             }
             if (changed) RaiseChanged();
+        }
+
+        // Caller holds _lock. A stage may begin without the CarId re-replicating when
+        // the driver keeps the same car, so inherit the last known value at first split.
+        bool AttachLastCar(string columnId, string driver)
+        {
+            if (!_lastCars.TryGetValue(driver, out var car)) return false;
+            if (!_carsByColumn.TryGetValue(columnId, out var columnCars))
+                _carsByColumn[columnId] = columnCars = new Dictionary<string, string>();
+            if (columnCars.ContainsKey(driver)) return false;
+            columnCars[driver] = car;
+            return true;
         }
 
         public void AddResult(string columnId, string driver, double time, double raw, int sectors)
@@ -244,6 +282,7 @@ namespace ACRLiveTiming.Model
                     changed = true;
                 }
                 if (!_driverOrder.Contains(driver)) { _driverOrder.Add(driver); changed = true; }
+                changed |= AttachLastCar(columnId, driver);
                 // Prefer the furthest sector reached. Within the same sector keep the
                 // largest cumulative total (latest penalty/result update). Sector count
                 // must win over value: a structurally valid S1 can still carry a stale
@@ -501,7 +540,9 @@ namespace ACRLiveTiming.Model
                 _columnOrder.Clear();
                 _driverOrder.Clear();
                 _discarded.Clear();
-                _info.Clear();
+                _nations.Clear();
+                _lastCars.Clear();
+                _carsByColumn.Clear();
                 _finishTimes.Clear();
                 _hasRaceState = false;
                 _carsLive.Clear();
@@ -522,8 +563,9 @@ namespace ACRLiveTiming.Model
         /// Clear the results/timeline (leaderboard, columns, finish times, lobby/stage
         /// labels) AND the pre-reset live markers (<c>_carsLive</c>) so no stage data
         /// from before the reset keeps going out on /state. KEEP only the per-driver
-        /// identity enrichment that cannot be reacquired mid-session: nation/car
-        /// (<c>_info</c>), the pseudo↔car-marker bindings (<c>_carNames</c>/<c>_carSeq</c>)
+        /// identity enrichment that cannot be reacquired mid-session: nation and the
+        /// latest known car (<c>_nations</c>/<c>_lastCars</c>), plus the pseudo↔car-marker
+        /// bindings (<c>_carNames</c>/<c>_carSeq</c>)
         /// and the car-naming scratch (<c>_seenRaws</c>/<c>_carPendingRaws</c>). Those are
         /// learned only from the join burst (nation) and the channel-open export (car
         /// NetGUID), which do NOT repeat mid-session — so a full <see cref="Reset"/> in the
@@ -543,6 +585,7 @@ namespace ACRLiveTiming.Model
                 _columnOrder.Clear();
                 _driverOrder.Clear();
                 _discarded.Clear();
+                _carsByColumn.Clear();
                 _finishTimes.Clear();
                 _hasRaceState = false;
                 _carsLive.Clear();   // drop pre-reset live positions (not published post-reset)
@@ -642,13 +685,18 @@ namespace ACRLiveTiming.Model
                             ? new RawCell { T = re.time, F = IsFinished(re.raw), S = re.sectors }
                             : null);
 
-                    _info.TryGetValue(driver, out var info);
+                    _nations.TryGetValue(driver, out var nation);
+                    var cars = new List<string?>(_columnOrder.Count);
+                    foreach (var id in _columnOrder)
+                        cars.Add(_carsByColumn.TryGetValue(id, out var columnCars)
+                            && columnCars.TryGetValue(driver, out var car) ? car : null);
                     rows.Add(new RowView
                     {
                         Driver = driver,
                         Retired = retired.Contains(driver),
-                        Nation = info.nation, Car = info.car,
-                        RawCells = rawCells
+                        Nation = nation,
+                        RawCells = rawCells,
+                        Cars = cars
                     });
                 }
 

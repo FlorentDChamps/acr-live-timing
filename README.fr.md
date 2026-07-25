@@ -37,7 +37,9 @@ en un clic.
   n'est codé en dur).
 - **Résultats de spéciale en direct** — pseudos, temps finaux validés par les splits
   (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la spéciale,
-  drapeau de nationalité et modèle de voiture.
+  drapeau de nationalité et modèle de voiture. La liste de voitures affichée suit les
+  spéciales sélectionnées : un changement de voiture entre spéciales est conservé et
+  les doublons sont retirés.
 - **Classement de session** — une colonne par run de spéciale, totaux et rangs.
   *Règle de seuil* configurable : un pilote absent d'une spéciale — ou plus lent que
   `meilleur temps × (1 + seuil %)` — est compté au temps seuil et signalé.
@@ -312,7 +314,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Trafic serveur→client | en clair (non chiffré), décodé |
 | Temps splits + final par pilote | ✅ exact au ms vs écran en jeu, pénalités incluses |
 | Nom de la spéciale | ✅ |
-| Nationalité + voiture par pilote | ✅ lus dès l'entrée au lobby depuis l'acteur participant du joueur (déterministe, aucun temps nécessaire) ; liaison par le temps conservée en repli — validé sur captures d'écran |
+| Nationalité + voiture par pilote/spéciale | ✅ lus dès l'entrée au lobby depuis l'acteur participant du joueur (déterministe, aucun temps nécessaire) ; voiture conservée par spéciale et listée sans doublon sur la sélection ; liaison par le temps conservée en repli — validé sur captures d'écran |
 | Liste complète des arrivants | ✅ scan multi-décalage de bits |
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
 | Détection DNF | 🟡 en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture), déduit sur les spéciales closes des splits postés sans arrivée ; un abandon précoce (aucun split) reste affiché comme absent |
