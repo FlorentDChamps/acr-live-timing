@@ -136,7 +136,14 @@
   /* subtle divider between the pinned block and the scrolling stages */
   td.total, th.total { border-right: 2px solid var(--line); }
 
-  td.pos { color: var(--dim); }
+  /* The rank stays right-pinned in its fixed column; its right padding and the
+     Driver column's left padding keep a readable gap between the two. */
+  td.pos { color: var(--txt); text-align: right; padding-right: 10px; }
+  .rankchange { display: inline-block; width: 9px; margin: 0 5px 0 0; font-size: 11px;
+                font-weight: 700; line-height: 1; vertical-align: 1px; }
+  .rankchange.up { color: var(--ok); }
+  .rankchange.down { color: var(--sub); }
+  .rankchange.same { color: var(--txt); }
   .stagename { display: block; color: var(--txt); text-transform: none;
                font-weight: 500; font-size: 12px;
                white-space: normal; overflow-wrap: anywhere; }
@@ -191,11 +198,11 @@
   body.view-classification th.pos, body.view-classification td.pos,
   body.view-classification th.name, body.view-classification td.name,
   body.view-classification th.total, body.view-classification td.total { background: transparent; }
-  /* the three columns keep a FIXED total width (34 + 182 + 96 = the old 46 + 150 +
+  /* the three columns keep a FIXED total width (34 + 178 + 100 = the old 46 + 150 +
      116) so the overlay never resizes with the entry list: # and Total give up the
      slack they never used, Driver gets it and fits longer names before the ellipsis. */
   body.view-classification th.pos, body.view-classification td.pos {
-    --w-pos: 34px; padding-left: 8px; padding-right: 6px; }
+    --w-pos: 34px; padding-left: 2px; padding-right: 6px; }
   body.view-classification th.name, body.view-classification td.name {
     --w-name: 178px; padding-left: 8px; padding-right: 8px; }
   /* 100px minus 14px of padding = 86px of text, and a full-hour "1:02:34.567" at
@@ -263,7 +270,7 @@
      it in would cross this breakpoint and flip the widget into phone layout
      (smaller track / columns) — the overlay must keep desktop metrics. */
   @media (max-width: 640px) {
-    body:not(.overlay) { --w-pos: 24px; --w-name: 108px; --w-time: 74px;
+    body:not(.overlay) { --w-pos: 36px; --w-name: 108px; --w-time: 74px;
                          font-size: 13px; }
     body:not(.overlay) header { padding: 12px 14px; gap: 10px; }
     body:not(.overlay) .ghlink .lbl { display: none; }
@@ -271,8 +278,9 @@
     body:not(.overlay) #server, body:not(.overlay) #thresh,
     body:not(.overlay) #state { display: none; }
     body:not(.overlay) h1 { font-size: 16px; }
-    body:not(.overlay) .wrap { padding: 8px 10px; }
+    body:not(.overlay) .wrap { padding: 8px 4px; }
     body:not(.overlay) th, body:not(.overlay) td { padding: 5px 6px; }
+    body:not(.overlay) th.pos, body:not(.overlay) td.pos { padding-left: 1px; padding-right: 4px; }
     body:not(.overlay) th { font-size: 10px; letter-spacing: .2px; }
     body:not(.overlay) .stagename { font-size: 10px; }
     body:not(.overlay) th.name, body:not(.overlay) td.name { left: var(--w-pos); }
@@ -668,7 +676,7 @@ const hideNatOn     = () => ov.hideNations === true;
 // sort all happen here, from the ungated per-column `rawCells` (t=time, f=matched a
 // real finish peak, s=sectors), parameterised by cfg (excluded stage ids, penalty
 // fraction, finish gating). A viewer override is just a different cfg.
-function computeView(v, cfg) {
+function computeView(v, cfg, withPositionChange = true) {
   const all = v.allStages || [];
   const N = all.length;
   const currentCol = N > 0 ? all[N - 1].id : null;
@@ -757,6 +765,21 @@ function computeView(v, cfg) {
       (a.driver < b.driver ? -1 : a.driver > b.driver ? 1 : 0);
   });
   rows.forEach((r, i) => r.rank = i + 1);
+
+  // General-classification movement since the previous selected stage. Re-run the
+  // exact same scoring rules without the newest selected column, so caps, DNF and
+  // viewer overrides remain consistent with the displayed ranking. A driver who was
+  // not classified yet has no prior rank and therefore no misleading arrow.
+  if (withPositionChange && incl.length > 1) {
+    const priorDiscarded = new Set(cfg.discarded);
+    priorDiscarded.add(all[incl[incl.length - 1]].id);
+    const priorRows = computeView(v, Object.assign({}, cfg, { discarded: priorDiscarded }), false).rows;
+    const priorRanks = new Map(priorRows.filter(r => r.timed).map(r => [r.driver, r.rank]));
+    rows.forEach(r => r.rankChange = r.timed && priorRanks.has(r.driver)
+      ? priorRanks.get(r.driver) - r.rank : null);
+  } else {
+    rows.forEach(r => r.rankChange = null);
+  }
 
   return Object.assign({}, v, { stages: incl.map(c => all[c].name), rows, pct: cfg.pct });
 }
@@ -1011,7 +1034,22 @@ function render(v) {
     const nmc = medalClass(r.rank);   // overall top-3 for name + total
 
     const tdPos = document.createElement("td");
-    tdPos.className = "pos"; tdPos.textContent = r.rank; tr.appendChild(tdPos);
+    tdPos.className = "pos";
+    const mark = document.createElement("span");
+    if (r.rankChange != null) {
+      const movement = r.rankChange;
+      mark.className = "rankchange " + (movement > 0 ? "up" : movement < 0 ? "down" : "same");
+      mark.textContent = movement > 0 ? "▲" : movement < 0 ? "▼" : "=";
+      mark.title = movement > 0 ? `Gained ${movement} position${movement === 1 ? "" : "s"}`
+        : movement < 0 ? `Lost ${-movement} position${movement === -1 ? "" : "s"}`
+        : "Position unchanged";
+    } else {
+      mark.className = "rankchange";
+      mark.setAttribute("aria-hidden", "true");
+    }
+    tdPos.appendChild(mark);
+    tdPos.appendChild(document.createTextNode(r.rank));
+    tr.appendChild(tdPos);
 
     const tdName = document.createElement("td");
     tdName.className = "name" + (nmc ? " " + nmc : "");
