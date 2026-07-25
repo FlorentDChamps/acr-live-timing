@@ -35,6 +35,8 @@ Cloudflare tunnel link.
   protocol signature (IP and port change every lobby, nothing is hardcoded).
 - **Live stage results** — driver names, split-validated final times (ms-exact vs
   the in-game screen, penalties included), stage name, nation flag and car model.
+  The displayed car list follows the selected stages, preserving a driver changing
+  car between stages and removing duplicate models.
 - **Session classification** — one column per stage run, running totals and ranks.
   Configurable *threshold rule*: a driver missing a stage — or slower than
   `fastest × (1 + threshold %)` — is counted at the threshold time and flagged.
@@ -284,7 +286,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Server→client traffic | cleartext (unencrypted), decoded |
 | Split + final times per driver | ✅ ms-exact vs in-game screen, penalties included |
 | Stage name | ✅ |
-| Nation + car per driver | ✅ read at JOIN from the player's participant actor (deterministic, no lap time needed); time-anchored binding kept as fallback — screenshot-validated |
+| Nation + car per driver/stage | ✅ read at JOIN from the player's participant actor (deterministic, no lap time needed); car retained per stage and listed without duplicates across the selected stages; time-anchored binding kept as fallback — screenshot-validated |
 | Complete finisher list | ✅ multi-bit-shift scan |
 | Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*), exact to the ms, streamed live |
 | DNF detection | 🟡 live on the running stage (car's *Retire/Disqualify* phase), inferred on closed stages from posted splits without a finish; an early quit (no splits) shows as absent |

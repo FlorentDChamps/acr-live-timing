@@ -158,9 +158,20 @@ namespace ACRLiveTiming.Model
         {
             // check + claim: Tick (UI thread) is the only caller, but keep the guard
             // so a slow snapshot can't overlap the next tick's.
-            if (_infoRunning || !_natCar.Dirty) return;
-            _infoRunning = true;
-            int gen = _resetGen;
+            int gen;
+            string? carColumn;
+            lock (_sync)
+            {
+                if (_infoRunning || !_natCar.Dirty) return;
+                _infoRunning = true;
+                gen = _resetGen;
+                // A garage change during Results belongs to the NEXT stage, not to the
+                // just-completed column. During a race, tie the CarId to this exact run;
+                // capture the key before the background join starts so a later run start
+                // cannot retag it.
+                carColumn = !_provisional && (_lobbyPhase is "Racing" or "Finishing")
+                    ? _runKey : null;
+            }
             Task.Run(() =>
             {
                 try
@@ -168,7 +179,7 @@ namespace ACRLiveTiming.Model
                     var info = _natCar.Snapshot();
                     if (gen != _resetGen) return;   // session was reset mid-snapshot
                     foreach (var kv in info)
-                        Matrix.SetDriverInfo(kv.Key, kv.Value.nation, kv.Value.car);
+                        Matrix.SetDriverInfo(carColumn, kv.Key, kv.Value.nation, kv.Value.car);
                     // NB: finish detection is NOT here — it's streamed per packet in Feed
                     // via _tracker. This background pass is nation/car only.
                 }

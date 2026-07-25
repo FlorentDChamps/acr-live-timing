@@ -502,6 +502,9 @@ function flagCode(nat) {
 function carLabel(car) {
   return car || "";
 }
+function carLabels(cars) {
+  return [...new Set((cars || []).map(carLabel).filter(Boolean))].join(" · ");
+}
 
 // "SS1 AlsaceS4Saverne" -> "SS1" over "AlsaceS4Saverne" (two lines)
 function stageHeaderHtml(label) {
@@ -737,8 +740,13 @@ function computeView(v, cfg) {
     }
     // `timed` = has at least one completed stage time, so it is classified. Computed
     // once here: the sort comparator would otherwise rescan every cell per comparison.
+    // Keep only cars from stages where this driver posted a split/result, then
+    // de-duplicate the selected stages' list. A viewer changing their stage
+    // selection therefore sees exactly the cars used in that selection.
+    const cars = [...new Set(incl.map(c => r.rawCells && r.rawCells[c] &&
+      r.cars && r.cars[c]).filter(Boolean))];
     return { driver: r.driver, cells, total, totalSubstituted,
-             timed: cells.some(c => c.final), nation: r.nation, car: r.car };
+             timed: cells.some(c => c.final), nation: r.nation, cars };
   });
 
   // Timed drivers first, then capped total asc and ordinal name tiebreak. A row
@@ -1024,7 +1032,7 @@ function render(v) {
       tdName.appendChild(ph);
     }
     tdName.appendChild(document.createTextNode(r.driver));
-    const car = carLabel(r.car);
+    const car = carLabels(r.cars);
     if (car) {
       const c = document.createElement("span");
       c.className = "car"; c.textContent = car; tdName.appendChild(c);
