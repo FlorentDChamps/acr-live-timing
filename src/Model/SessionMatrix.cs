@@ -50,7 +50,7 @@ namespace ACRLiveTiming.Model
         public double Pct { get; set; }
         public string State { get; set; } = "";
         public string Phase { get; set; } = "";        // lobby FSM phase ("Racing", "Results", …)
-        public string CurrentStage { get; set; } = ""; // label of the latest run column
+        public string CurrentStage { get; set; } = ""; // last known current-stage label
         public string Title { get; set; } = "";         // operator-set page title (empty = hidden)
         public string Description { get; set; } = "";    // operator-set page description (empty = hidden)
         public string StageStart { get; set; } = "";   // IN-GAME time of day of the stage start (HH:mm)
@@ -127,6 +127,9 @@ namespace ACRLiveTiming.Model
         public string ServerLabel { get; set; } = "";
         public string StateLabel { get; set; } = "";
         string _lobbyPhase = "";
+        // Kept independently of the result columns: a manual reset clears those
+        // columns while the game may not re-broadcast the current map name.
+        string _currentStage = "";
         string _stageStart = "";
         string _stageWeather = "";
         string _pageTitle = "";        // operator-set page heading (persists across resets)
@@ -189,6 +192,7 @@ namespace ACRLiveTiming.Model
                 _times[id] = new Dictionary<string, (double, double, int)>();
                 _labels[id] = label;
                 _columnOrder.Add(id);
+                _currentStage = label;
             }
             RaiseChanged();
         }
@@ -200,6 +204,7 @@ namespace ACRLiveTiming.Model
             {
                 if (!_labels.TryGetValue(id, out var current) || current == label) return;
                 _labels[id] = label;
+                if (_columnOrder.Count > 0 && _columnOrder[^1] == id) _currentStage = label;
             }
             RaiseChanged();
         }
@@ -506,6 +511,7 @@ namespace ACRLiveTiming.Model
                 _seenRawsPrev = new Dictionary<string, List<double>>();
                 _carSeq.Clear();
                 _lobbyPhase = "";
+                _currentStage = "";
                 _stageStart = "";
                 _stageWeather = "";
             }
@@ -523,6 +529,8 @@ namespace ACRLiveTiming.Model
         /// NetGUID), which do NOT repeat mid-session — so a full <see cref="Reset"/> in the
         /// middle of a lobby loses them until players reconnect. This soft reset is for the
         /// manual "Reset session" button: wipe the board, retain what can't be reacquired.
+        /// The current stage label is also retained: the game sends it only on map
+        /// changes, so clearing it would leave the freshly reset board unnamed.
         /// The kept bindings re-attach to the next replicated car states, so the emptied
         /// progression repopulates already-named the moment the stage resumes.
         /// </summary>
@@ -677,9 +685,7 @@ namespace ACRLiveTiming.Model
                     Pct = _pct,
                     State = StateLabel,
                     Phase = _lobbyPhase,
-                    CurrentStage = _columnOrder.Count > 0
-                        ? (_labels.TryGetValue(_columnOrder[^1], out var cur) ? cur : "")
-                        : "",
+                    CurrentStage = _currentStage,
                     StageStart = _stageStart,
                     StageWeather = _stageWeather,
                     Title = _pageTitle,
