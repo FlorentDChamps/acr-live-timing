@@ -686,13 +686,11 @@ function computeView(v, cfg) {
     maxSec[c] = ms; confirmed[c] = conf;
   }
   // Completion is independent from display mode: a split must NEVER enter the
-  // aggregate total. Prefer the exact per-car finish peak; peer confirmation recovers
-  // a missed peak at the same (final) sector count. With NO RaceState stream at all
-  // there is no finish signal to wait for, so a complete sector chain is the only
-  // proxy available and counts immediately — gating it on "a later column exists"
-  // would leave the last stage of a rally permanently uncounted.
+  // aggregate total. With RaceState, the per-car finish event is the sole proof
+  // of a line crossing: matching the field's highest sector number can be a DNF's
+  // final split. Without RaceState, a complete sector chain is the only proxy.
   const completed = (rc, c) => rc != null && (v.hasRaceState
-    ? (rc.f || (confirmed[c] && rc.s === maxSec[c]))
+    ? rc.f
     : rc.s === maxSec[c]);
   // With gating off, show one comparable split level at a time: the furthest sector
   // the field has reached. As soon as S2/S3/finish appears, older levels disappear.
