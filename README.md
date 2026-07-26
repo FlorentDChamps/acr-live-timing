@@ -43,7 +43,20 @@ Cloudflare tunnel link.
   Any stage can be excluded from the totals with a checkbox. A stage you join already
   under way is **not** counted — its start was missed — but its name and the
   driver/car bindings are still learned, so the next, fully-captured stage is ready
-  from the first split.
+  from the first split. Columns are sortable (any stage or the total), and
+  rank-change arrows next to each driver show their movement on the latest stage.
+- **Rallies, standings & championship points** — group stages into named rallies
+  from the host panel (*Stages — select to group*: tick the stages, click **Group**,
+  rename inline). The web page gains a **Standings** tab: an independent
+  classification per rally plus championship points (25-18-15-12-10-8-6-4-2-1 per
+  rally), sortable by any rally or by the points total; the main board gets a rally
+  filter to show a single rally's stages. Grouping is host-defined and shared with
+  every viewer.
+- **Result exports** — three buttons on the page export exactly what is displayed:
+  copy as text, CSV (Excel-ready, locale-aware separator) and PNG image. On the host
+  side, an optional **Discord webhook** (Discord panel) posts to your channel in one
+  click: a live-link alert, the standings board or a selected rally's results as an
+  image. The webhook URL is stored encrypted, readable only by your Windows account.
 - **Finish-gated reveal** — a driver's time appears only once they actually cross
   the finish line, so intermediate splits never flicker or climb on the board.
   Detection is event-driven and exact: the game replicates a per-car race phase
@@ -58,8 +71,10 @@ Cloudflare tunnel link.
 - **DNF display** — a driver who posted split times but never crossed the line is
   shown as **DNF** on that stage (counted at the threshold time, like an absence).
   On the running stage it appears the moment the car's race phase turns
-  *Retire/Disqualify*; on past stages it is inferred once the stage closed with the
-  driver unfinished. A driver who quits before the first splits still shows as absent.
+  *Retire/Disqualify*; when a stage closes, each car's fate is snapshotted (retired,
+  disqualified or vanished mid-run), so past stages keep an exact DNF record, with a
+  peer-finish inference as fallback for capture gaps. A driver who quits before the
+  first splits still shows as absent.
 - **Live stage progression** — a horizontal track above the board shows every
   driver's live position along the current stage, auto-fitted between the leader and
   the last running car (max span adjustable in the Config panel). Each marker is
@@ -83,7 +98,8 @@ Cloudflare tunnel link.
 - **Per-viewer display settings** — a gear button on the web page opens a panel that
   mirrors the host's ranking/display controls **locally**: exclude stages from the
   totals, change the penalty threshold %, resize the progression window, hide
-  nationalities, toggle finish gating. Changing a stage/penalty/gating setting
+  nationalities, toggle finish gating, filter by rally, sort by any column, and
+  switch the page's light/dark theme. Changing a stage/penalty/gating setting
   recomputes the board in the browser from the raw per-stage data the page already
   receives, so it never touches the host's own view or any other viewer. Settings are
   session-only (a reload reverts) and a **Reset to host config** button restores the
@@ -104,13 +120,18 @@ Cloudflare tunnel link.
   [Streaming with OBS](#streaming-with-obs)). (Start the local web server first —
   overlays load from it. A borderless / windowed-fullscreen game is required for a
   desktop overlay to sit on top; exclusive fullscreen can't be covered.)
-- **Light or dark desktop UI** — the app picks up your Windows light/dark setting on
-  launch, with a toggle in the header to switch at any time.
+- **Light or dark, everywhere** — the app picks up your Windows light/dark setting
+  on launch, with a toggle in the header to switch at any time. The web page follows
+  each viewer's own system theme too, with its own sun/moon toggle.
+- **Update notice at startup** — a lightweight version check against this
+  repository's releases; if a newer build exists, a popup links to it (nothing is
+  downloaded without your confirmation) and can be dismissed per version.
 - **Record & replay** — optionally record the session to a standard `.pcap` file
   (Wireshark-compatible) and replay it later through the same decoding pipeline.
-- **Remembers your setup** — all window state (options, page title/description, and
-  each overlay's position, size, always-on-top, lock and opacity) is saved to an
-  `ACRLiveTiming.config` file next to the exe and restored on the next launch.
+- **Remembers your setup** — all window state (options, page title/description, the
+  Discord webhook — encrypted — and each overlay's position, size, always-on-top,
+  lock and opacity) is saved to an `ACRLiveTiming.config` file next to the exe and
+  restored on the next launch.
 - **No capture driver** — a Windows raw socket is used instead of Npcap/WinPcap;
   the only requirement is running as Administrator.
 
@@ -129,16 +150,24 @@ picture, plainly:
   so a debug `.pcap` contains more than game packets — treat capture files as
   sensitive and think twice before sharing one.
 - **What is decoded?** Exactly what the game already shows in the lobby: driver
-  pseudonyms, stage times, penalties, stage name, nation, car model. The app does not
-  display account identifiers or any real-name field.
+  pseudonyms, stage times, penalties, stage name, nation, car model. The game also
+  replicates stable account identifiers (Steam/EOS); the app uses them only
+  internally, to keep a driver's results on one row across a pseudonym change — they
+  are never displayed, never published on the page and never included in any export.
+  No real-name field is read.
 - **What leaves your machine?** Nothing, by default. The app has no telemetry and
-  uploads nothing. Its only outbound connections are: (1) a one-time download of the
-  pinned, checksum-verified `cloudflared` binary from Cloudflare's official GitHub
-  releases — fetched automatically in the background at first launch, even if you
-  never publish; (2) the Cloudflare tunnel itself, *only if you click Publish* — from that
+  uploads nothing. Its only outbound connections are: (1) a lightweight startup check
+  to GitHub for a newer ACR Live Timing release — no download occurs unless you confirm
+  its popup; (2) a one-time download of the pinned, checksum-verified `cloudflared`
+  binary from Cloudflare's official GitHub releases — fetched automatically in the
+  background at first launch, even if you never publish; (3) the Cloudflare tunnel itself,
+  *only if you click Publish* — from that
   moment the leaderboard page is reachable by anyone who has the link, until you
   close the app. If the app dies without closing normally (crash, Task Manager kill),
-  the tunnel process can outlive it — check for `cloudflared.exe` in Task Manager.
+  the tunnel process can outlive it — check for `cloudflared.exe` in Task Manager;
+  (4) a message to Discord, *only if* you paste a webhook URL in the Discord panel
+  and click one of its buttons — it posts the alert or results image to that channel
+  and nothing else.
   (Browsers viewing the page also fetch flag images from flagcdn.com.)
 - **Who can see the local page?** The embedded web server listens on all network
   interfaces, so anyone on the same LAN/Wi-Fi can open the page while the server
@@ -213,14 +242,19 @@ publish.bat         # single-file Release exe in .\publish\
 5. Optional: click **Publish** to get a public `trycloudflare.com` URL for the rest
    of the lobby. Wait for the *"link is now live"* log line before sharing; use the
    copy button to grab the link, and click **Publish** again to take it offline.
-6. Optional (streaming): with the web server running, use the *Overlays* panel —
+6. Optional: paste a Discord **Webhook URL** (Discord panel) to post to your channel
+   in one click — **Alert** (public live link), **Standings** (points board image) or
+   **Rally** (selected rally's results image). See [Posting to Discord](#posting-to-discord).
+7. Optional (streaming): with the web server running, use the *Overlays* panel —
    **Classification** and **Progress** each have their own show/hide, always-on-top,
    click-through lock and background-opacity controls. For OBS, click **Copy OBS
    source URL** and add it as a Browser Source (see [Streaming with OBS](#streaming-with-obs)).
    To sit over the game directly, show the overlay window and lock it click-through.
-7. Drive. Results appear as drivers finish; totals and ranks update live. Use
-   **Reset session** to clear the board between events (it keeps the decoded nations,
-   cars and the current stage name so a same-stage restart is not left unlabelled).
+8. Drive. Results appear as drivers finish; totals and ranks update live. Group
+   stages into rallies (*Stages — select to group*) and open the page's **Standings**
+   tab for per-rally results and championship points. Use **Reset session** to clear
+   the board between events (it keeps the decoded nations, cars and the current stage
+   name so a same-stage restart is not left unlabelled).
 
 ## Streaming with OBS
 
@@ -253,6 +287,47 @@ server has to be running.
 
 The copied URL carries the widget's background opacity (`?bg=`, from the Overlays
 panel — `bg=0` is fully transparent). Nation flags load from the internet.
+
+## Posting to Discord
+
+The Discord panel posts to any channel through a **webhook** — no bot to install, no
+app to authorise, nothing to run on a server.
+
+**Get the webhook URL** (requires the *Manage Webhooks* permission on the server):
+
+1. In Discord, open the channel's settings (⚙ next to the channel name) →
+   **Integrations → Webhooks → New Webhook** (also reachable via *Server Settings →
+   Integrations*).
+2. Pick the target channel, then click **Copy Webhook URL**.
+3. Paste it in the app's **Discord** panel. It is stored encrypted in
+   `ACRLiveTiming.config`, readable only by your Windows account — the eye button
+   reveals it if you need to check it.
+
+> ⚠️ **Treat the URL as a secret.** Anyone who has it can post anything to that
+> channel. If it leaks, delete the webhook in Discord (or *Regenerate* its URL) —
+> the old link dies instantly.
+
+**Customise the messenger.** The name and avatar shown on the messages are those of
+the **webhook itself** — the app never overrides them. Rename it (e.g. after your
+community or championship) and give it your own logo straight in Discord's webhook
+settings; each message is still discreetly signed *ACR Live Timing* in the embed
+header, with a link to this project.
+
+**Three one-click messages:**
+
+| Button | Posts | Needs |
+|---|---|---|
+| **Alert** | the public live link (page title + description) with a 🔴 *Live now!* callout | a published tunnel (**Publish**) |
+| **Standings** | the championship points board as an image, dated | at least one rally group |
+| **Rally** | the selected rally's stage results as an image, dated | the rally picked in the selector |
+
+Sends are manual — nothing is ever posted without a click.
+
+<!-- To illustrate: capture a Discord channel showing an Alert message and a
+     Standings message posted by a renamed webhook, save as
+     docs/discord-messages.png, then uncomment:
+<img src="docs/discord-messages.png" alt="Alert and standings messages posted to a Discord channel" width="480">
+-->
 
 ## Antivirus & SmartScreen
 
@@ -289,9 +364,11 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Nation + car per driver/stage | ✅ read at JOIN from the player's participant actor (deterministic, no lap time needed); car retained per stage and listed without duplicates across the selected stages; time-anchored binding kept as fallback — screenshot-validated |
 | Complete finisher list | ✅ multi-bit-shift scan |
 | Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*), exact to the ms, streamed live |
-| DNF detection | 🟡 live on the running stage (car's *Retire/Disqualify* phase), inferred on closed stages from posted splits without a finish; an early quit (no splits) shows as absent |
+| DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; an early quit (no splits) shows as absent |
 | Live stage progression | ✅ horizontal leader↔tail auto-fitting track above the board; markers named at spawn (PlayerState identity block), first-split fallback — can be partial during the first stage after lock-on |
-| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window, hide nations, finish gating — recomputed client-side from raw per-stage data; session-only, one-click reset to host config |
+| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window, hide nations, finish gating, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config |
+| Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names; independent per-rally classification and championship points, shared with every viewer |
+| Result exports | ✅ copy / CSV / PNG buttons on the page; host-side Discord webhook (live alert, standings board, rally results) |
 | Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header |
 | Live positions / gaps | 🟡 per-car live position decoded, not yet surfaced as a ranking |
 
@@ -310,6 +387,8 @@ src/
   Model/     engine (state machine) + thread-safe session matrix
   Web/       embedded HTTP server (/, /state) + single-page UI
   Tunnel/    cloudflared runner (pinned version, checksum-verified)
+  Discord/   webhook publisher (alert + results messages)
+  Updates/   startup release check (GitHub API)
   UI/        WPF control panel + transparent OBS overlay windows + settings
 ```
 
