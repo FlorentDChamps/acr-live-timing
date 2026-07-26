@@ -17,6 +17,10 @@ namespace ACRLiveTiming.Decode
     /// </summary>
     public static class LobbyDecoder
     {
+        /// <summary>Stable account identifiers and the mutable display name carried
+        /// by a PlayerState identity block.</summary>
+        public readonly record struct PlayerIdentity(string SteamId, string EosPuid, string Name);
+
         const int MAX_CHSEQUENCE = 1024;
         const int MAX_CLOSE_REASON = 15;
         const int MAXPKT_BITS = 1024 * 8;
@@ -295,7 +299,7 @@ namespace ACRLiveTiming.Decode
         // Scanned at all 8 bit shifts (the block usually lands mid-bitstream). The
         // display-name FString is parsed properly (ANSI or UTF-16), so exotic
         // pseudonyms (accents, CJK) come out intact — unlike an ASCII token scan.
-        static string? IdentIn(byte[] seg)
+        static PlayerIdentity? IdentIn(byte[] seg)
         {
             for (int sh = 0; sh < 8; sh++)
             {
@@ -322,7 +326,11 @@ namespace ACRLiveTiming.Decode
                     for (int o = 0; o <= 8; o++)
                     {
                         var name = ReadFStringAt(d, h + 33 + o);
-                        if (name != null) return name;
+                        if (name != null)
+                            return new PlayerIdentity(
+                                Encoding.ASCII.GetString(d, j, i - j),
+                                Encoding.ASCII.GetString(d, h, 32),
+                                name);
                     }
                 }
             }
@@ -412,7 +420,7 @@ namespace ACRLiveTiming.Decode
             readonly Dictionary<long, long> _freshOuter = new();      // this packet's outer links
             readonly Dictionary<int, long> _chActor = new();          // channel -> actor guid (from open bunches)
             readonly HashSet<long> _psActors = new();                 // actors archetyped BC_RacePlayerState
-            readonly HashSet<long> _identDone = new();                // ps actors already identified
+            readonly Dictionary<long, PlayerIdentity> _identities = new(); // last identity seen per ps actor
             public Dictionary<long, string> Guids { get; } = new();   // NetGUID -> path
 
             /// <summary>Actors archetyped BC_RaceParticipant — ONE per player, created
@@ -423,13 +431,13 @@ namespace ACRLiveTiming.Decode
             public HashSet<long> ParticipantActors { get; } = new();
 
             /// <summary>Player identities resolved by the LAST <see cref="Feed"/> call:
-            /// (PlayerState actor guid, EOS display name), from the steamid+pseudo
+            /// (PlayerState actor guid, stable account identifiers and EOS display name), from the steamid+pseudo
             /// identity block on the actor's own channel. The PlayerState actor is the
             /// OUTER of the per-player data components (RaceStateData etc, see
             /// <see cref="Outers"/>), and it is respawned per stage with the identity
             /// re-replicated in its open bunch — so every stage's fresh actors are
             /// re-identified at spawn, BEFORE the start. Consume before the next Feed.</summary>
-            public List<(long actor, string name)> NewIdents { get; } = new();
+            public List<(long actor, PlayerIdentity identity)> NewIdents { get; } = new();
 
             /// <summary>NetGUID -> outer NetGUID, from the export chain. Two subobjects
             /// with the same outer belong to the same actor (e.g. a player's
@@ -542,14 +550,21 @@ namespace ACRLiveTiming.Decode
                 // (seen 2026-07-11: the class GUID no longer resolves, _psActors stays
                 // empty) while the identity block itself is unchanged in the stream — so
                 // gate on the OPEN bunch (cheap, once per actor) OR the archetype tag when
-                // it IS available. IdentIn's marker is a certain bind (near-zero false
-                // positives), and a hit on a non-player actor never binds downstream
-                // (only RaceStateData outers are named), so scanning every open is safe.
-                if (_chActor.TryGetValue(first.ch, out var owner) && !_identDone.Contains(owner)
-                    && (first.open != 0 || _psActors.Contains(owner)))
+                // it IS available. Once an actor is identified, scan its later bunches
+                // too: a changed pseudo replicates there with the same account IDs.
+                // IdentIn's marker is a certain bind (near-zero false positives), and a
+                // hit on a non-player actor never binds downstream (only RaceStateData
+                // outers are named), so scanning every open is safe.
+                if (_chActor.TryGetValue(first.ch, out var owner)
+                    && (first.open != 0 || _psActors.Contains(owner) || _identities.ContainsKey(owner)))
                 {
-                    var name = IdentIn(merged);
-                    if (name != null) { _identDone.Add(owner); NewIdents.Add((owner, name)); }
+                    var identity = IdentIn(merged);
+                    if (identity != null
+                        && (!_identities.TryGetValue(owner, out var current) || current != identity.Value))
+                    {
+                        _identities[owner] = identity.Value;
+                        NewIdents.Add((owner, identity.Value));
+                    }
                 }
             }
         }

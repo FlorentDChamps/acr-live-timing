@@ -208,9 +208,10 @@ namespace ACRLiveTiming.Model
                 // at spawn — before the start. The full EOS display name also teaches
                 // the persona alias (results carry the short form). Time-match naming
                 // below stays as the fallback (e.g. lock-on mid-stage, spawn missed).
-                foreach (var (carId, driver) in _tracker.NewCarNames)
+                foreach (var (carId, driver, steamId, eosPuid) in _tracker.NewCarNames)
                 {
                     _natCar.LearnAlias(driver);
+                    Matrix.SetDriverIdentity(driver, steamId, eosPuid);
                     Matrix.NameCarFromIdent(carId, driver);
                 }
                 foreach (var (carId, time) in _tracker.NewSplitPairs)
