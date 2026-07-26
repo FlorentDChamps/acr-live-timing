@@ -1,5 +1,8 @@
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ACRLiveTiming.UI
 {
@@ -37,6 +40,30 @@ namespace ACRLiveTiming.UI
         // page text
         public string PageTitle { get; set; } = "";
         public string PageDescription { get; set; } = "";
+
+        // The webhook can post as the application, so never persist it in clear text.
+        // DPAPI ties the encrypted value to this Windows user on this PC.
+        public string DiscordWebhookProtected { get; set; } = "";
+        [JsonIgnore]
+        public string DiscordWebhook
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(DiscordWebhookProtected)) return "";
+                try
+                {
+                    var data = Convert.FromBase64String(DiscordWebhookProtected);
+                    return Encoding.UTF8.GetString(ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser));
+                }
+                catch { return ""; }
+            }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) { DiscordWebhookProtected = ""; return; }
+                var data = ProtectedData.Protect(Encoding.UTF8.GetBytes(value.Trim()), null, DataProtectionScope.CurrentUser);
+                DiscordWebhookProtected = Convert.ToBase64String(data);
+            }
+        }
 
         // main window bounds (null on first run => the XAML defaults are used)
         public double? WinLeft { get; set; }
