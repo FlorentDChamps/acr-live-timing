@@ -21,6 +21,7 @@
     <SolidColorBrush x:Key="Brush.Console"       Color="#FBFCFD"/>
     <SolidColorBrush x:Key="Brush.Border"        Color="#D0D7DE"/>
     <SolidColorBrush x:Key="Brush.BorderHover"   Color="#BFC7CF"/>
+    <SolidColorBrush x:Key="Brush.WindowOutline" Color="#57606A"/>
     <SolidColorBrush x:Key="Brush.Text"          Color="#1F2328"/>
     <SolidColorBrush x:Key="Brush.ButtonText"    Color="#24292F"/>
     <SolidColorBrush x:Key="Brush.ButtonBg"      Color="#FFFFFF"/>
@@ -402,6 +403,7 @@
     </Style>
   </Window.Resources>
 
+  <Border BorderBrush="{DynamicResource Brush.WindowOutline}" BorderThickness="1">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="36"/>
@@ -461,6 +463,10 @@
           <CheckBox x:Name="ThemeToggle" Style="{StaticResource ToggleSwitch}"
                     Checked="ThemeToggle_Changed" Unchecked="ThemeToggle_Changed"/>
         </StackPanel>
+        <Button x:Name="UpdateAvailableBtn" DockPanel.Dock="Right" Visibility="Collapsed"
+                Content="Update available" FontSize="12" Padding="8,3" Margin="0,0,12,0"
+                Foreground="{DynamicResource Brush.Accent}" Click="UpdateAvailableBtn_Click"
+                ToolTip="A newer version is available. Click to view the update options."/>
       </DockPanel>
     </Border>
 
@@ -792,4 +798,5 @@
                Text="Unofficial fan-made tool — not affiliated with or endorsed by Kunos Simulazioni, Supernova Games Studios or 505 Games. &quot;Assetto Corsa&quot; is a trademark of its respective owners, used here only to indicate compatibility. Reads cleartext traffic only; never decrypts."/>
   </Grid>
   </Grid>
+  </Border>
 </Window>
