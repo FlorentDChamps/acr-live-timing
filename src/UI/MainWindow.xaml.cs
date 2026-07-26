@@ -14,6 +14,7 @@ using ACRLiveTiming.Discord;
 using ACRLiveTiming.Model;
 using ACRLiveTiming.Net;
 using ACRLiveTiming.Tunnel;
+using ACRLiveTiming.Updates;
 using ACRLiveTiming.Web;
 using Microsoft.Win32;
 
@@ -32,6 +33,8 @@ namespace ACRLiveTiming.UI
         readonly CloudflaredRunner _tunnel = new();
         readonly DiscordPublisher _discord = new();
         readonly DiscordPngRenderer _discordPng = new();
+        readonly UpdateChecker _updates = new();
+        AvailableUpdate? _availableUpdate;
         DispatcherTimer? _timer;
         List<string> _lastStageKey = new();
         readonly HashSet<string> _selectedStageIds = new();
@@ -189,6 +192,7 @@ namespace ACRLiveTiming.UI
             ["Brush.Console"]       = C(0xFB, 0xFC, 0xFD),
             ["Brush.Border"]        = C(0xD0, 0xD7, 0xDE),
             ["Brush.BorderHover"]   = C(0xBF, 0xC7, 0xCF),
+            ["Brush.WindowOutline"] = C(0x57, 0x60, 0x6A),
             ["Brush.Text"]          = C(0x1F, 0x23, 0x28),
             ["Brush.ButtonText"]    = C(0x24, 0x29, 0x2F),
             ["Brush.ButtonBg"]      = C(0xFF, 0xFF, 0xFF),
@@ -215,6 +219,7 @@ namespace ACRLiveTiming.UI
             ["Brush.Console"]       = C(0x0D, 0x11, 0x17),
             ["Brush.Border"]        = C(0x30, 0x36, 0x3D),
             ["Brush.BorderHover"]   = C(0x44, 0x4C, 0x56),
+            ["Brush.WindowOutline"] = C(0x30, 0x36, 0x3D),
             ["Brush.Text"]          = C(0xE6, 0xED, 0xF3),
             ["Brush.ButtonText"]    = C(0xE6, 0xED, 0xF3),
             ["Brush.ButtonBg"]      = C(0x21, 0x26, 0x2D),
@@ -313,6 +318,8 @@ namespace ACRLiveTiming.UI
                         Dispatcher.BeginInvoke(() => AppendLog("cloudflared not downloaded: " + t.Exception.GetBaseException().Message));
                 });
 
+            _ = CheckForUpdateAsync();
+
             AppendLog("Ready. Join an ACR lobby — the server is detected automatically.");
 
             // startup restore is done: enable saving and write once now, so the
@@ -332,6 +339,42 @@ namespace ACRLiveTiming.UI
                 RebuildStagesIfChanged();
                 RefreshDiscordControls();
             });
+        }
+
+        async Task CheckForUpdateAsync()
+        {
+            try
+            {
+                var update = await _updates.CheckAsync();
+                if (update == null || !IsLoaded) return;
+                _availableUpdate = update;
+                UpdateAvailableBtn.Visibility = Visibility.Visible;
+                if (update.Version != _settings.DismissedUpdateVersion)
+                    ShowAvailableUpdateDialog();
+            }
+            catch
+            {
+                // An update check is optional: startup remains silent and unaffected
+                // when offline, rate-limited, or when GitHub is temporarily unavailable.
+            }
+        }
+
+        void UpdateAvailableBtn_Click(object sender, RoutedEventArgs e) => ShowAvailableUpdateDialog();
+
+        void ShowAvailableUpdateDialog()
+        {
+            var update = _availableUpdate;
+            if (update == null) return;
+            switch (UpdateAvailableDialog.Show(this, update))
+            {
+                case UpdateDialogResult.Download:
+                    OpenUrl(update.DownloadUrl.AbsoluteUri);
+                    break;
+                case UpdateDialogResult.Discard:
+                    _settings.DismissedUpdateVersion = update.Version;
+                    SaveSettings();
+                    break;
+            }
         }
 
         // ---- UI events -------------------------------------------------------
