@@ -41,6 +41,7 @@
   <ItemGroup>
     <!-- Web UI served over HTTP; embedded so it ships inside the exe. -->
     <EmbeddedResource Include="src\Web\index.html" />
+    <Resource Include="assets\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>

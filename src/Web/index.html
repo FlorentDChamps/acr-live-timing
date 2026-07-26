@@ -13,7 +13,8 @@
 <style>
   :root {
     --bg: #0e1116; --panel: #161b22; --line: #263041; --txt: #e6edf3;
-    --dim: #8b949e; --accent: #f2b705; --sub: #ff7b72; --ok: #3fb950;
+    --dim: #8b949e; --accent: #a33a43; --accent-contrast: #fff;
+    --sub: #c96a72; --ok: #3fb950;
     /* near-white grey for penalty (italic) times: readable, just off the main text */
     --faint: #d9e0e8;
     --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
@@ -21,6 +22,27 @@
     --w-pos: 46px; --w-name: 200px; --w-time: 116px;
     /* overlay background opacity (0..1); set per-overlay via the ?bg= param / host JS */
     --ov-alpha: 0.8;
+  }
+  /* System is the default. A viewer can pin either palette from Settings. */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f7f5f4; --panel: #fffdfc; --line: #ddd6d4; --txt: #251f20;
+      --dim: #6d6263; --accent: #a33a43; --accent-contrast: #fff;
+      --sub: #ad4f58; --ok: #217a4b; --faint: #665d5e;
+      --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+    }
+  }
+  body[data-theme="dark"] {
+    --bg: #0e1116; --panel: #161b22; --line: #263041; --txt: #e6edf3;
+    --dim: #8b949e; --accent: #a33a43; --accent-contrast: #fff;
+    --sub: #c96a72; --ok: #3fb950; --faint: #d9e0e8;
+    --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+  }
+  body[data-theme="light"] {
+    --bg: #f7f5f4; --panel: #fffdfc; --line: #ddd6d4; --txt: #251f20;
+    --dim: #6d6263; --accent: #a33a43; --accent-contrast: #fff;
+    --sub: #ad4f58; --ok: #217a4b; --faint: #665d5e;
+    --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--txt);
@@ -37,7 +59,7 @@
   /* GitHub link: neutral pill fixed beside the gear button (same top/height, 8px
      gap => right = 12 + 34 + 8). Lives inside <header>, so overlay mode hides it
      with the rest for free (display:none on the parent beats position:fixed). */
-  .ghlink { position: fixed; top: 10px; right: 54px; z-index: 20; height: 34px;
+  .ghlink { position: fixed; top: 10px; right: 96px; z-index: 20; height: 34px;
             display: inline-flex; align-items: center; gap: 7px;
             padding: 0 12px; border: 1px solid var(--line); border-radius: 8px;
             background: var(--panel); color: var(--dim); font-size: 13px;
@@ -64,7 +86,11 @@
                    bar never shifts and the status always stays on one line */
                 width: 190px; text-align: center; box-sizing: border-box; }
   .phasebadge.racing { background: var(--ok); border-color: var(--ok); color: #0e1116; }
-  .phasebadge.results { background: var(--accent); border-color: var(--accent); color: #0e1116; }
+  .phasebadge.results { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+  @media (prefers-color-scheme: light) {
+    body:not([data-theme]) .phasebadge.racing { color: var(--accent-contrast); }
+  }
+  body[data-theme="light"] .phasebadge.racing { color: var(--accent-contrast); }
   .curstage { font-weight: 600; font-size: 14px; }
   /* live stage progression: an AUTO-FITTING window — the right edge is the
      leader's position (km figure beside the track), the left edge is the last
@@ -112,12 +138,10 @@
        text-transform: uppercase; letter-spacing: .4px; line-height: 1.3;
        vertical-align: top;   /* stage names top-aligned when they wrap over lines */
        position: sticky; top: 0; background: var(--bg); z-index: 1; }
-  .sorthead { position: relative; width: 100%; padding: 0 12px 0 0; border: 0; background: transparent;
+  .sorthead { width: 100%; padding: 0; border: 0; background: transparent;
               color: inherit; font: inherit; text-align: inherit;
               text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
   .sorthead:hover { color: var(--txt); }
-  .sortarrow { position: absolute; top: 0; right: 0; color: var(--dim); opacity: .5; }
-  .sorthead.active .sortarrow { color: var(--accent); opacity: 1; }
 
   /* fixed-width time columns (stage cells + Total) */
   .cell, .total { width: var(--w-time); min-width: var(--w-time);
@@ -179,7 +203,15 @@
      Transparent window canvas, only the requested widget visible. Used by the
      embedded overlay windows (WebView2) so OBS / on-top capture shows one widget
      on a see-through background. */
-  body.overlay { background: transparent; overflow: hidden; }
+  /* OBS overlays always use the dark palette: their translucent card/track
+     backgrounds are dark regardless of the viewer page's chosen theme. */
+  body.overlay {
+    --bg: #0e1116; --panel: #161b22; --line: #263041; --txt: #e6edf3;
+    --dim: #8b949e; --accent: #a33a43; --accent-contrast: #fff;
+    --sub: #c96a72; --ok: #3fb950; --faint: #d9e0e8;
+    --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+    background: transparent; overflow: hidden;
+  }
   /* overlays never scroll — content is clipped to the window (resize to reveal) */
   body.overlay .wrap { overflow: hidden; }
   body.overlay header, body.overlay .stagebar, body.overlay footer { display: none !important; }
@@ -229,6 +261,11 @@
             font-size: 17px; line-height: 32px; text-align: center; }
   #cfgbtn:hover { border-color: var(--accent); color: var(--txt); }
   #cfgbtn.on { color: var(--accent); border-color: var(--accent); }  /* overrides live */
+  #themebtn { position: fixed; top: 10px; right: 54px; z-index: 20;
+              width: 34px; height: 34px; border-radius: 8px; cursor: pointer; padding: 0;
+              background: var(--panel); border: 1px solid var(--line); color: var(--dim);
+              font-size: 17px; line-height: 32px; text-align: center; }
+  #themebtn:hover, #themebtn.on { border-color: var(--accent); color: var(--accent); }
   #cfgpanel { position: fixed; top: 52px; right: 12px; z-index: 20; width: 284px;
               max-height: 82vh; overflow-y: auto; display: none;
               background: var(--panel); border: 1px solid var(--line);
@@ -295,6 +332,7 @@
 </head>
 <body>
   <button id="cfgbtn" title="Display settings" aria-label="Display settings">⚙</button>
+  <button id="themebtn" title="Theme" aria-label="Toggle light and dark theme">☀</button>
   <div id="cfgpanel" role="dialog" aria-label="Display settings">
     <h3 style="margin-top:2px">Display settings</h3>
     <p class="cfgnote">Local to your view · not saved (reload reverts).
@@ -657,19 +695,46 @@ function renderProgress(list, windowKm) {
 // trigger a client-side recompute from the ungated `rawCells`; hide-nations and the
 // progression window are purely presentational. Nothing is persisted — a reload
 // (or Reset) drops back to the host's published config.
-const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, progKm: null };
+const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, theme: null, progKm: null };
 let lastServer = null;
 let lastRendered = null;
 let sortKey = "total";  // total by default; stage keys are their zero-based column index
 
 const hasOverride = () =>
   ov.discarded !== null || ov.pct !== null || ov.finishGating !== null ||
-  ov.hideNations !== null || ov.progKm !== null;
+  ov.hideNations !== null || ov.theme !== null || ov.progKm !== null;
 
 const hostDiscarded = v => new Set((v.allStages || []).filter(s => s.discarded).map(s => s.id));
 const effDiscarded  = v => ov.discarded !== null ? ov.discarded : hostDiscarded(v);
 const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
 const hideNatOn     = () => ov.hideNations === true;
+function applyTheme(theme) {
+  // Remove the attribute entirely for "system": an EMPTY data-theme still counts
+  // as present for [data-theme] selectors, which would defeat the
+  // `body:not([data-theme])` prefers-color-scheme rules.
+  if (theme === "light" || theme === "dark") document.body.dataset.theme = theme;
+  else delete document.body.dataset.theme;
+}
+const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+const themeButton = document.getElementById("themebtn");
+function resolvedTheme() {
+  return ov.theme || (systemTheme.matches ? "dark" : "light");
+}
+function syncThemeButton() {
+  const current = resolvedTheme();
+  const next = current === "dark" ? "light" : "dark";
+  themeButton.textContent = current === "dark" ? "☾" : "☀";
+  themeButton.title = `Switch to ${next} theme`;
+  themeButton.setAttribute("aria-label", `Switch to ${next} theme`);
+  themeButton.classList.toggle("on", ov.theme !== null);
+}
+themeButton.addEventListener("click", () => {
+  ov.theme = resolvedTheme() === "dark" ? "light" : "dark";
+  applyTheme(ov.theme);
+  syncThemeButton();
+  if (lastServer) syncPanel(lastServer);
+});
+systemTheme.addEventListener("change", () => { if (ov.theme === null) syncThemeButton(); });
 
 // THE board computation — the single implementation. The host ships data, never a
 // rendered classification: reveal gating, penalty substitution, totals, ranking and
@@ -826,7 +891,10 @@ function initPanel() {
   cfgEls.gate.addEventListener("change", () => { ov.finishGating = cfgEls.gate.checked; reRender(); });
   cfgEls.nat.addEventListener("change", () => { ov.hideNations = cfgEls.nat.checked; reRender(); });
   cfgEls.reset.addEventListener("click", () => {
-    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.progKm = null;
+    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.theme = ov.progKm = null;
+    applyTheme("system");
+    syncThemeButton();
+    sortKey = "total";
     reRender();
   });
 }
@@ -965,7 +1033,7 @@ function render(v) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "sorthead" + (sortKey === key ? " active" : "");
-      button.innerHTML = html + '<span class="sortarrow" aria-hidden="true">&#8593;</span>';
+      button.innerHTML = html;
       button.title = "Sort fastest to slowest (no time last)";
       button.setAttribute("aria-sort", sortKey === key ? "ascending" : "none");
       button.addEventListener("click", () => { sortKey = key; render(lastRendered); });
@@ -1141,6 +1209,7 @@ async function poll() {
   } catch (_) { /* transient; retry next tick */ }
   finally { polling = false; }
 }
+syncThemeButton();
 initPanel();
 // The server bakes the current state into #statecache, so first paint comes from it
 // with no /state round-trip. A copy saved via the browser's "Save page as" opens as
