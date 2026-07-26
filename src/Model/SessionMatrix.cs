@@ -124,8 +124,8 @@ namespace ACRLiveTiming.Model
         // the per-column map preserves the car actually used on each stage.
         readonly Dictionary<string, string> _lastCars = new();
         readonly Dictionary<string, Dictionary<string, string>> _carsByColumn = new();
-        double _pct = 0.20;
-        double _progressWindowKm = 2.0;   // MAX span of the auto-fitting progression window (km)
+        double _pct = 0.50;
+        double _progressWindowKm = 0.8;   // MAX span of the auto-fitting progression window (km)
         bool _finishGating = true;   // true: hide splits, reveal only real finishes
                                      //       (RaceStateData timer). false: sector-gate
                                      //       (older behaviour — reveal on full sector chain).

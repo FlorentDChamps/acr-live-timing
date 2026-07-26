@@ -473,7 +473,7 @@
           <StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
               <TextBlock Text="Penalty threshold: 1st +" VerticalAlignment="Center"/>
-              <TextBox x:Name="PctBox" Text="20" Width="46" Margin="6,0,4,0"
+              <TextBox x:Name="PctBox" Text="50" Width="46" Margin="6,0,4,0"
                        TextChanged="PctBox_TextChanged"
                        ToolTip="A driver who misses a stage, or is slower than (fastest + this %), is counted at that threshold time (shown in grey italic on the page)."/>
               <TextBlock Text="%" VerticalAlignment="Center"/>
@@ -482,7 +482,7 @@
                        Foreground="{DynamicResource Brush.Muted}" TextWrapping="Wrap"/>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
               <TextBlock Text="Max progression range:" VerticalAlignment="Center"/>
-              <TextBox x:Name="ProgressWindowBox" Text="2.0" Width="46" Margin="6,0,2,0"
+              <TextBox x:Name="ProgressWindowBox" Text="0.8" Width="46" Margin="6,0,2,0"
                        VerticalAlignment="Center" TextChanged="ProgressWindowBox_TextChanged"
                        ToolTip="Maximum span of the progression bar at the top of the page. The bar auto-fits the field (leader on the right, last running car on the left); this caps how wide it can stretch. Once the field spreads past it, the leader stays right-pinned and cars further back are hidden."/>
               <StackPanel VerticalAlignment="Center">
