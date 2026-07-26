@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ACRLiveTiming.Decode;
 
 namespace ACRLiveTiming.Model
@@ -9,12 +10,17 @@ namespace ACRLiveTiming.Model
     // substitution, totals and ranking are the page's job, computed from this block
     // under whatever settings the viewer is using. Shipping a pre-rendered board too
     // would mean two implementations of the same rules kept in sync by hand.
-    // T=measured time, F=matched a real finish-timer peak (IsFinished), S=sector count.
+    // T=measured time, F=matched a real finish-timer peak (IsFinished), S=sector count,
+    // R=the driver's car never reached the finish phases on this stage (retired,
+    // disqualified, or vanished mid-run) — the page must never promote their last
+    // split to a final via sector-count fallback.
     public sealed class RawCell
     {
         public double T { get; set; }
         public bool F { get; set; }
         public int S { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool R { get; set; }
     }
 
     public sealed class RowView
@@ -96,12 +102,20 @@ namespace ACRLiveTiming.Model
         readonly Dictionary<string, Dictionary<string, (double time, double raw, int sectors)>> _times = new();
         readonly List<string> _driverOrder = new();
         // penalty-free finish times (raw) reported by the RaceStateData timer; a result
-        // is a real FINISH iff its raw time matches one of these. Accumulated across the
-        // session. _hasRaceState = the timer component exists at all: if true we gate
+        // is a real FINISH iff its raw time matches one of these. Each entry is tagged
+        // with the column that was current when it was detected (null = observed before
+        // any column existed, matches anywhere): without the tag, a DNF's last split
+        // landing within tolerance of ANOTHER stage's finish would read as a finish.
+        // _hasRaceState = the timer component exists at all: if true we gate
         // strictly on finishes (and reveal nothing before the first car crosses the line,
         // avoiding the pre-first-finisher flash); if false (older capture with no timer)
         // we fall back to sector-count gating.
-        readonly List<double> _finishTimes = new();
+        readonly List<(double time, string? column)> _finishTimes = new();
+        // columnId -> drivers whose car never reached the finish phases by the time the
+        // run rolled (Retire/Disqualify, or vanished mid-stage — rage quit / disconnect).
+        // Snapshot taken once per column in ResetCarProgress; lets the page's fallback
+        // gating and DNF display work on CLOSED stages, where _carsLive is long gone.
+        readonly Dictionary<string, HashSet<string>> _dnfByColumn = new();
         bool _hasRaceState;
         // ---- live progression (RaceStateData h9, one entry per car NetGUID) ----
         // guid -> live state for the CURRENT run (cleared on every run start)
@@ -128,6 +142,14 @@ namespace ACRLiveTiming.Model
         // the per-column map preserves the car actually used on each stage.
         readonly Dictionary<string, string> _lastCars = new();
         readonly Dictionary<string, Dictionary<string, string>> _carsByColumn = new();
+        readonly Dictionary<string, (string steamId, string eosPuid)> _identities = new();
+        // Results may initially arrive before the PlayerState identity block. Until
+        // then the display name is its own key; once the stable account IDs arrive,
+        // all accumulated data is migrated to an account key. Aliases keep resolving
+        // to that same key, so a later pseudo change updates the label, not the row.
+        readonly Dictionary<string, string> _driverKeysByName = new();
+        readonly Dictionary<string, string> _driverLabels = new();
+        const string AccountKeyPrefix = "\u001faccount:";
         double _pct = 0.50;
         double _progressWindowKm = 0.8;   // MAX span of the auto-fitting progression window (km)
         bool _finishGating = true;   // true: hide splits, reveal only real finishes
@@ -156,6 +178,57 @@ namespace ACRLiveTiming.Model
         {
             Interlocked.Increment(ref _version);
             Changed?.Invoke();
+        }
+
+        // Caller holds _lock.
+        string ResolveDriverKey(string displayName)
+        {
+            if (_driverKeysByName.TryGetValue(displayName, out var key)) return key;
+            _driverKeysByName[displayName] = displayName;
+            _driverLabels.TryAdd(displayName, displayName);
+            return displayName;
+        }
+
+        // Caller holds _lock. Fold the temporary/name key into a stable account key.
+        void MergeDriver(string from, string to)
+        {
+            if (from == to) return;
+            int position = _driverOrder.IndexOf(from);
+            if (position >= 0)
+            {
+                _driverOrder.RemoveAt(position);
+                if (!_driverOrder.Contains(to)) _driverOrder.Insert(Math.Min(position, _driverOrder.Count), to);
+            }
+            foreach (var column in _times.Values)
+                if (column.Remove(from, out var old))
+                    if (!column.TryGetValue(to, out var current)
+                        || old.sectors > current.sectors
+                        || (old.sectors == current.sectors && old.time > current.time + 0.01))
+                        column[to] = old;
+
+            if (_nations.Remove(from, out var nation) && !_nations.ContainsKey(to)) _nations[to] = nation;
+            if (_lastCars.Remove(from, out var lastCar) && !_lastCars.ContainsKey(to)) _lastCars[to] = lastCar;
+            foreach (var dnf in _dnfByColumn.Values)
+                if (dnf.Remove(from)) dnf.Add(to);
+            foreach (var cars in _carsByColumn.Values)
+                if (cars.Remove(from, out var car) && !cars.ContainsKey(to)) cars[to] = car;
+            MergeRaws(_seenRaws, from, to);
+            MergeRaws(_seenRawsPrev, from, to);
+            foreach (var carId in _carNames.Where(p => p.Value == from).Select(p => p.Key).ToList())
+                _carNames[carId] = to;
+            if (_identities.Remove(from, out var identity) && !_identities.ContainsKey(to)) _identities[to] = identity;
+            foreach (var alias in _driverKeysByName.Where(p => p.Value == from).Select(p => p.Key).ToList())
+                _driverKeysByName[alias] = to;
+            _driverLabels.Remove(from);
+        }
+
+        // Caller holds _lock.
+        static void MergeRaws(Dictionary<string, List<double>> sets, string from, string to)
+        {
+            if (!sets.Remove(from, out var source)) return;
+            if (!sets.TryGetValue(to, out var target)) sets[to] = target = new List<double>();
+            foreach (var raw in source)
+                if (!target.Exists(existing => Math.Abs(existing - raw) < 0.01)) target.Add(raw);
         }
 
         /// <summary>Lobby FSM phase for the page header ("Racing", "Results", …).</summary>
@@ -232,29 +305,65 @@ namespace ACRLiveTiming.Model
             bool changed = false;
             lock (_lock)
             {
-                _nations.TryGetValue(driver, out var currentNation);
+                var key = ResolveDriverKey(driver);
+                _nations.TryGetValue(key, out var currentNation);
                 if (currentNation != nation)
                 {
-                    _nations[driver] = nation;
+                    _nations[key] = nation;
                     changed = true;
                 }
                 if (!string.IsNullOrWhiteSpace(car))
                 {
-                    if (!_lastCars.TryGetValue(driver, out var last) || last != car)
+                    if (!_lastCars.TryGetValue(key, out var last) || last != car)
                     {
-                        _lastCars[driver] = car;
+                        _lastCars[key] = car;
                         changed = true;
-            }
+                    }
                     if (columnId != null)
                     {
                         if (!_carsByColumn.TryGetValue(columnId, out var columnCars))
                             _carsByColumn[columnId] = columnCars = new Dictionary<string, string>();
-                        if (!columnCars.TryGetValue(driver, out var stageCar) || stageCar != car)
+                        if (!columnCars.TryGetValue(key, out var stageCar) || stageCar != car)
                         {
-                            columnCars[driver] = car;
+                            columnCars[key] = car;
                             changed = true;
                         }
                     }
+                }
+            }
+            if (changed) RaiseChanged();
+        }
+
+        /// <summary>Associate a result/display name with the stable account IDs
+        /// received in its PlayerState identity block. The account key also prevents
+        /// a pseudo change from splitting one driver into multiple result rows.</summary>
+        public void SetDriverIdentity(string driver, string steamId, string eosPuid)
+        {
+            if (string.IsNullOrWhiteSpace(driver) || string.IsNullOrWhiteSpace(steamId)
+                || string.IsNullOrWhiteSpace(eosPuid)) return;
+            bool changed = false;
+            lock (_lock)
+            {
+                var currentKey = ResolveDriverKey(driver);
+                var accountKey = AccountKeyPrefix + steamId + "|" + eosPuid;
+                // Only fold a temporary name-key into the account key. When the name
+                // already resolves to a DIFFERENT account (two players sharing a
+                // pseudonym, or one renamed to another's pseudonym), merging would
+                // meld two real players' results — leave that row untouched and just
+                // repoint the alias to the most recent claimant.
+                if (currentKey == accountKey || !currentKey.StartsWith(AccountKeyPrefix, StringComparison.Ordinal))
+                    MergeDriver(currentKey, accountKey);
+                _driverKeysByName[driver] = accountKey;
+                if (!_driverLabels.TryGetValue(accountKey, out var label) || label != driver)
+                {
+                    _driverLabels[accountKey] = driver;
+                    changed = true;
+                }
+                if (!_identities.TryGetValue(accountKey, out var current)
+                    || current.steamId != steamId || current.eosPuid != eosPuid)
+                {
+                    _identities[accountKey] = (steamId, eosPuid);
+                    changed = true;
                 }
             }
             if (changed) RaiseChanged();
@@ -277,6 +386,7 @@ namespace ACRLiveTiming.Model
             bool changed = false;
             lock (_lock)
             {
+                driver = ResolveDriverKey(driver);
                 if (!_times.TryGetValue(columnId, out var column))
                 {
                     column = new Dictionary<string, (double, double, int)>();
@@ -310,6 +420,7 @@ namespace ACRLiveTiming.Model
             bool changed = false;
             lock (_lock)
             {
+                driver = ResolveDriverKey(driver);
                 if (!_driverOrder.Contains(driver))
                 {
                     _driverOrder.Add(driver);
@@ -333,6 +444,7 @@ namespace ACRLiveTiming.Model
             bool changed = false;
             lock (_lock)
             {
+                driver = ResolveDriverKey(driver);
                 if (!_seenRaws.TryGetValue(driver, out var seen))
                     _seenRaws[driver] = seen = new List<double>();
                 if (!seen.Exists(r => Math.Abs(r - raw) < 0.01))
@@ -359,18 +471,27 @@ namespace ACRLiveTiming.Model
             lock (_lock)
             {
                 if (present != _hasRaceState) { _hasRaceState = present; changed = true; }
+                // Tag with the current run's column (last opened: StartNewRun adds the
+                // column before any finish of that run can be detected). Dedup within
+                // the same tag only — the same raw value on two different stages is
+                // two distinct finishes.
+                var column = _columnOrder.Count > 0 ? _columnOrder[^1] : null;
                 foreach (var t in times)
-                    if (!_finishTimes.Exists(f => Math.Abs(f - t) < RaceStateTracker.FinishMatchTolerance))
+                    if (!_finishTimes.Exists(f => f.column == column
+                        && Math.Abs(f.time - t) < RaceStateTracker.FinishMatchTolerance))
                     {
-                        _finishTimes.Add(t);
+                        _finishTimes.Add((t, column));
                         changed = true;
                     }
             }
             if (changed) RaiseChanged();
         }
 
-        // raw time matches a real finish (RaceStateData timer peak) within tolerance
-        bool IsFinished(double raw) => _finishTimes.Exists(f => Math.Abs(f - raw) < RaceStateTracker.FinishMatchTolerance);
+        // raw time matches a real finish (RaceStateData timer peak) of THIS column
+        // within tolerance (null-tagged peaks predate any column and match anywhere)
+        bool IsFinished(string columnId, double raw) => _finishTimes.Exists(f =>
+            (f.column == null || f.column == columnId)
+            && Math.Abs(f.time - raw) < RaceStateTracker.FinishMatchTolerance);
 
         /// <summary>
         /// Push this packet's live per-car updates (spline distance + race phase).
@@ -465,6 +586,7 @@ namespace ACRLiveTiming.Model
             bool changed = false;
             lock (_lock)
             {
+                driver = ResolveDriverKey(driver);
                 if (!_carNames.TryGetValue(id, out var cur) || cur != driver)
                 {
                     // a driver drives ONE car per run: drop a stale guid bound to the
@@ -495,6 +617,23 @@ namespace ACRLiveTiming.Model
             lock (_lock)
             {
                 changed = _carsLive.Count > 0;
+                // The ending run is now definitively over: any named car that never
+                // reached the finish phases is a DNF for that column — including cars
+                // whose actor vanished mid-run (rage quit / disconnect emits no
+                // Retire phase, the entry just stops updating). Snapshot it before
+                // the live states are dropped; a car that FINISHED and then went back
+                // to the lobby is already in Ended..Post here (the phase only regresses
+                // once the next run's respawn replaces the actor, which is after this).
+                if (_carsLive.Count > 0 && _columnOrder.Count > 0)
+                {
+                    var column = _columnOrder[^1];
+                    if (!_dnfByColumn.TryGetValue(column, out var dnf))
+                        _dnfByColumn[column] = dnf = new HashSet<string>();
+                    foreach (var kv in _carsLive)
+                        if (!(kv.Value.Phase >= RaceStateWire.PhaseEnded && kv.Value.Phase <= RaceStateWire.PhasePost)
+                            && _carNames.TryGetValue(kv.Key, out var drv))
+                            dnf.Add(drv);
+                }
                 _carsLive.Clear();
                 _seenRawsPrev = new Dictionary<string, List<double>>(_seenRaws);
                 _seenRaws.Clear();
@@ -549,7 +688,11 @@ namespace ACRLiveTiming.Model
                 _nations.Clear();
                 _lastCars.Clear();
                 _carsByColumn.Clear();
+                _identities.Clear();
+                _driverKeysByName.Clear();
+                _driverLabels.Clear();
                 _finishTimes.Clear();
+                _dnfByColumn.Clear();
                 _hasRaceState = false;
                 _carsLive.Clear();
                 _carNames.Clear();
@@ -569,8 +712,8 @@ namespace ACRLiveTiming.Model
         /// Clear the results/timeline (leaderboard, columns, finish times, lobby/stage
         /// labels) AND the pre-reset live markers (<c>_carsLive</c>) so no stage data
         /// from before the reset keeps going out on /state. KEEP only the per-driver
-        /// identity enrichment that cannot be reacquired mid-session: nation and the
-        /// latest known car (<c>_nations</c>/<c>_lastCars</c>), plus the pseudo↔car-marker
+        /// identity enrichment that cannot be reacquired mid-session: nation, latest
+        /// car and account IDs (<c>_nations</c>/<c>_lastCars</c>/<c>_identities</c>), plus the pseudo↔car-marker
         /// bindings (<c>_carNames</c>/<c>_carSeq</c>)
         /// and the car-naming scratch (<c>_seenRaws</c>/<c>_carPendingRaws</c>). Those are
         /// learned only from the join burst (nation) and the channel-open export (car
@@ -595,6 +738,7 @@ namespace ACRLiveTiming.Model
                 _groupNames.Clear();
                 _carsByColumn.Clear();
                 _finishTimes.Clear();
+                _dnfByColumn.Clear();
                 _hasRaceState = false;
                 _carsLive.Clear();   // drop pre-reset live positions (not published post-reset)
                 _lobbyPhase = "";
@@ -745,23 +889,32 @@ namespace ACRLiveTiming.Model
                 // the page derives all of that. Row order here is arrival order and
                 // carries no meaning; the page sorts.
                 var rows = new List<RowView>(_driverOrder.Count);
-                foreach (var driver in _driverOrder)
+                // Per-cell R: snapshot for closed columns (_dnfByColumn), live retired
+                // state for the column of the run in progress (always the last one).
+                var lastColumn = _columnOrder.Count > 0 ? _columnOrder[^1] : null;
+                foreach (var driverKey in _driverOrder)
                 {
                     var rawCells = new List<RawCell?>(_columnOrder.Count);
                     foreach (var id in _columnOrder)
-                        rawCells.Add(_times[id].TryGetValue(driver, out var re)
-                            ? new RawCell { T = re.time, F = IsFinished(re.raw), S = re.sectors }
+                        rawCells.Add(_times[id].TryGetValue(driverKey, out var re)
+                            ? new RawCell
+                            {
+                                T = re.time, F = IsFinished(id, re.raw), S = re.sectors,
+                                R = (_dnfByColumn.TryGetValue(id, out var dnf) && dnf.Contains(driverKey))
+                                    || (id == lastColumn && retired.Contains(driverKey))
+                            }
                             : null);
 
-                    _nations.TryGetValue(driver, out var nation);
+                    var driver = _driverLabels.GetValueOrDefault(driverKey, driverKey);
+                    _nations.TryGetValue(driverKey, out var nation);
                     var cars = new List<string?>(_columnOrder.Count);
                     foreach (var id in _columnOrder)
                         cars.Add(_carsByColumn.TryGetValue(id, out var columnCars)
-                            && columnCars.TryGetValue(driver, out var car) ? car : null);
+                            && columnCars.TryGetValue(driverKey, out var car) ? car : null);
                     rows.Add(new RowView
                     {
                         Driver = driver,
-                        Retired = retired.Contains(driver),
+                        Retired = retired.Contains(driverKey),
                         Nation = nation,
                         RawCells = rawCells,
                         Cars = cars
@@ -778,13 +931,13 @@ namespace ACRLiveTiming.Model
                     // every live car gets a marker (its POSITION is always useful);
                     // an as-yet-unidentified car shows the dot only, no name label —
                     // "Car N" is kept as a stable key/tooltip, not a shown label.
-                    bool named = _carNames.TryGetValue(kv.Key, out var driver);
+                    bool named = _carNames.TryGetValue(kv.Key, out var driverKey);
                     int ph = kv.Value.Phase;
                     bool fin = ph >= RaceStateWire.PhaseEnded && ph <= RaceStateWire.PhasePost;
                     if (!fin && kv.Value.LastSeen < cutoff) continue;
                     progress.Add(new CarProgressView
                     {
-                        Name = named ? driver! : $"Car {_carSeq[kv.Key]}",
+                        Name = named ? _driverLabels.GetValueOrDefault(driverKey!, driverKey!) : $"Car {_carSeq[kv.Key]}",
                         Named = named,
                         Dist = Math.Round(kv.Value.Dist, 1),
                         Finished = fin,

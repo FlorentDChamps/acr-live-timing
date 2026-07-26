@@ -817,11 +817,14 @@ function computeView(v, cfg, withPositionChange = true) {
     maxSec[c] = ms; confirmed[c] = conf;
   }
   // Completion is independent from display mode: a split must NEVER enter the
-  // aggregate total. With RaceState, the per-car finish event is the sole proof
-  // of a line crossing: matching the field's highest sector number can be a DNF's
-  // final split. Without RaceState, a complete sector chain is the only proxy.
+  // aggregate total. With RaceState, the per-car finish event is the primary proof
+  // of a line crossing. Fallback for a LOST finish peak (passive sniffer — drops
+  // happen): sector count at the field max, a peer's confirmed finish, AND the host
+  // not having flagged the car as a non-finisher (rc.r covers retire/disqualify and
+  // vanished actors — exactly the cars whose last split would otherwise read as a
+  // final). Without RaceState, a complete sector chain is the only proxy.
   const completed = (rc, c) => rc != null && (v.hasRaceState
-    ? rc.f
+    ? (rc.f || (confirmed[c] && rc.s === maxSec[c] && rc.s > 0 && !rc.r))
     : rc.s === maxSec[c]);
   // With gating off, show one comparable split level at a time: the furthest sector
   // the field has reached. As soon as S2/S3/finish appears, older levels disappear.
@@ -845,12 +848,12 @@ function computeView(v, cfg, withPositionChange = true) {
       const final = has && completed(rc, c);
       const real = (has && revealed(rc, c)) ? rc.t : null;
       const finalTime = final ? rc.t : null;
-      // Two ways to know a driver abandoned a stage they posted splits on. On a CLOSED
-      // column it is an inference: a peer finished, they never did. On the RUNNING
-      // column only the car's own Retire/Disqualify phase can tell — a driver still
-      // out on the road is otherwise indistinguishable from one who stopped.
+      // A driver abandoned a stage they posted splits on: the host's direct per-cell
+      // flag (rc.r — retire/disqualify or vanished actor, live or snapshot at column
+      // close) is authoritative; the peer-finished inference remains as fallback for
+      // closed columns where no car-state signal was captured at all.
       const dnf = v.hasRaceState && !final && has &&
-                  (all[c].id !== currentCol ? confirmed[c] : !!r.retired);
+                  (!!rc.r || (all[c].id !== currentCol ? confirmed[c] : !!r.retired));
       if (!(c in fastest)) {
         cells.push({ real, effective: finalTime == null ? 0 : finalTime,
                      substituted: false, empty: true, dnf, final });

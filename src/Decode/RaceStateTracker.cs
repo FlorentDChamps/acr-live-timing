@@ -87,16 +87,16 @@ namespace ACRLiveTiming.Decode
         readonly List<(long id, double time)> _newSplits = new();
 
         /// <summary>Car identities resolved by the LAST Feed: (RaceStateData guid, EOS
-        /// display name), from the steamid+pseudo identity block of the component's
+        /// display name, SteamID and EOS PUID), from the steamid+pseudo identity block of the component's
         /// OUTER PlayerState actor. The actor is respawned per stage with the identity
         /// re-replicated in its spawn bunch, so every car marker is nameable at spawn —
         /// BEFORE the start, no sector time needed. Deterministic (the identity block
         /// sits on the actor's own channel), unlike the time-match which needs a first
         /// split. Consume before the next call.</summary>
-        public IReadOnlyList<(long id, string name)> NewCarNames => _newNames;
-        readonly List<(long id, string name)> _newNames = new();
-        readonly Dictionary<long, string> _actorName = new();   // ps actor guid -> pseudo
-        readonly HashSet<long> _namedRsd = new();               // rsd guids already emitted
+        public IReadOnlyList<(long id, string name, string steamId, string eosPuid)> NewCarNames => _newNames;
+        readonly List<(long id, string name, string steamId, string eosPuid)> _newNames = new();
+        readonly Dictionary<long, LobbyDecoder.PlayerIdentity> _actorIdentity = new(); // ps actor guid -> account + pseudo
+        readonly Dictionary<long, LobbyDecoder.PlayerIdentity> _rsdIdentity = new(); // last identity emitted per rsd guid
 
         /// <summary>Live per-car updates decoded by the LAST Feed: current
         /// DistanceOnMainSpline (metres), ERacePhase and Position (live rally
@@ -122,8 +122,8 @@ namespace ACRLiveTiming.Decode
             _newPairs.Clear();
             _newSplits.Clear();
             _newNames.Clear();
-            _actorName.Clear();
-            _namedRsd.Clear();
+            _actorIdentity.Clear();
+            _rsdIdentity.Clear();
             _progress.Clear();
             _any = false;
         }
@@ -160,8 +160,8 @@ namespace ACRLiveTiming.Decode
                         _ownerRsd[owner] = guid;
                         // the owner PlayerState actor was usually identified at ITS
                         // spawn, before this component ever replicated — bind now
-                        if (_actorName.TryGetValue(owner, out var nm) && _namedRsd.Add(guid))
-                            _newNames.Add((guid, nm));
+                        if (_actorIdentity.TryGetValue(owner, out var identity))
+                            EmitCarIdentity(guid, identity);
                     }
                 }
                 else
@@ -178,6 +178,7 @@ namespace ACRLiveTiming.Decode
                         _rsd.Remove(guid);
                         _cars.Remove(guid);
                         _splitSeen.Remove(guid);
+                        _rsdIdentity.Remove(guid);
                         if (_peaksByCar.Remove(guid, out var bogus))
                             foreach (var p in bogus) _peaks.Remove(p);
                     }
@@ -188,11 +189,11 @@ namespace ACRLiveTiming.Decode
 
             // identities resolved by this packet (opposite arrival order: the actor's
             // identity block landed with/after its RaceStateData export)
-            foreach (var (actor, name) in _stream.NewIdents)
+            foreach (var (actor, identity) in _stream.NewIdents)
             {
-                _actorName[actor] = name;
-                if (_ownerRsd.TryGetValue(actor, out var rsdGuid) && _namedRsd.Add(rsdGuid))
-                    _newNames.Add((rsdGuid, name));
+                _actorIdentity[actor] = identity;
+                if (_ownerRsd.TryGetValue(actor, out var rsdGuid))
+                    EmitCarIdentity(rsdGuid, identity);
             }
 
             foreach (var (guid, _, block, bitoff) in blocks)
@@ -301,6 +302,13 @@ namespace ACRLiveTiming.Decode
             }
 
             return (_new, _any);
+        }
+
+        void EmitCarIdentity(long rsdGuid, LobbyDecoder.PlayerIdentity identity)
+        {
+            if (_rsdIdentity.TryGetValue(rsdGuid, out var current) && current == identity) return;
+            _rsdIdentity[rsdGuid] = identity;
+            _newNames.Add((rsdGuid, identity.Name, identity.SteamId, identity.EosPuid));
         }
 
         void AddPeak(long guid, double v)
