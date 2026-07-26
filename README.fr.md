@@ -46,7 +46,23 @@ en un clic.
   Chaque spéciale peut être exclue des totaux d'une simple case à cocher. Une spéciale
   rejointe **en cours** n'est **pas** comptée — son départ a été manqué — mais son nom
   et les liaisons pilote/voiture sont quand même appris, pour que la spéciale suivante,
-  capturée depuis le début, soit prête dès le premier split.
+  capturée depuis le début, soit prête dès le premier split. Les colonnes sont
+  triables (n'importe quelle spéciale ou le total), et des flèches de progression à
+  côté de chaque pilote montrent son mouvement sur la dernière spéciale.
+- **Rallyes, classement général & points de championnat** — regroupez les spéciales
+  en rallyes nommés depuis le panneau hôte (*Stages — select to group* : cochez les
+  spéciales, cliquez **Group**, renommez sur place). La page web gagne un onglet
+  **Standings** : un classement indépendant par rallye plus des points de championnat
+  (barème 25-18-15-12-10-8-6-4-2-1 par rallye), triable par rallye ou par total de
+  points ; le tableau principal gagne un filtre pour n'afficher que les spéciales
+  d'un rallye. Le groupement est défini par l'hôte et partagé avec tous les
+  spectateurs.
+- **Exports de résultats** — trois boutons sur la page exportent exactement ce qui
+  est affiché : copie en texte, CSV (prêt pour Excel, séparateur selon la locale) et
+  image PNG. Côté hôte, un **webhook Discord** optionnel (panneau Discord) poste dans
+  votre salon en un clic : une alerte avec le lien live, le tableau des points ou les
+  résultats d'un rallye en image. L'URL du webhook est stockée chiffrée, lisible
+  uniquement par votre compte Windows.
 - **Affichage à l'arrivée** — le temps d'un pilote n'apparaît qu'une fois la ligne
   d'arrivée franchie, pour que les temps intermédiaires ne clignotent jamais ni ne
   « montent » au tableau. La détection est événementielle et exacte : le jeu
@@ -62,9 +78,11 @@ en un clic.
 - **Affichage des DNF** — un pilote qui a posté des temps intermédiaires mais n'a
   jamais franchi la ligne est affiché **DNF** sur cette spéciale (compté au temps
   seuil, comme une absence). Sur la spéciale en cours, il apparaît dès que la phase
-  de course de la voiture passe à *Retire/Disqualify* ; sur les spéciales passées,
-  il est déduit une fois la spéciale close sans arrivée. Un pilote qui quitte avant
-  les premiers splits reste affiché comme absent.
+  de course de la voiture passe à *Retire/Disqualify* ; à la clôture d'une spéciale,
+  le sort de chaque voiture est mémorisé (abandon, disqualification ou disparition en
+  cours de run), donc les spéciales passées gardent un état DNF exact, avec la
+  déduction « un autre a fini, pas lui » en repli pour les trous de capture. Un
+  pilote qui quitte avant les premiers splits reste affiché comme absent.
 - **Progression de spéciale en direct** — une piste horizontale au-dessus du tableau
   montre la position live de chaque pilote sur la spéciale en cours, ajustée
   automatiquement entre le leader et la dernière voiture en course (portée max
@@ -90,7 +108,9 @@ en un clic.
 - **Réglages d'affichage par spectateur** — un bouton roue crantée sur la page web
   ouvre un panneau qui reprend **localement** les réglages de classement/affichage de
   l'hôte : exclure des spéciales du total, changer le seuil de pénalité %, régler la
-  fenêtre de progression, masquer les nationalités, activer/couper le finish gating.
+  fenêtre de progression, masquer les nationalités, activer/couper le finish gating,
+  filtrer par rallye, trier par n'importe quelle colonne et basculer le thème
+  clair/sombre de la page.
   Modifier une spéciale/pénalité/gating **recalcule le tableau dans le navigateur** à
   partir des données brutes par spéciale que la page reçoit déjà — sans jamais toucher
   la vue de l'hôte ni celle des autres spectateurs. Les réglages sont propres à la
@@ -115,16 +135,20 @@ en un clic.
   (Lancez d'abord le serveur web local — les overlays s'y chargent. Un jeu en fenêtré /
   plein écran fenêtré est requis pour qu'un overlay bureau passe devant ; le plein
   écran exclusif ne peut pas être recouvert.)
-- **Interface bureau claire ou sombre** — l'application reprend le réglage clair/sombre
-  de Windows au lancement, avec un interrupteur dans l'en-tête pour basculer à tout
-  moment.
+- **Clair ou sombre, partout** — l'application reprend le réglage clair/sombre de
+  Windows au lancement, avec un interrupteur dans l'en-tête pour basculer à tout
+  moment. La page web suit elle aussi le thème système de chaque spectateur, avec son
+  propre bouton soleil/lune.
+- **Notification de mise à jour au démarrage** — une vérification légère des releases
+  de ce dépôt ; si une version plus récente existe, une fenêtre pointe vers elle
+  (rien n'est téléchargé sans votre confirmation) et peut être ignorée par version.
 - **Enregistrement & replay** — enregistrement optionnel de la session dans un
   `.pcap` standard (lisible dans Wireshark), rejouable ensuite dans le même pipeline
   de décodage.
 - **Mémorise votre configuration** — tout l'état de la fenêtre (options,
-  titre/description de page, et pour chaque overlay : position, taille, always-on-top,
-  lock et opacité) est sauvegardé dans un fichier `ACRLiveTiming.config` à côté de
-  l'exe et restauré au prochain lancement.
+  titre/description de page, le webhook Discord — chiffré — et pour chaque overlay :
+  position, taille, always-on-top, lock et opacité) est sauvegardé dans un fichier
+  `ACRLiveTiming.config` à côté de l'exe et restauré au prochain lancement.
 - **Aucun driver de capture** — raw socket Windows au lieu de Npcap/WinPcap ; seule
   exigence : lancer en Administrateur.
 
@@ -145,18 +169,26 @@ tableau complet, sans détour :
   réfléchissez avant d'en partager un.
 - **Qu'est-ce qui est décodé ?** Exactement ce que le jeu affiche déjà dans le
   lobby : pseudos, temps de spéciale, pénalités, nom de la spéciale, nationalité,
-  modèle de voiture. L'application n'affiche aucun identifiant de compte ni aucun
-  champ de nom réel.
+  modèle de voiture. Le jeu réplique aussi des identifiants de compte stables
+  (Steam/EOS) ; l'application ne s'en sert qu'en interne, pour garder les résultats
+  d'un pilote sur une seule ligne malgré un changement de pseudo — ils ne sont
+  jamais affichés, jamais publiés sur la page et jamais inclus dans un export.
+  Aucun champ de nom réel n'est lu.
 - **Qu'est-ce qui sort de votre machine ?** Rien, par défaut. Aucune télémétrie,
-  aucun envoi. Seules connexions sortantes : (1) le téléchargement unique du binaire
-  `cloudflared` épinglé et vérifié par checksum, depuis les releases GitHub
-  officielles de Cloudflare — effectué automatiquement en arrière-plan au premier
-  lancement, même si vous ne publiez jamais ; (2) le tunnel Cloudflare lui-même, *uniquement si vous
-  cliquez Publish* — à partir de là, la page de classement est accessible à
-  quiconque a le lien, jusqu'à fermeture de l'application. Si l'application meurt
-  sans fermeture normale (crash, arrêt via le Gestionnaire des tâches), le process
-  du tunnel peut lui survivre — vérifiez `cloudflared.exe` dans le Gestionnaire des
-  tâches. (Les navigateurs qui consultent la page chargent aussi les drapeaux depuis
+  aucun envoi. Seules connexions sortantes : (1) une vérification légère au démarrage,
+  auprès de GitHub, d'une éventuelle nouvelle release d'ACR Live Timing — aucun
+  téléchargement sans confirmation de votre part dans sa fenêtre ; (2) le
+  téléchargement unique du binaire `cloudflared` épinglé et vérifié par checksum,
+  depuis les releases GitHub officielles de Cloudflare — effectué automatiquement en
+  arrière-plan au premier lancement, même si vous ne publiez jamais ; (3) le tunnel
+  Cloudflare lui-même, *uniquement si vous cliquez Publish* — à partir de là, la page
+  de classement est accessible à quiconque a le lien, jusqu'à fermeture de
+  l'application. Si l'application meurt sans fermeture normale (crash, arrêt via le
+  Gestionnaire des tâches), le process du tunnel peut lui survivre — vérifiez
+  `cloudflared.exe` dans le Gestionnaire des tâches ; (4) un message vers Discord,
+  *uniquement si* vous collez une URL de webhook dans le panneau Discord et cliquez
+  un de ses boutons — il poste l'alerte ou l'image de résultats dans ce salon, rien
+  d'autre. (Les navigateurs qui consultent la page chargent aussi les drapeaux depuis
   flagcdn.com.)
 - **Qui peut voir la page locale ?** Le serveur web embarqué écoute sur toutes les
   interfaces réseau : n'importe qui sur le même LAN/Wi-Fi peut ouvrir la page tant
@@ -234,15 +266,21 @@ publish.bat         # exe Release monofichier dans .\publish\
    `trycloudflare.com` pour le reste du lobby. Attendez la ligne de log
    *« link is now live »* avant de la partager ; utilisez le bouton de copie pour
    récupérer le lien, et recliquez **Publish** pour le mettre hors ligne.
-6. Optionnel (streaming) : serveur web lancé, utilisez le panneau *Overlays* —
+6. Optionnel : collez une **Webhook URL** Discord (panneau Discord) pour poster dans
+   votre salon en un clic — **Alert** (lien live public), **Standings** (image du
+   tableau des points) ou **Rally** (image des résultats du rallye sélectionné).
+   Voir [Publier sur Discord](#publier-sur-discord).
+7. Optionnel (streaming) : serveur web lancé, utilisez le panneau *Overlays* —
    **Classification** et **Progress** ont chacun leurs réglages : afficher/masquer,
    always-on-top, lock click-through et opacité du fond. Pour OBS, cliquez **Copy OBS
    source URL** et ajoutez-la en Browser Source (voir [Capture avec OBS](#capture-avec-obs)).
    Pour poser directement par-dessus le jeu, affichez la fenêtre overlay et
    verrouillez-la en click-through.
-7. Roulez. Les résultats apparaissent au fil des arrivées ; totaux et rangs se
-   mettent à jour en direct. Utilisez **Reset session** pour vider le tableau entre
-   deux événements (il conserve les nations, voitures décodées et le nom de la
+8. Roulez. Les résultats apparaissent au fil des arrivées ; totaux et rangs se
+   mettent à jour en direct. Groupez les spéciales en rallyes (*Stages — select to
+   group*) et ouvrez l'onglet **Standings** de la page pour les résultats par rallye
+   et les points de championnat. Utilisez **Reset session** pour vider le tableau
+   entre deux événements (il conserve les nations, voitures décodées et le nom de la
    spéciale en cours pour qu'un redémarrage de la même spéciale ne reste pas sans nom).
 
 ## Capture avec OBS
@@ -279,6 +317,48 @@ doit tourner.
 
 L'URL copiée embarque l'opacité du fond du widget (`?bg=`, depuis le panneau *Overlays*
 — `bg=0` = totalement transparent). Les drapeaux se chargent depuis internet.
+
+## Publier sur Discord
+
+Le panneau Discord poste dans n'importe quel salon via un **webhook** — aucun bot à
+installer, aucune application à autoriser, rien à faire tourner sur un serveur.
+
+**Récupérer l'URL du webhook** (nécessite la permission *Gérer les webhooks* sur le
+serveur) :
+
+1. Dans Discord, ouvrez les paramètres du salon (⚙ à côté de son nom) →
+   **Intégrations → Webhooks → Nouveau webhook** (accessible aussi via *Paramètres du
+   serveur → Intégrations*).
+2. Choisissez le salon cible, puis cliquez **Copier l'URL du webhook**.
+3. Collez-la dans le panneau **Discord** de l'application. Elle est stockée chiffrée
+   dans `ACRLiveTiming.config`, lisible uniquement par votre compte Windows — le
+   bouton œil la révèle si besoin.
+
+> ⚠️ **Traitez cette URL comme un secret.** Quiconque la possède peut poster
+> n'importe quoi dans ce salon. En cas de fuite, supprimez le webhook dans Discord
+> (ou *régénérez* son URL) — l'ancien lien meurt aussitôt.
+
+**Personnalisez le messager.** Le nom et l'avatar affichés sur les messages sont ceux
+du **webhook lui-même** — l'application ne les remplace jamais. Renommez-le (au nom
+de votre communauté ou de votre championnat) et donnez-lui votre logo directement
+dans les réglages du webhook côté Discord ; chaque message reste discrètement signé
+*ACR Live Timing* dans l'en-tête de l'embed, avec un lien vers ce projet.
+
+**Trois messages en un clic :**
+
+| Bouton | Poste | Prérequis |
+|---|---|---|
+| **Alert** | le lien live public (titre + description de la page) avec un rappel 🔴 *Live now!* | un tunnel publié (**Publish**) |
+| **Standings** | le tableau des points de championnat en image, daté | au moins un groupe rallye |
+| **Rally** | les résultats des spéciales du rallye choisi en image, datés | le rallye sélectionné dans la liste |
+
+L'envoi est manuel — rien n'est jamais posté sans un clic.
+
+<!-- À illustrer : capturer un salon Discord montrant un message Alert et un message
+     Standings postés par un webhook renommé, enregistrer sous
+     docs/discord-messages.png, puis décommenter :
+<img src="docs/discord-messages.png" alt="Messages Alert et Standings postés dans un salon Discord" width="480">
+-->
 
 ## Antivirus & SmartScreen
 
@@ -317,9 +397,11 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Nationalité + voiture par pilote/spéciale | ✅ lus dès l'entrée au lobby depuis l'acteur participant du joueur (déterministe, aucun temps nécessaire) ; voiture conservée par spéciale et listée sans doublon sur la sélection ; liaison par le temps conservée en repli — validé sur captures d'écran |
 | Liste complète des arrivants | ✅ scan multi-décalage de bits |
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
-| Détection DNF | 🟡 en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture), déduit sur les spéciales closes des splits postés sans arrivée ; un abandon précoce (aucun split) reste affiché comme absent |
+| Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; un abandon précoce (aucun split) reste affiché comme absent |
 | Progression de spéciale en direct | ✅ piste horizontale auto-ajustée leader↔dernier au-dessus du tableau ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
-| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression, masquer nations, finish gating — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
+| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression, masquer nations, finish gating, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
+| Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
+| Exports de résultats | ✅ boutons copie / CSV / PNG sur la page ; webhook Discord côté hôte (alerte live, tableau des points, résultats de rallye) |
 | Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page |
 | Positions / écarts live | 🟡 position live par voiture décodée, pas encore affichée en classement |
 
@@ -340,6 +422,8 @@ src/
   Model/     engine (machine à états) + matrice de session thread-safe
   Web/       serveur HTTP embarqué (/, /state) + interface single-page
   Tunnel/    lanceur cloudflared (version épinglée, checksum vérifié)
+  Discord/   éditeur webhook (messages d'alerte + résultats)
+  Updates/   vérification de release au démarrage (API GitHub)
   UI/        panneau de contrôle WPF + fenêtres overlay OBS transparentes + réglages
 ```
 
