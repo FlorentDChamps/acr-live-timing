@@ -26,8 +26,8 @@ namespace ACRLiveTiming.UI
     {
         // options
         public int Port { get; set; } = 8080;
-        public double PenaltyPct { get; set; } = 20;
-        public double ProgressWindowKm { get; set; } = 2.0;   // max span of the auto-fitting progression window (km)
+        public double PenaltyPct { get; set; } = 50;
+        public double ProgressWindowKm { get; set; } = 0.8;   // max span of the auto-fitting progression window (km)
         public bool FinishGating { get; set; } = true;
         public bool HideNations { get; set; }
         public double ReplayPause { get; set; } = 0;
