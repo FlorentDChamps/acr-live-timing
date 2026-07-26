@@ -221,6 +221,98 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Strips the native ToggleButton chrome used inside the ComboBox template;
+         otherwise it draws a second, light rectangle around the themed border. -->
+    <Style x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+      <Setter Property="OverridesDefaultStyle" Value="True"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <!-- compact, fully themeable combo box (the Windows default popup otherwise
+         keeps its light system colours in dark mode). -->
+    <Style TargetType="ComboBox">
+      <Setter Property="Background" Value="{DynamicResource Brush.Input}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Height" Value="26"/>
+      <Setter Property="Padding" Value="6,2"/>
+      <Setter Property="MaxDropDownHeight" Value="260"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBox">
+            <Grid>
+              <ToggleButton x:Name="ToggleButton" Style="{StaticResource ComboBoxToggleButton}"
+                            Focusable="False" ClickMode="Press"
+                            IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                <Border x:Name="border" Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="5">
+                  <Grid>
+                    <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
+                                      Content="{TemplateBinding SelectionBoxItem}"
+                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                      ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                      Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                    <Path Data="M 0 0 L 7 0 L 3.5 4 Z" Fill="{DynamicResource Brush.Muted}"
+                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  </Grid>
+                </Border>
+              </ToggleButton>
+              <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Slide"
+                     IsOpen="{TemplateBinding IsDropDownOpen}">
+                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                        MaxHeight="{TemplateBinding MaxDropDownHeight}" Background="{DynamicResource Brush.Card}"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="5"
+                        SnapsToDevicePixels="True">
+                  <ScrollViewer Margin="2" SnapsToDevicePixels="True">
+                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                  </ScrollViewer>
+                </Border>
+              </Popup>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.BorderHover}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+      <Setter Property="Padding" Value="7,3"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBoxItem">
+            <Border x:Name="itemBorder" Background="{TemplateBinding Background}" CornerRadius="4">
+              <ContentPresenter Margin="{TemplateBinding Padding}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource Brush.ButtonHover}"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource Brush.ButtonPressed}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <!-- Windows-style close button: only turns red on hover. -->
     <Style x:Key="CloseCaptionButton" TargetType="Button">
       <Setter Property="Background" Value="Transparent"/>
@@ -289,6 +381,13 @@
       </Setter>
     </Style>
     <Style TargetType="TextBox">
+      <Setter Property="Background" Value="{DynamicResource Brush.Input}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="5,3"/>
+    </Style>
+    <Style TargetType="PasswordBox">
       <Setter Property="Background" Value="{DynamicResource Brush.Input}"/>
       <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
@@ -512,6 +611,42 @@
                       IsChecked="False" Margin="0,8,0,0"
                       Checked="HideNations_Changed" Unchecked="HideNations_Changed"
                       ToolTip="Privacy: when on, driver nationality flags are removed from the shared web page (local and public). Names and times still show. Turn on if you publish the page and would rather not expose other players' nationalities."/>
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Discord">
+          <StackPanel>
+            <TextBlock Text="Webhook URL" Foreground="{DynamicResource Brush.Muted}" Margin="0,0,0,3"/>
+            <Grid>
+              <PasswordBox x:Name="DiscordWebhookBox" MaxLength="2000" Margin="0,0,40,0"
+                           PasswordChanged="DiscordWebhookBox_PasswordChanged"
+                           ToolTip="Discord channel webhook URL. Stored encrypted locally for this Windows user."/>
+              <TextBox x:Name="DiscordWebhookTextBox" MaxLength="2000" Margin="0,0,40,0"
+                       Visibility="Collapsed" TextChanged="DiscordWebhookTextBox_TextChanged"
+                       ToolTip="Discord channel webhook URL. Stored encrypted locally for this Windows user."/>
+              <Button x:Name="DiscordWebhookRevealBtn" Content="👁" FontSize="15" Padding="8,2"
+                      HorizontalAlignment="Right" Click="DiscordWebhookRevealBtn_Click"
+                      ToolTip="Show webhook URL"/>
+            </Grid>
+            <TextBlock Text="Post alert and results messages to Discord."
+                       Foreground="{DynamicResource Brush.Muted}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+            <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" MinWidth="80"/>
+              </Grid.ColumnDefinitions>
+              <Button x:Name="DiscordAlertBtn" Grid.Column="0" Content="Alert" IsEnabled="False" Click="DiscordAlertBtn_Click" Margin="0,0,12,0"
+                      ToolTip="Post the public live link to Discord. Requires the tunnel to be published."/>
+              <Button x:Name="DiscordStandingsBtn" Grid.Column="1" Content="Standings" IsEnabled="False" Click="DiscordStandingsBtn_Click" Margin="0,0,12,0"
+                      ToolTip="Post the standings image to Discord. Requires at least one stage group."/>
+              <Button x:Name="DiscordRallyBtn" Grid.Column="2" Content="Rally" IsEnabled="False" Click="DiscordRallyBtn_Click" Margin="0,0,6,0"
+                      ToolTip="Post the selected rally's stage results image to Discord."/>
+              <ComboBox x:Name="DiscordRallyBox" Grid.Column="3" MinWidth="80" DisplayMemberPath="Name" IsEnabled="False"
+                        SelectionChanged="DiscordRallyBox_SelectionChanged"
+                        ToolTip="Select the rally whose stage results will be posted."/>
+            </Grid>
           </StackPanel>
         </GroupBox>
 

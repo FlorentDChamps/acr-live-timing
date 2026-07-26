@@ -10,6 +10,7 @@ namespace ACRLiveTiming
     public static class AppInfo
     {
         public static readonly string Version = Read();
+        public static readonly string RepositoryUrl = ReadMetadata("RepositoryUrl");
 
         static string Read()
         {
@@ -28,6 +29,13 @@ namespace ACRLiveTiming
 
             string sha = raw[(plus + 1)..];
             return semver + "+" + (sha.Length > 7 ? sha[..7] : sha);
+        }
+
+        static string ReadMetadata(string key)
+        {
+            foreach (var item in Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>())
+                if (item.Key == key) return item.Value ?? "";
+            return "";
         }
     }
 }

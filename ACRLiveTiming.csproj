@@ -41,7 +41,10 @@
   <ItemGroup>
     <!-- Web UI served over HTTP; embedded so it ships inside the exe. -->
     <EmbeddedResource Include="src\Web\index.html" />
+    <!-- Used as a PNG attachment in Discord embeds at runtime. -->
     <Resource Include="assets\icon.ico" />
+    <!-- Expose the project property to runtime consumers (Discord embeds, About links). -->
+    <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />
   </ItemGroup>
 
   <ItemGroup>

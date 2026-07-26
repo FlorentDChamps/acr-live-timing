@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using ACRLiveTiming.Discord;
 using ACRLiveTiming.Model;
 using ACRLiveTiming.Net;
 using ACRLiveTiming.Tunnel;
@@ -29,6 +30,8 @@ namespace ACRLiveTiming.UI
         readonly RawSocketSniffer _sniffer = new();
         readonly WebServer _web;
         readonly CloudflaredRunner _tunnel = new();
+        readonly DiscordPublisher _discord = new();
+        readonly DiscordPngRenderer _discordPng = new();
         DispatcherTimer? _timer;
         List<string> _lastStageKey = new();
         readonly HashSet<string> _selectedStageIds = new();
@@ -43,6 +46,9 @@ namespace ACRLiveTiming.UI
         readonly AppSettings _settings = AppSettings.Load();
         bool _settingsLoaded;          // gates SaveSettings until ApplySettings has run
         volatile string? _stateJson;   // cached /state payload, invalidated on Matrix.Changed
+        bool _syncingDiscordWebhook;
+        bool _discordSending;
+        sealed record DiscordRallyOption(int Group, string Name);
 
         public MainWindow()
         {
@@ -268,6 +274,7 @@ namespace ACRLiveTiming.UI
             _tunnel.UrlFound += url => Dispatcher.BeginInvoke(() =>
             {
                 PublicUrlBox.Text = url;
+                RefreshDiscordControls();
                 AppendLog("Public URL: " + url + "  (wait for \"link is now live\" before opening)");
             });
             _tunnel.Ready += () => Dispatcher.BeginInvoke(() =>
@@ -313,13 +320,18 @@ namespace ACRLiveTiming.UI
             // killed (e.g. Stop Debugging) instead of closed gracefully.
             _settingsLoaded = true;
             SaveSettings();
+            RefreshDiscordControls();
         }
 
         void OnMatrixChanged()
         {
             _stateJson = null;   // next /state poll re-serializes
             // page pulls fresh data via /state polling; just refresh the stage list
-            Dispatcher.BeginInvoke(() => RebuildStagesIfChanged());
+            Dispatcher.BeginInvoke(() =>
+            {
+                RebuildStagesIfChanged();
+                RefreshDiscordControls();
+            });
         }
 
         // ---- UI events -------------------------------------------------------
@@ -428,6 +440,7 @@ namespace ACRLiveTiming.UI
             _tunnel.Stop();
             PublicUrlBox.Text = "";
             PublishBtn.Content = "Publish";
+            RefreshDiscordControls();
             AppendLog("Tunnel stopped — the public link is now offline.");
         }
 
@@ -440,6 +453,145 @@ namespace ACRLiveTiming.UI
         void OpenLocalBtn_Click(object sender, RoutedEventArgs e) => OpenUrl(LocalUrlBox.Text);
         void OpenPublicBtn_Click(object sender, RoutedEventArgs e) => OpenUrl(PublicUrlBox.Text);
         void CopyPublicBtn_Click(object sender, RoutedEventArgs e) => CopyUrl(PublicUrlBox.Text);
+
+        // ---- Discord ---------------------------------------------------------
+
+        void DiscordWebhookBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (_syncingDiscordWebhook) return;
+            _syncingDiscordWebhook = true;
+            DiscordWebhookTextBox.Text = DiscordWebhookBox.Password;
+            _syncingDiscordWebhook = false;
+            // SaveSettings is gated until initial control restoration is finished.
+            SaveSettings();
+        }
+
+        void DiscordWebhookTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_syncingDiscordWebhook) return;
+            _syncingDiscordWebhook = true;
+            DiscordWebhookBox.Password = DiscordWebhookTextBox.Text;
+            _syncingDiscordWebhook = false;
+            SaveSettings();
+        }
+
+        void DiscordWebhookRevealBtn_Click(object sender, RoutedEventArgs e)
+        {
+            bool reveal = DiscordWebhookTextBox.Visibility != Visibility.Visible;
+            DiscordWebhookTextBox.Visibility = reveal ? Visibility.Visible : Visibility.Collapsed;
+            DiscordWebhookBox.Visibility = reveal ? Visibility.Collapsed : Visibility.Visible;
+            DiscordWebhookRevealBtn.Content = reveal ? "◉" : "👁";
+            DiscordWebhookRevealBtn.ToolTip = reveal ? "Hide webhook URL" : "Show webhook URL";
+            if (reveal) DiscordWebhookTextBox.Focus(); else DiscordWebhookBox.Focus();
+        }
+
+        async void DiscordAlertBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var webhook = DiscordWebhookBox.Password.Trim();
+            var publicUrl = PublicUrlBox.Text.Trim();
+            if (!TryDiscordWebhook(webhook)) return;
+            if (string.IsNullOrWhiteSpace(publicUrl))
+            {
+                AppendLog("Discord alert needs a published public URL.");
+                return;
+            }
+            await SendDiscordAsync("live alert", () => _discord.SendLiveAlertAsync(
+                webhook, publicUrl, LobbyTitle(), _engine.Matrix.PageDescription));
+        }
+
+        async void DiscordStandingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var webhook = DiscordWebhookBox.Password.Trim();
+            if (!TryDiscordWebhook(webhook)) return;
+            if (!_web.Running)
+            {
+                AppendLog("Start the web server before exporting Discord standings.");
+                return;
+            }
+            var url = $"http://localhost:{_web.Port}/";
+            await SendDiscordAsync("standings", async () =>
+            {
+                var png = await _discordPng.RenderStandingsAsync(url);
+                await _discord.SendStandingsAsync(webhook, LobbyTitle(), DateTime.Now, png);
+            });
+        }
+
+        void DiscordRallyBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+            => RefreshDiscordControls();
+
+        async void DiscordRallyBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var rally = DiscordRallyBox.SelectedItem as DiscordRallyOption;
+            if (rally == null)
+            {
+                AppendLog("Select a rally before exporting its Discord results.");
+                return;
+            }
+            var webhook = DiscordWebhookBox.Password.Trim();
+            if (!TryDiscordWebhook(webhook)) return;
+            if (!_web.Running)
+            {
+                AppendLog("Start the web server before exporting a Discord rally.");
+                return;
+            }
+            var url = $"http://localhost:{_web.Port}/";
+            await SendDiscordAsync($"rally {rally.Name}", async () =>
+            {
+                var png = await _discordPng.RenderRallyAsync(url, rally.Group);
+                await _discord.SendRallyAsync(webhook, LobbyTitle(), rally.Name, DateTime.Now, png);
+            });
+        }
+
+        bool TryDiscordWebhook(string webhook)
+        {
+            if (Uri.TryCreate(webhook, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps)
+                return true;
+            AppendLog("Enter a valid HTTPS Discord webhook URL first.");
+            return false;
+        }
+
+        string LobbyTitle()
+        {
+            var title = _engine.Matrix.PageTitle.Trim();
+            return title.Length > 0 ? title : "ACR Live Timing";
+        }
+
+        async Task SendDiscordAsync(string what, Func<Task> send)
+        {
+            _discordSending = true;
+            RefreshDiscordControls();
+            try
+            {
+                await send();
+                AppendLog($"Discord {what} sent.");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Discord {what} error: {ex.Message}");
+            }
+            finally
+            {
+                _discordSending = false;
+                RefreshDiscordControls();
+            }
+        }
+
+        void RefreshDiscordControls()
+        {
+            if (DiscordAlertBtn == null || DiscordStandingsBtn == null || DiscordRallyBtn == null) return;
+            if (_discordSending)
+            {
+                DiscordAlertBtn.IsEnabled = false;
+                DiscordStandingsBtn.IsEnabled = false;
+                DiscordRallyBox.IsEnabled = false;
+                DiscordRallyBtn.IsEnabled = false;
+                return;
+            }
+            DiscordAlertBtn.IsEnabled = _tunnel.Running && !string.IsNullOrWhiteSpace(PublicUrlBox.Text);
+            DiscordStandingsBtn.IsEnabled = _engine.Matrix.BuildView().AllStages.Any(stage => stage.Group > 0);
+            DiscordRallyBox.IsEnabled = DiscordRallyBox.Items.Count > 0;
+            DiscordRallyBtn.IsEnabled = DiscordRallyBox.SelectedItem is DiscordRallyOption;
+        }
 
         void CopyUrl(string url)
         {
@@ -727,6 +879,7 @@ namespace ACRLiveTiming.UI
             var key = view.AllStages.Select(s => s.Id + "=" + s.Name + "=" + s.Group + "=" + s.GroupName + "=" + s.Discarded).ToList();
             if (key.SequenceEqual(_lastStageKey)) return;   // avoid churn
             _lastStageKey = key;
+            RefreshDiscordRallies(view);
 
             StagesPanel.Children.Clear();
             foreach (var stage in view.AllStages)
@@ -792,6 +945,21 @@ namespace ACRLiveTiming.UI
 
             StageSelectAllBtn.Content = _selectedStageIds.Count < view.AllStages.Count
                 ? "Select all" : "Unselect all";
+        }
+
+        void RefreshDiscordRallies(MatrixView view)
+        {
+            if (DiscordRallyBox == null) return;
+            var selectedGroup = (DiscordRallyBox.SelectedItem as DiscordRallyOption)?.Group;
+            var rallies = view.AllStages.Where(stage => stage.Group > 0)
+                .GroupBy(stage => stage.Group)
+                .OrderBy(group => group.Key)
+                .Select(group => new DiscordRallyOption(group.Key,
+                    string.IsNullOrWhiteSpace(group.First().GroupName) ? $"Rally {group.Key}" : group.First().GroupName))
+                .ToList();
+            DiscordRallyBox.ItemsSource = rallies;
+            DiscordRallyBox.SelectedItem = rallies.FirstOrDefault(rally => rally.Group == selectedGroup)
+                ?? rallies.FirstOrDefault();
         }
 
         void AddStageSelection(StageInfo stage, double leftMargin)
@@ -918,6 +1086,7 @@ namespace ACRLiveTiming.UI
             HideNationsCheck.IsChecked = _settings.HideNations;
             PageTitleBox.Text = _settings.PageTitle;
             PageDescBox.Text = _settings.PageDescription;
+            DiscordWebhookBox.Password = _settings.DiscordWebhook;
             // per-overlay chrome
             TableTopmostToggle.IsChecked = _settings.Table.Topmost;
             TableLockToggle.IsChecked = _settings.Table.Locked;
@@ -963,6 +1132,7 @@ namespace ACRLiveTiming.UI
             _settings.Dark = _dark;
             _settings.PageTitle = PageTitleBox.Text;
             _settings.PageDescription = PageDescBox.Text;
+            _settings.DiscordWebhook = DiscordWebhookBox.Password;
             // per-overlay chrome (topmost / locked / opacity are written on change too,
             // this keeps them in sync on a full save)
             _settings.Table.Topmost = TableTopmostToggle.IsChecked == true;
