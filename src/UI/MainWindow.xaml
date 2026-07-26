@@ -1,9 +1,15 @@
 <Window x:Class="ACRLiveTiming.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ACR Live Timing" Height="775" Width="1200"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="ACR Live Timing" Height="820" Width="1200"
+        WindowStyle="None" ResizeMode="CanResize"
         Background="{DynamicResource Brush.Window}" Foreground="{DynamicResource Brush.Text}"
         FontFamily="Segoe UI" FontSize="13">
+  <shell:WindowChrome.WindowChrome>
+    <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0"
+                       GlassFrameThickness="0" UseAeroCaptionButtons="False"/>
+  </shell:WindowChrome.WindowChrome>
   <Window.Resources>
     <!-- Themeable brushes. These light defaults let the designer render; the
          code-behind overwrites every key on startup from the light/dark palette
@@ -23,6 +29,7 @@
     <SolidColorBrush x:Key="Brush.Muted"         Color="#656D76"/>
     <SolidColorBrush x:Key="Brush.Faint"         Color="#8C959F"/>
     <SolidColorBrush x:Key="Brush.Accent"        Color="#1A7F37"/>
+    <SolidColorBrush x:Key="Brush.Danger"        Color="#B42318"/>
     <SolidColorBrush x:Key="Brush.SwitchOff"     Color="#CDD3DA"/>
     <SolidColorBrush x:Key="Brush.SwitchOn"      Color="#656D76"/>
     <SolidColorBrush x:Key="Brush.SwitchThumb"   Color="#FFFFFF"/>
@@ -184,6 +191,66 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- caption buttons stay invisible at rest; their square hover area matches
+         the close button without inheriting the rounded normal Button chrome. -->
+    <Style x:Key="CaptionButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource Brush.ButtonText}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.ButtonHover}"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.ButtonPressed}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <!-- Windows-style close button: only turns red on hover. -->
+    <Style x:Key="CloseCaptionButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource Brush.ButtonText}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Danger}"/>
+                <Setter Property="Foreground" Value="White"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="bd" Property="Opacity" Value="0.85"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <!-- toggle that looks like the flat Button; checked = accent fill (used for the
          overlay open/close, always-on-top and lock toggles) -->
     <Style x:Key="OverlayToggle" TargetType="ToggleButton">
@@ -236,7 +303,32 @@
     </Style>
   </Window.Resources>
 
-  <Grid Margin="12">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="36"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}"
+            BorderThickness="0,0,0,1" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+      <Grid>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+          <Image Source="pack://application:,,,/assets/icon.ico" Width="20" Height="20"/>
+          <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                     VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="SemiBold"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Style="{StaticResource CaptionButton}" Content="&#xE921;" FontFamily="Segoe MDL2 Assets" Width="44" Height="35"
+                  shell:WindowChrome.IsHitTestVisibleInChrome="True" Click="MinimizeBtn_Click" ToolTip="Minimize"/>
+          <Button x:Name="MaximizeBtn" Style="{StaticResource CaptionButton}" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" Width="44" Height="35"
+                  shell:WindowChrome.IsHitTestVisibleInChrome="True" Click="MaximizeBtn_Click" ToolTip="Maximize / restore"/>
+          <Button Style="{StaticResource CloseCaptionButton}" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" Width="44" Height="35"
+                  shell:WindowChrome.IsHitTestVisibleInChrome="True" Click="CloseBtn_Click" ToolTip="Close"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+  <Grid Grid.Row="1" Margin="12">
     <Grid.ColumnDefinitions>
       <!-- proportional split: both columns scale with the window width -->
       <ColumnDefinition Width="2*" MinWidth="420"/>
@@ -552,5 +644,6 @@
     <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Margin="2,8,2,0"
                Foreground="{DynamicResource Brush.Faint}" FontSize="11" TextWrapping="Wrap"
                Text="Unofficial fan-made tool — not affiliated with or endorsed by Kunos Simulazioni, Supernova Games Studios or 505 Games. &quot;Assetto Corsa&quot; is a trademark of its respective owners, used here only to indicate compatibility. Reads cleartext traffic only; never decrypts."/>
+  </Grid>
   </Grid>
 </Window>

@@ -1,10 +1,13 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ACRLiveTiming.Model;
@@ -59,7 +62,84 @@ namespace ACRLiveTiming.UI
         void ThemeToggle_Changed(object sender, RoutedEventArgs e)
         {
             if (_syncingTheme) return;
+            _settings.HasTheme = true;
             ApplyTheme(ThemeToggle.IsChecked == true);
+            SaveSettings();
+        }
+
+        void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+            {
+                WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+                return;
+            }
+            try { DragMove(); } catch { /* mouse released before the drag began */ }
+        }
+
+        void MinimizeBtn_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+        void MaximizeBtn_Click(object sender, RoutedEventArgs e)
+            => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        void CloseBtn_Click(object sender, RoutedEventArgs e) => Close();
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            if (MaximizeBtn != null)
+                MaximizeBtn.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            if (PresentationSource.FromVisual(this) is HwndSource source)
+                source.AddHook(WindowProc);
+        }
+
+        IntPtr WindowProc(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WmGetMinMaxInfo = 0x0024;
+            if (message != WmGetMinMaxInfo) return IntPtr.Zero;
+
+            var monitor = MonitorFromWindow(hwnd, 2);
+            if (monitor == IntPtr.Zero) return IntPtr.Zero;
+            var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            if (!GetMonitorInfo(monitor, ref info)) return IntPtr.Zero;
+
+            var minMax = Marshal.PtrToStructure<MinMaxInfo>(lParam);
+            minMax.MaxPosition.X = info.WorkArea.Left - info.MonitorArea.Left;
+            minMax.MaxPosition.Y = info.WorkArea.Top - info.MonitorArea.Top;
+            minMax.MaxSize.X = info.WorkArea.Right - info.WorkArea.Left;
+            minMax.MaxSize.Y = info.WorkArea.Bottom - info.WorkArea.Top;
+            Marshal.StructureToPtr(minMax, lParam, true);
+            handled = true;
+            return IntPtr.Zero;
+        }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct PointInt { public int X, Y; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct MinMaxInfo
+        {
+            public PointInt Reserved, MaxSize, MaxPosition, MinTrackSize, MaxTrackSize;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct RectInt { public int Left, Top, Right, Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct MonitorInfo
+        {
+            public int Size;
+            public RectInt MonitorArea, WorkArea;
+            public uint Flags;
         }
 
         void ApplyTheme(bool dark)
@@ -108,6 +188,7 @@ namespace ACRLiveTiming.UI
             ["Brush.Muted"]         = C(0x65, 0x6D, 0x76),
             ["Brush.Faint"]         = C(0x8C, 0x95, 0x9F),
             ["Brush.Accent"]        = C(0x1A, 0x7F, 0x37),   // connected dot / switch on
+            ["Brush.Danger"]        = C(0xB4, 0x23, 0x18),
             ["Brush.DotIdle"]       = C(0x8B, 0x94, 0x9E),   // searching dot
             ["Brush.SwitchOff"]     = C(0xCD, 0xD3, 0xDA),
             ["Brush.SwitchOn"]      = C(0x65, 0x6D, 0x76),   // grey, no colour accent
@@ -133,6 +214,7 @@ namespace ACRLiveTiming.UI
             ["Brush.Muted"]         = C(0x8B, 0x94, 0x9E),
             ["Brush.Faint"]         = C(0x6E, 0x76, 0x81),
             ["Brush.Accent"]        = C(0x3F, 0xB9, 0x50),
+            ["Brush.Danger"]        = C(0xE5, 0x48, 0x4D),
             ["Brush.DotIdle"]       = C(0x8B, 0x94, 0x9E),
             ["Brush.SwitchOff"]     = C(0x3A, 0x42, 0x4C),
             ["Brush.SwitchOn"]      = C(0x8B, 0x94, 0x9E),   // grey, no colour accent
@@ -758,7 +840,7 @@ namespace ACRLiveTiming.UI
             _settings.ReplayPause = ParseD(ReplayPauseBox.Text, _settings.ReplayPause);
             _settings.FinishGating = FinishGatingCheck.IsChecked == true;
             _settings.HideNations = HideNationsCheck.IsChecked == true;
-            _settings.Dark = _dark; _settings.HasTheme = true;
+            _settings.Dark = _dark;
             _settings.PageTitle = PageTitleBox.Text;
             _settings.PageDescription = PageDescBox.Text;
             // per-overlay chrome (topmost / locked / opacity are written on change too,
