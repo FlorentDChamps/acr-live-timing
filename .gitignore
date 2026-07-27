@@ -7,8 +7,9 @@ inputs/
 __pycache__/
 *.pyc
 
-# Local tooling / IDE
+# Local tooling / IDE (but .github must stay versioned: workflows, FUNDING)
 .*/
+!.github/
 
 # .NET build output
 bin/

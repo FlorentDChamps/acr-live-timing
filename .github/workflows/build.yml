@@ -57,6 +57,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          # full history + tags: the release notes list the commits since the
+          # previous version tag
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -67,6 +71,19 @@ jobs:
         run: |
           $v = '${{ github.ref_name }}'.TrimStart('v')
           "VERSION=$v" >> $env:GITHUB_ENV
+
+      # One bullet per commit since the previous tag, prepended to the release
+      # body (still hand-editable on the release page afterwards).
+      - name: Commit list since previous tag
+        shell: pwsh
+        run: |
+          $prev = git describe --tags --abbrev=0 '${{ github.ref_name }}^' 2>$null
+          if ($LASTEXITCODE -ne 0) { $prev = $null }
+          $range = if ($prev) { "$prev..${{ github.ref_name }}" } else { '${{ github.ref_name }}' }
+          "CHANGES<<__CHANGES__" | Add-Content $env:GITHUB_ENV
+          git log --format='- %s' $range | Add-Content $env:GITHUB_ENV
+          "__CHANGES__" | Add-Content $env:GITHUB_ENV
+          exit 0
 
       - name: Publish (framework-dependent, needs .NET 8 Desktop Runtime)
         run: >
@@ -96,6 +113,9 @@ jobs:
             ACRLiveTiming-${{ env.VERSION }}-win-x64.exe
             ACRLiveTiming-${{ env.VERSION }}-win-x64.exe.sha256
           body: |
+            ## Changes
+            ${{ env.CHANGES }}
+
             **SHA-256** — `ACRLiveTiming-${{ env.VERSION }}-win-x64.exe`
             ```
             ${{ env.SHA256 }}
