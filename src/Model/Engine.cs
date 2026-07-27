@@ -227,7 +227,10 @@ namespace ACRLiveTiming.Model
             // shared by every consumer below (run-start detection, stage-name scan,
             // result scan) — they all need the same shifts.
             var (shifted, fstrs) = Primitives.ShiftScan(payload);
-            var strings = fstrs[0].ConvertAll(f => f.Text);
+            var strings = new List<string>();
+            foreach (var view in fstrs)
+                foreach (var f in view)
+                    strings.Add(f.Text);
 
             // A run-start event opens a new column — but only once the current run
             // has finishers, so repeated semaphore events don't spawn blank columns.
@@ -256,6 +259,11 @@ namespace ACRLiveTiming.Model
             //     event (falls OUTSIDE the window => it is the NEXT run's route).
             //   * a RESTART of the same stage broadcasts nothing at all (no map travel)
             //     => the route is inherited (see StartNewRun).
+            // A stage's FString is normally byte-aligned, but a host capture showed
+            // its initial route (`AlsaceS4SaverneShort1Forward`) only at bit shifts
+            // 4 and 6. `strings` combines every aligned view, like the variant/FSM scans
+            // below, so the first stage is labelled even when no byte-aligned base
+            // level is replicated to this client.
             var anchor = Names.StageNameIn(strings);
             if (anchor != null)
             {
