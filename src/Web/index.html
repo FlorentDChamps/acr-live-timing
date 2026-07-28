@@ -108,12 +108,12 @@
   }
   body[data-theme="light"] .phasebadge.racing { color: var(--accent-contrast); }
   .curstage { font-weight: 600; font-size: 14px; }
-  /* live stage progression: an AUTO-FITTING window — the right edge is the
-     leader's position (km figure beside the track), the left edge is the last
-     running car, so the range stretches to fit the field. The configured value
-     is the MAX span: past it the leader stays right-pinned and cars further back
-     than the cap are hidden. Finished cars pin the right edge (the stage end
-     stops moving); only DNF/retired cars are kept off the edges. */
+  /* live stage progression. Fixed mode (default): the window always spans the
+     configured range, right edge on the leader (km figure beside the track).
+     Auto-fit mode: the left edge is the last running car, so the range stretches
+     to fit the field, the configured value capping the span. Either way cars
+     further back than the window are hidden. Finished cars pin the right edge
+     (the stage end stops moving); only DNF/retired cars are kept off the edges. */
   .progwrap { padding: 12px 20px 0; display: flex; align-items: center; gap: 12px; }
   .progtrack { position: relative; flex: 1; height: 84px; background: var(--panel);
                border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
@@ -329,6 +329,10 @@
   .cfgrow input[type=number] { width: 76px; background: var(--bg); color: var(--txt);
             border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
             font: inherit; text-align: right; }
+  .cfgpair { display: flex; align-items: center; gap: 7px; }
+  .cfgpair .cfgfix { display: flex; align-items: center; gap: 4px; cursor: pointer;
+                     color: var(--dim); font-size: 11px; }
+  .cfgpair .cfgfix input { margin: 0; }
   .cfgstages { display: flex; flex-direction: column; gap: 5px; max-height: 34vh;
                overflow-y: auto; margin-top: 6px; }
   .cfgstage { display: flex; align-items: center; gap: 8px; font-size: 12px;
@@ -414,9 +418,10 @@
       <div class="cfgrow" title="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic).">
         <label for="cfgPct">Penalty cap %</label>
         <input type="number" id="cfgPct" min="0" max="500" step="1" /></div>
-      <div class="cfgrow" title="Maximum span of the progression bar. The bar auto-fits the field (leader on the right); this caps how wide it can stretch. Once the field spreads past it, cars further back are hidden.">
+      <div class="cfgrow" title="Span of the progression bar. Fixed on: the bar always spans this range, leader pinned on the right. Fixed off: the bar auto-fits the field (leader to last car), this value capping how wide it can stretch. Either way, cars further back than the range are hidden.">
         <label for="cfgWin">Progression window km</label>
-        <input type="number" id="cfgWin" min="0.1" max="50" step="0.1" /></div>
+        <span class="cfgpair"><input type="number" id="cfgWin" min="0.1" max="50" step="0.1" />
+          <label class="cfgfix" title="Freeze the bar at the full range instead of auto-fitting the field."><input type="checkbox" id="cfgWinFix" />fixed</label></span></div>
       <div class="cfgrow" title="On: reveal a time only once the car has crossed the finish line, hiding intermediate sector splits. Off: show each driver's latest cumulative split as it arrives.">
         <label for="cfgGate">Finish gating</label>
         <input type="checkbox" id="cfgGate" /></div>
@@ -668,19 +673,19 @@ function carColor(name) {
 
 // live progression track: keyed DOM elements so the markers slide (CSS transition)
 const progEls = new Map();   // name -> { dot, lbl }
-function renderProgress(list, windowKm) {
+function renderProgress(list, windowKm, fixed) {
   const wrap = document.getElementById("progwrap");
   const track = document.getElementById("progtrack");
   list = list || [];
   // the bar is ALWAYS shown now (even with no data): an empty track with its axis
   // labels, so the overlay/page keeps a stable footprint before anyone is driving.
   wrap.style.display = "";
-  // auto-fitting window: the range STRETCHES in real time between the leader
-  // (right edge) and the last car (left edge), so the field always spans the
-  // whole track. windowKm is now the MAX span (a cap): once the field spreads
-  // wider than it, the right edge stays on the leader and cars further back than
-  // the cap are hidden. Finished cars DO define the edges — once the fastest
-  // crosses the line the right edge pins to the stage end and stops moving.
+  // fixed (default): the window always spans windowKm, right edge on the leader —
+  // a stable scale. auto-fit: the range STRETCHES in real time between the leader
+  // (right edge) and the last car (left edge), windowKm being the MAX span (a
+  // cap). In both modes cars further back than the window are hidden. Finished
+  // cars DO define the edges — once the fastest crosses the line the right edge
+  // pins to the stage end and stops moving.
   // Excluded from the edges: DNF/retired cars (frozen mid-track) and cars still on
   // the start line (dist ~0 — a mid-stage joiner / not-yet-launched car that would
   // otherwise peg the tail at 0 and the span at the cap for the whole stage).
@@ -702,9 +707,11 @@ function renderProgress(list, windowKm) {
   const fit = edge.length ? edge : list;        // pre-start (all at the line) fallback
   const maxd = Math.max(...fit.map(p => p.dist));
   const mind = Math.min(...fit.map(p => p.dist));
-  // span fits the field [tail, leader] but never exceeds the configured cap, and
-  // has a 100 m floor so a bunched grid (everyone near 0) doesn't collapse to /0
-  const span = Math.min(Math.max(maxd - mind, 100), CAP);
+  // fixed (default): the span IS the configured range, leader right-pinned — the
+  // scale never moves. Auto-fit: the span fits the field [tail, leader] but never
+  // exceeds the configured cap, with a 100 m floor so a bunched grid (everyone
+  // near 0) doesn't collapse to /0.
+  const span = fixed ? CAP : Math.min(Math.max(maxd - mind, 100), CAP);
   const left = maxd - span;
   setLo(span);
   document.getElementById("progkm").textContent = (maxd / 1000).toFixed(2) + " km";
@@ -793,7 +800,7 @@ function renderProgress(list, windowKm) {
 // progression window are purely presentational. Nothing is persisted — a reload
 // (or Reset) drops back to the host's published config.
 const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, theme: null, progKm: null,
-             groupFilter: null };
+             progFixed: null, groupFilter: null };
 let lastServer = null;
 let lastRendered = null;
 let sortKey = "total";  // total by default; stage keys are stable stage ids
@@ -804,13 +811,16 @@ const seenStageIds = new Set();
 
 const hasOverride = () =>
   ov.discarded !== null || ov.pct !== null || ov.finishGating !== null ||
-  ov.hideNations !== null || ov.theme !== null || ov.progKm !== null || ov.groupFilter !== null;
+  ov.hideNations !== null || ov.theme !== null || ov.progKm !== null ||
+  ov.progFixed !== null || ov.groupFilter !== null;
 
 const hostDiscarded = v => new Set((v.allStages || []).filter(s => s.discarded).map(s => s.id));
 const effDiscarded  = v => ov.discarded !== null ? ov.discarded : hostDiscarded(v);
 const hostGroups = v => new Map((v.allStages || []).filter(s => s.group > 0).map(s => [s.id, s.group]));
 const effGroups = hostGroups;  // rally definitions always come from the host
 const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
+// `!== false` so a cached payload from a host without the field defaults to fixed
+const progFixedOf   = v => ov.progFixed !== null ? ov.progFixed : v.progressFixed !== false;
 const hideNatOn     = () => ov.hideNations === true;
 function applyTheme(theme) {
   // Remove the attribute entirely for "system": an EMPTY data-theme still counts
@@ -1090,6 +1100,7 @@ function initPanel() {
   const $ = id => document.getElementById(id);
   Object.assign(cfgEls, {
     btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), win: $("cfgWin"),
+    winFix: $("cfgWinFix"),
     gate: $("cfgGate"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
     groupToggle: $("cfgGroupToggle"),
     groupFilter: $("groupFilter"), groupSelect: $("groupSelect"),
@@ -1125,6 +1136,7 @@ function initPanel() {
     const n = parseFloat(cfgEls.win.value);
     ov.progKm = isNaN(n) ? null : Math.max(0.1, n); reRender();
   });
+  cfgEls.winFix.addEventListener("change", () => { ov.progFixed = cfgEls.winFix.checked; reRender(); });
   cfgEls.gate.addEventListener("change", () => { ov.finishGating = cfgEls.gate.checked; reRender(); });
   cfgEls.nat.addEventListener("change", () => { ov.hideNations = cfgEls.nat.checked; reRender(); });
   cfgEls.groupToggle.addEventListener("click", () => {
@@ -1154,7 +1166,8 @@ function initPanel() {
     }
   });
   cfgEls.reset.addEventListener("click", () => {
-    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.theme = ov.progKm = ov.groupFilter = null;
+    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.theme = ov.progKm =
+      ov.progFixed = ov.groupFilter = null;
     applyTheme("system");
     syncThemeButton();
     groupSelection.clear(); seenStageIds.clear(); sortKey = "total";
@@ -1262,6 +1275,7 @@ function syncPanel(v) {
     const w = progKmOf(v);
     cfgEls.win.value = (w != null ? +(+w).toFixed(1) : "");
   }
+  if (cfgEls.winFix !== active) cfgEls.winFix.checked = progFixedOf(v);
   if (cfgEls.gate !== active)
     cfgEls.gate.checked = ov.finishGating !== null ? ov.finishGating : !!v.finishGating;
   if (cfgEls.nat !== active) cfgEls.nat.checked = hideNatOn();
@@ -1345,7 +1359,7 @@ function render(v) {
     bar.style.display = "none";
   }
 
-  renderProgress(v.progress, progKmOf(v));
+  renderProgress(v.progress, progKmOf(v), progFixedOf(v));
   syncTabBar();
   if (activeTab === "standings") {
     renderStandings(v);
