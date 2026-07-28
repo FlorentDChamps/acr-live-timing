@@ -751,6 +751,11 @@ namespace ACRLiveTiming.UI
             if (_engine != null) _engine.Matrix.FinishGating = FinishGatingCheck.IsChecked == true;
         }
 
+        void ProgressFixed_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_engine != null) _engine.Matrix.ProgressFixed = ProgressFixedCheck.IsChecked == true;
+        }
+
         void HideNations_Changed(object sender, RoutedEventArgs e)
         {
             _hideNations = HideNationsCheck.IsChecked == true;
@@ -1124,6 +1129,7 @@ namespace ACRLiveTiming.UI
             PortBox.Text = _settings.Port.ToString(inv);
             PctBox.Text = _settings.PenaltyPct.ToString(inv);
             ProgressWindowBox.Text = _settings.ProgressWindowKm.ToString("0.0", inv);
+            ProgressFixedCheck.IsChecked = _settings.ProgressFixed;
             ReplayPauseBox.Text = _settings.ReplayPause.ToString(inv);
             FinishGatingCheck.IsChecked = _settings.FinishGating;
             HideNationsCheck.IsChecked = _settings.HideNations;
@@ -1169,6 +1175,7 @@ namespace ACRLiveTiming.UI
             if (int.TryParse(PortBox.Text.Trim(), out var port)) _settings.Port = port;
             _settings.PenaltyPct = ParseD(PctBox.Text, _settings.PenaltyPct);
             _settings.ProgressWindowKm = ParseD(ProgressWindowBox.Text, _settings.ProgressWindowKm);
+            _settings.ProgressFixed = ProgressFixedCheck.IsChecked == true;
             _settings.ReplayPause = ParseD(ReplayPauseBox.Text, _settings.ReplayPause);
             _settings.FinishGating = FinishGatingCheck.IsChecked == true;
             _settings.HideNations = HideNationsCheck.IsChecked == true;

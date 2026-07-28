@@ -608,6 +608,10 @@
                         Padding="0" FontSize="8" Width="16" Height="12" Margin="0,1,0,0" ToolTip="-0.1 km"/>
               </StackPanel>
               <TextBlock Text="km" VerticalAlignment="Center" Margin="4,0,0,0"/>
+              <CheckBox x:Name="ProgressFixedCheck" Content="Fixed" IsChecked="True"
+                        VerticalAlignment="Center" Margin="12,0,0,0"
+                        Checked="ProgressFixed_Changed" Unchecked="ProgressFixed_Changed"
+                        ToolTip="On: the progression bar always spans the full range above, leader pinned on the right. Off: the bar auto-fits the running field (leader to last car), using the range as a maximum."/>
             </StackPanel>
             <CheckBox x:Name="FinishGatingCheck" Content="Hide split times (finish gating)"
                       IsChecked="True" Margin="0,8,0,0"

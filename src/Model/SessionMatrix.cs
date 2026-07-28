@@ -69,6 +69,7 @@ namespace ACRLiveTiming.Model
         public string StageWeather { get; set; } = ""; // forecast for the stage ("Light rain · 0.5°C")
         public List<CarProgressView> Progress { get; set; } = new(); // live cars, sorted by dist desc
         public double ProgressWindowKm { get; set; }    // width of the sliding progression window (km)
+        public bool ProgressFixed { get; set; }         // freeze the window at its max span (no auto-fit)
         // Host defaults + regime flag, so a web viewer's settings panel can seed its
         // controls and its "reset" can restore the host's configuration.
         public bool HasRaceState { get; set; }   // finish-timer stream exists (enables finish gating)
@@ -154,6 +155,7 @@ namespace ACRLiveTiming.Model
         const string AccountKeyPrefix = "\u001faccount:";
         double _pct = 0.50;
         double _progressWindowKm = 0.8;   // MAX span of the auto-fitting progression window (km)
+        bool _progressFixed = true;       // freeze the window at the max span instead of auto-fitting
         bool _finishGating = true;   // true: hide splits, reveal only real finishes
                                      //       (RaceStateData timer). false: sector-gate
                                      //       (older behaviour — reveal on full sector chain).
@@ -873,6 +875,15 @@ namespace ACRLiveTiming.Model
             set { lock (_lock) _finishGating = value; RaiseChanged(); }
         }
 
+        /// <summary>true (default): the progression window always spans
+        /// <see cref="ProgressWindowKm"/>, leader right-pinned. false: the window
+        /// auto-fits the running field [tail, leader], capped at that span.</summary>
+        public bool ProgressFixed
+        {
+            get { lock (_lock) return _progressFixed; }
+            set { lock (_lock) _progressFixed = value; RaiseChanged(); }
+        }
+
         /// <summary>Operator-set page title shown on the web page (empty = hidden).
         /// Page config, not session data: survives both resets, like <see cref="Pct"/>.</summary>
         public string PageTitle
@@ -998,6 +1009,7 @@ namespace ACRLiveTiming.Model
                     Description = _pageDescription,
                     Progress = progress,
                     ProgressWindowKm = _progressWindowKm,
+                    ProgressFixed = _progressFixed,
                     HasRaceState = _hasRaceState,
                     FinishGating = _finishGating,
                     Version = AppInfo.Version
