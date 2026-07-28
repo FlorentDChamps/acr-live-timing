@@ -588,13 +588,13 @@
         <GroupBox Header="Config">
           <StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-              <TextBlock Text="Penalty threshold: 1st +" VerticalAlignment="Center"/>
+              <TextBlock Text="Penalty cap: last +" VerticalAlignment="Center"/>
               <TextBox x:Name="PctBox" Text="50" Width="46" Margin="6,0,4,0"
                        TextChanged="PctBox_TextChanged"
-                       ToolTip="A driver who misses a stage, or is slower than (fastest + this %), is counted at that threshold time (shown in grey italic on the page)."/>
+                       ToolTip="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic on the page)."/>
               <TextBlock Text="%" VerticalAlignment="Center"/>
             </StackPanel>
-            <TextBlock Text="Missing / too-slow times count as fastest + threshold."
+            <TextBlock Text="Missing times count as the slowest completed time + the cap."
                        Foreground="{DynamicResource Brush.Muted}" TextWrapping="Wrap"/>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
               <TextBlock Text="Max progression range:" VerticalAlignment="Center"/>

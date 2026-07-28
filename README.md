@@ -38,8 +38,8 @@ Cloudflare tunnel link.
   The displayed car list follows the selected stages, preserving a driver changing
   car between stages and removing duplicate models.
 - **Session classification** — one column per stage run, running totals and ranks.
-  Configurable *threshold rule*: a driver missing a stage — or slower than
-  `fastest × (1 + threshold %)` — is counted at the threshold time and flagged.
+  Configurable *penalty-cap rule*: a driver missing a stage is counted at
+  `slowest completed time × (1 + penalty-cap %)` and flagged.
   Any stage can be excluded from the totals with a checkbox. A stage you join already
   under way is **not** counted — its start was missed — but its name and the
   driver/car bindings are still learned, so the next, fully-captured stage is ready
@@ -69,7 +69,7 @@ Cloudflare tunnel link.
   Toggleable in the Config panel — with gating off, the page shows each driver's
   latest cumulative split as it arrives.
 - **DNF display** — a driver who posted split times but never crossed the line is
-  shown as **DNF** on that stage (counted at the threshold time, like an absence).
+  shown as **DNF** on that stage (counted at the penalty cap, like an absence).
   On the running stage it appears the moment the car's race phase turns
   *Retire/Disqualify*; when a stage closes, each car's fate is snapshotted (retired,
   disqualified or vanished mid-run), so past stages keep an exact DNF record, with a
@@ -97,7 +97,7 @@ Cloudflare tunnel link.
   one-click copy button.
 - **Per-viewer display settings** — a gear button on the web page opens a panel that
   mirrors the host's ranking/display controls **locally**: exclude stages from the
-  totals, change the penalty threshold %, resize the progression window, hide
+  totals, change the penalty cap %, resize the progression window, hide
   nationalities, toggle finish gating, filter by rally, sort by any column, and
   switch the page's light/dark theme. Changing a stage/penalty/gating setting
   recomputes the board in the browser from the raw per-stage data the page already

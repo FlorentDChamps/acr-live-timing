@@ -41,8 +41,8 @@ en un clic.
   spéciales sélectionnées : un changement de voiture entre spéciales est conservé et
   les doublons sont retirés.
 - **Classement de session** — une colonne par run de spéciale, totaux et rangs.
-  *Règle de seuil* configurable : un pilote absent d'une spéciale — ou plus lent que
-  `meilleur temps × (1 + seuil %)` — est compté au temps seuil et signalé.
+  *Plafond de pénalité* configurable : un pilote absent d'une spéciale est compté au
+  `temps finalisé le plus lent × (1 + plafond de pénalité %)` et signalé.
   Chaque spéciale peut être exclue des totaux d'une simple case à cocher. Une spéciale
   rejointe **en cours** n'est **pas** comptée — son départ a été manqué — mais son nom
   et les liaisons pilote/voiture sont quand même appris, pour que la spéciale suivante,
@@ -77,7 +77,7 @@ en un clic.
   montre le dernier split cumulé de chaque pilote au fil de l'eau.
 - **Affichage des DNF** — un pilote qui a posté des temps intermédiaires mais n'a
   jamais franchi la ligne est affiché **DNF** sur cette spéciale (compté au temps
-  seuil, comme une absence). Sur la spéciale en cours, il apparaît dès que la phase
+  plafond de pénalité, comme une absence). Sur la spéciale en cours, il apparaît dès que la phase
   de course de la voiture passe à *Retire/Disqualify* ; à la clôture d'une spéciale,
   le sort de chaque voiture est mémorisé (abandon, disqualification ou disparition en
   cours de run), donc les spéciales passées gardent un état DNF exact, avec la
@@ -107,7 +107,7 @@ en un clic.
   servent aussi de boutons d'arrêt, et le lien public a un bouton de copie en un clic.
 - **Réglages d'affichage par spectateur** — un bouton roue crantée sur la page web
   ouvre un panneau qui reprend **localement** les réglages de classement/affichage de
-  l'hôte : exclure des spéciales du total, changer le seuil de pénalité %, régler la
+  l'hôte : exclure des spéciales du total, changer le plafond de pénalité %, régler la
   fenêtre de progression, masquer les nationalités, activer/couper le finish gating,
   filtrer par rallye, trier par n'importe quelle colonne et basculer le thème
   clair/sombre de la page.

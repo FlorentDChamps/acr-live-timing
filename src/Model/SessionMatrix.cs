@@ -78,8 +78,8 @@ namespace ACRLiveTiming.Model
     /// Session-wide classification: drivers (rows) × run columns. Each run of a
     /// stage is its own column, keyed by a stable id ("run1", "run2", …) and shown
     /// with a label ("SS1 &lt;stage&gt;"). Times are final decoded seconds. A driver
-    /// missing a run — or slower than the per-run threshold (fastest × (1 + Pct)) —
-    /// is counted at that threshold and flagged Substituted. Total = sum of effective
+    /// missing a run is counted at the per-run penalty cap (slowest completed time ×
+    /// (1 + Pct)) and flagged Substituted. Total = sum of effective
     /// times, re-sorted every update. Thread-safe; raises <see cref="Changed"/>.
     /// </summary>
     public sealed class SessionMatrix

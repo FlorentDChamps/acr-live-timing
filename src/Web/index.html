@@ -367,8 +367,8 @@
     <p class="cfgnote">Local to your view · not saved (reload reverts).
       <em>Reset</em> restores the host's setup.</p>
     <div class="cfgsec first">
-      <div class="cfgrow" title="A driver who misses a stage, or is slower than (fastest + this %), is counted at that threshold time (shown in grey italic).">
-        <label for="cfgPct">Penalty threshold %</label>
+      <div class="cfgrow" title="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic).">
+        <label for="cfgPct">Penalty cap %</label>
         <input type="number" id="cfgPct" min="0" max="500" step="1" /></div>
       <div class="cfgrow" title="Maximum span of the progression bar. The bar auto-fits the field (leader on the right); this caps how wide it can stretch. Once the field spreads past it, cars further back are hidden.">
         <label for="cfgWin">Progression window km</label>
@@ -805,7 +805,7 @@ function computeView(v, cfg, withPositionChange = true) {
   const incl = [];
   for (let c = 0; c < N; c++) if (!cfg.discarded.has(all[c].id)) incl.push(c);
 
-  const maxSec = {}, confirmed = {}, fastest = {};
+  const maxSec = {}, confirmed = {}, slowest = {};
   for (const c of incl) {
     let ms = 0, conf = false;
     for (const r of src) {
@@ -831,12 +831,12 @@ function computeView(v, cfg, withPositionChange = true) {
   const revealed = (rc, c) => rc != null &&
     (cfg.finishGating ? completed(rc, c) : rc.s === maxSec[c]);
   for (const c of incl) {
-    let best = Infinity;
+    let worst = -Infinity;
     for (const r of src) {
       const rc = r.rawCells && r.rawCells[c];
-      if (completed(rc, c) && rc.t < best) best = rc.t;
+      if (completed(rc, c) && rc.t > worst) worst = rc.t;
     }
-    if (best < Infinity) fastest[c] = best;
+    if (worst > -Infinity) slowest[c] = worst;
   }
 
   const rows = src.map(r => {
@@ -854,13 +854,13 @@ function computeView(v, cfg, withPositionChange = true) {
       // closed columns where no car-state signal was captured at all.
       const dnf = v.hasRaceState && !final && has &&
                   (!!rc.r || (all[c].id !== currentCol ? confirmed[c] : !!r.retired));
-      if (!(c in fastest)) {
+      if (!(c in slowest)) {
         cells.push({ real, effective: finalTime == null ? 0 : finalTime,
                      substituted: false, empty: true, dnf, final });
         if (finalTime != null) total += finalTime;
         continue;
       }
-      const threshold = fastest[c] * (1 + cfg.pct);
+      const threshold = slowest[c] * (1 + cfg.pct);
       let effective, substituted;
       if (finalTime == null) { effective = threshold; substituted = true; }
       else if (finalTime > threshold) { effective = threshold; substituted = true; }
@@ -1168,7 +1168,7 @@ function render(v) {
   lastRendered = v;
   document.getElementById("state").textContent = v.state || "";
   document.getElementById("thresh").textContent =
-    "Penalty threshold: 1st +" + Math.round((v.pct || 0) * 100) + "%";
+    "Penalty cap: last +" + Math.round((v.pct || 0) * 100) + "%";
   document.getElementById("dot").className = "dot" + (v.state === "Connected" ? " on" : "");
   // host version: separator lives here so the whole thing vanishes when absent
   document.getElementById("ver").textContent = v.version ? " · v" + v.version : "";
@@ -1387,7 +1387,7 @@ function render(v) {
         td.classList.add("pen");
         setCell(td, cell.real != null ? fmt(cell.real) : "", gap);
         td.title = cell.real != null
-          ? "Real time " + fmt(cell.real) + " — over threshold, counted as penalty in total"
+          ? "Real time " + fmt(cell.real) + " — over penalty cap, counted as penalty in total"
           : "No time — counted as penalty in total";
       } else {
         setCell(td, fmt(cell.effective), gap);
