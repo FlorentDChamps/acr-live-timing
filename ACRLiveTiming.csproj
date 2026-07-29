@@ -17,10 +17,10 @@
     <PlatformTarget>x64</PlatformTarget>
     <Copyright>Copyright (C) 2026 Florent DESCHAMPS</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <!-- Base number, single source of truth. Only the release workflow clears the
-         suffix, by passing -p:Version=x.y.z from the tag (an explicit Version wins
-         over prefix+suffix), so anything not built from a tag is visibly a
-         prerelease; AppInfo then appends the commit sha to tell those apart. -->
+    <!-- Fallback when the source is outside a Git checkout. Development builds in a
+         checkout replace this with the latest version tag below; release builds pass
+         -p:Version=x.y.z explicitly. AppInfo then appends the commit sha to identify
+         individual prerelease builds. -->
     <VersionPrefix>1.0.0</VersionPrefix>
     <VersionSuffix>dev</VersionSuffix>
     <Authors>Florent DESCHAMPS</Authors>
@@ -30,6 +30,29 @@
     <Description>Live shared leaderboard for Assetto Corsa Rally multiplayer lobbies — passive cleartext traffic decoding, embedded web view, optional Cloudflare tunnel.</Description>
     <RepositoryUrl>https://github.com/FlorentDChamps/acr-live-timing</RepositoryUrl>
   </PropertyGroup>
+
+  <!-- Make local/dev builds report the latest release they are based on instead of
+       the static fallback above (v1.2.3 becomes 1.2.3-dev). An explicitly supplied
+       release Version deliberately bypasses this target. -->
+  <Target Name="SetDevelopmentVersionFromGitTag"
+          BeforeTargets="GetAssemblyVersion"
+          Condition="'$(Version)' == '$(VersionPrefix)-$(VersionSuffix)'">
+    <PropertyGroup>
+      <_GitSafeDirectory>$([System.String]::Copy('$(MSBuildProjectDirectory)').Replace('\', '/'))</_GitSafeDirectory>
+    </PropertyGroup>
+    <Exec Command="git -c safe.directory=$(_GitSafeDirectory) describe --tags --abbrev=0 2&gt;NUL"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="Low"
+          StandardErrorImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_LatestGitTagOutput" />
+    </Exec>
+    <PropertyGroup Condition="'$(_LatestGitTagOutput)' != ''">
+      <_LatestGitTag>$([System.String]::Copy('$(_LatestGitTagOutput)').Trim())</_LatestGitTag>
+      <_LatestGitTag>$([System.Text.RegularExpressions.Regex]::Replace('$(_LatestGitTag)', '^v', ''))</_LatestGitTag>
+      <Version>$(_LatestGitTag)-$(VersionSuffix)</Version>
+    </PropertyGroup>
+  </Target>
 
   <ItemGroup>
     <!-- App.xaml lives under src/, so the root-only auto-glob misses it:
