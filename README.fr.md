@@ -75,18 +75,22 @@ en un clic.
   sans chrono (anciens enregistrements) se replient sur le gating par splits
   complets. Activable/désactivable dans le panneau Config — gating coupé, la page
   montre le dernier split cumulé de chaque pilote au fil de l'eau.
-- **Affichage des DNF** — un pilote qui a posté des temps intermédiaires mais n'a
-  jamais franchi la ligne est affiché **DNF** sur cette spéciale (compté au temps
-  plafond de pénalité, comme une absence). Sur la spéciale en cours, il apparaît dès que la phase
-  de course de la voiture passe à *Retire/Disqualify* ; à la clôture d'une spéciale,
-  le sort de chaque voiture est mémorisé (abandon, disqualification ou disparition en
-  cours de run), donc les spéciales passées gardent un état DNF exact, avec la
-  déduction « un autre a fini, pas lui » en repli pour les trous de capture. Un
-  pilote qui quitte avant les premiers splits reste affiché comme absent.
+- **Affichage des DNF** — un pilote qui n'a jamais franchi la ligne est affiché
+  **DNF** sur cette spéciale (compté au temps plafond de pénalité, comme une
+  absence). Sur la spéciale en cours, il apparaît dès que la phase de course de la
+  voiture passe à *Retire/Disqualify* ; à la clôture d'une spéciale, le sort de
+  chaque voiture est mémorisé (abandon, disqualification ou disparition en cours de
+  run), donc les spéciales passées gardent un état DNF exact, avec la déduction
+  « un autre a fini, pas lui » en repli pour les trous de capture. Le drapeau
+  d'abandon des résultats répliqués par le jeu est aussi décodé directement : même
+  un pilote qui quitte **avant le premier split** est listé DNF — sans temps,
+  puisqu'il n'en a jamais posé — au lieu de disparaître silencieusement.
 - **Progression de spéciale en direct** — une piste horizontale au-dessus du tableau
-  montre la position live de chaque pilote sur la spéciale en cours, ajustée
-  automatiquement entre le leader et la dernière voiture en course (portée max
-  réglable dans le panneau Config). Chaque marqueur est nommé **dès le spawn, depuis
+  montre la position live de chaque pilote sur la spéciale en cours. Par défaut la
+  piste couvre une **portée fixe configurable** derrière le leader (échelle stable) ;
+  décocher *Fixed* dans le panneau Config bascule sur une fenêtre auto-ajustée entre
+  le leader et la dernière voiture en course, plafonnée à cette portée. Chaque
+  marqueur est nommé **dès le spawn, depuis
   la ligne de départ** : l'acteur PlayerState propriétaire de la voiture re-réplique
   son bloc d'identité (steamid + pseudo) à chaque spéciale, et le décodeur le lie de
   façon déterministe au composant de télémétrie de la voiture. La correspondance par
@@ -108,9 +112,9 @@ en un clic.
 - **Réglages d'affichage par spectateur** — un bouton roue crantée sur la page web
   ouvre un panneau qui reprend **localement** les réglages de classement/affichage de
   l'hôte : exclure des spéciales du total, changer le plafond de pénalité %, régler la
-  fenêtre de progression, masquer les nationalités, activer/couper le finish gating,
-  filtrer par rallye, trier par n'importe quelle colonne et basculer le thème
-  clair/sombre de la page.
+  fenêtre de progression ou basculer sa portée fixe, masquer les nationalités,
+  activer/couper le finish gating, filtrer par rallye, trier par n'importe quelle
+  colonne et basculer le thème clair/sombre de la page.
   Modifier une spéciale/pénalité/gating **recalcule le tableau dans le navigateur** à
   partir des données brutes par spéciale que la page reçoit déjà — sans jamais toucher
   la vue de l'hôte ni celle des autres spectateurs. Les réglages sont propres à la
@@ -354,11 +358,7 @@ dans les réglages du webhook côté Discord ; chaque message reste discrètemen
 
 L'envoi est manuel — rien n'est jamais posté sans un clic.
 
-<!-- À illustrer : capturer un salon Discord montrant un message Alert et un message
-     Standings postés par un webhook renommé, enregistrer sous
-     docs/discord-messages.png, puis décommenter :
 <img src="docs/discord-messages.png" alt="Messages Alert et Standings postés dans un salon Discord" width="480">
--->
 
 ## Antivirus & SmartScreen
 
@@ -397,9 +397,9 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Nationalité + voiture par pilote/spéciale | ✅ lus dès l'entrée au lobby depuis l'acteur participant du joueur (déterministe, aucun temps nécessaire) ; voiture conservée par spéciale et listée sans doublon sur la sélection ; liaison par le temps conservée en repli — validé sur captures d'écran |
 | Liste complète des arrivants | ✅ scan multi-décalage de bits |
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
-| Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; un abandon précoce (aucun split) reste affiché comme absent |
-| Progression de spéciale en direct | ✅ piste horizontale auto-ajustée leader↔dernier au-dessus du tableau ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
-| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression, masquer nations, finish gating, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
+| Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; le drapeau d'abandon des résultats répliqués est décodé aussi, donc même un abandon à zéro split est listé DNF |
+| Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
+| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, finish gating, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
 | Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
 | Exports de résultats | ✅ boutons copie / CSV / PNG sur la page ; webhook Discord côté hôte (alerte live, tableau des points, résultats de rallye) |
 | Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page |
