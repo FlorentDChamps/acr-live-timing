@@ -29,6 +29,16 @@ namespace ACRLiveTiming.Decode
                                      // rather than whitelist 0x0e so a real finish is
                                      // never dropped if its tag differs in a live stream.
 
+        // A completed first-sector property record serializes its sector number and
+        // two copies of the same time as: 08 01 00 00 00 0a <f32> 0c <f32>.
+        // The duplicate floats are validated by the caller; this checks the property
+        // tags and the explicit sector-1 identifier around their first occurrence.
+        static bool IsCompletedFirstSplit(byte[] payload, int start)
+            => start >= 6
+            && payload[start - 6] == 0x08 && payload[start - 5] == 0x01
+            && payload[start - 4] == 0x00 && payload[start - 3] == 0x00 && payload[start - 2] == 0x00
+            && payload[start - 1] == 0x0a && payload[start + 4] == 0x0c;
+
         static List<double> ChainFrom(byte[] payload, int start)
         {
             var chain = new List<double>();
@@ -85,12 +95,14 @@ namespace ACRLiveTiming.Decode
                 if (chain.Count < (includePartials ? 1 : 2)) continue;
 
                 // In the actual RaceEventRallyResults component a completed S1 record
-                // carries the zero next-property tag. Other replicated floats can form
-                // the same duplicate signature next to a valid name (observed tags 0x19
-                // and 0x86). The broad naming scan stays permissive; the component-gated
+                // either carries the zero next-property tag or its full sector-1
+                // property structure. Other replicated floats can form the same
+                // duplicate signature next to a valid name (observed tags 0x19 and
+                // 0x86). The broad naming scan stays permissive; the component-gated
                 // table path opts into this stricter S1 discriminator.
                 if (strictPartials && chain.Count == 1
-                    && (P + 9 >= payload.Length || payload[P + 9] != 0x00)) continue;
+                    && (P + 9 >= payload.Length
+                        || (payload[P + 9] != 0x00 && !IsCompletedFirstSplit(payload, P)))) continue;
 
                 // Skip ONLY the confirmed live "running time" form: the byte right
                 // after the split1 duplicate (P+9) is the next property tag — 0x10

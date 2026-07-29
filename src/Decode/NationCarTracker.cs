@@ -50,6 +50,8 @@ namespace ACRLiveTiming.Decode
                                                                                // (the player can switch cars at the service park;
                                                                                // CarId only re-replicates on change, so a majority
                                                                                // vote would keep the old car forever)
+        readonly HashSet<long> _resultGuids = new();
+        readonly Dictionary<long, int> _resultGuidVotes = new();
 
         // EOS display name = "<persona>_<digits>". The discriminator is numeric; a
         // non-numeric suffix (Lights_FL01, Mirror_L…) is an engine token, not a name.
@@ -122,6 +124,13 @@ namespace ACRLiveTiming.Decode
         public IReadOnlyList<string> StartedNames => _startedNames;
         readonly List<string> _startedNames = new();
 
+        /// <summary>Drivers whose structurally decoded result element carries
+        /// bDNF=true in the LAST Feed. Each element also passed the ParticipantId,
+        /// CarId and next-handle guards; malformed or ambiguous elements contribute
+        /// nothing.</summary>
+        public IReadOnlyList<string> DnfNames => _dnfNames;
+        readonly List<string> _dnfNames = new();
+
         public void Reset()
         {
             lock (_lock)
@@ -134,6 +143,11 @@ namespace ACRLiveTiming.Decode
                 _partName.Clear();
                 _partNat.Clear();
                 _partCar.Clear();
+                _resultGuids.Clear();
+                _resultGuidVotes.Clear();
+                _nameRaws.Clear();
+                _startedNames.Clear();
+                _dnfNames.Clear();
                 _dirty = false;
             }
         }
@@ -167,6 +181,7 @@ namespace ACRLiveTiming.Decode
             var best = new Dictionary<string, (double raw, double pen, int sectors)>();
             _nameRaws.Clear();
             _startedNames.Clear();
+            _dnfNames.Clear();
             lock (_lock)
             {
                 LearnAliases(fstrs[0]);
@@ -190,8 +205,52 @@ namespace ACRLiveTiming.Decode
             try
             {
                 var blocks = _stream.Feed(payload);
-                foreach (var (guid, actor, seg, _) in blocks)
+                foreach (var (guid, path) in _stream.NewGuids)
                 {
+                    if (path == "RaceEventRallyResults") _resultGuids.Add(guid);
+                    else
+                    {
+                        _resultGuids.Remove(guid);
+                        _resultGuidVotes.Remove(guid);
+                    }
+                }
+                foreach (var block in blocks)
+                {
+                    var (guid, actor, seg, _) = block;
+                    // A zero-split retirement stays in the partial-results array
+                    // (upper handle 6) and never acquires a split signature. Decode
+                    // bDNF from the element itself; ResultDnfScanner publishes only
+                    // a complete, unambiguous ParticipantId/CarId/bDNF sequence.
+                    IReadOnlyList<ResultDnfScanner.ResultFlag> flags =
+                        Array.Empty<ResultDnfScanner.ResultFlag>();
+                    if (guid != 0 && _resultGuids.Contains(guid))
+                        flags = ResultDnfScanner.Scan(block);
+                    else if (guid != 0 && !_stream.Guids.ContainsKey(guid))
+                    {
+                        // A capture may begin after the one-off class export. Infer an
+                        // orphan results guid only from repeated, complete FINAL-array
+                        // elements; a partial-array lookalike can never self-promote.
+                        var candidates = ResultDnfScanner.Scan(block);
+                        int votes = candidates.Count(result => result.ArrayHandle == 8);
+                        if (votes > 0)
+                        {
+                            int total = _resultGuidVotes.GetValueOrDefault(guid) + votes;
+                            _resultGuidVotes[guid] = total;
+                            if (total >= 2)
+                            {
+                                _resultGuids.Add(guid);
+                                flags = candidates;
+                            }
+                        }
+                    }
+                    foreach (var result in flags)
+                    {
+                        if (!result.Dnf) continue;
+                        var name = Canon(result.Name);
+                        lock (_lock)
+                            if (!_dnfNames.Contains(name)) _dnfNames.Add(name);
+                    }
+
                     // Unlike the broad packet scan used for the time join, this scan is
                     // gated on the actual results component. It is therefore safe to
                     // expose a driver's name as soon as its one-sector partial appears.

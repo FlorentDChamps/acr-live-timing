@@ -252,15 +252,15 @@ namespace ACRLiveTiming.Decode
             return outb;
         }
 
-        static List<(int ps, int npb, long guid)> ContentBlocks(BR br, int endbit)
+        static List<(int ps, int npb, long guid, bool hasRepLayout)> ContentBlocks(BR br, int endbit)
         {
-            var outl = new List<(int, int, long)>();
+            var outl = new List<(int, int, long, bool)>();
             int guard = 0;
             while (br.pos < endbit - 8 && !br.err)
             {
                 guard++;
                 if (guard > 128) break;
-                br.Bit();                               // bHasRepLayout
+                bool hasRepLayout = br.Bit() != 0;
                 long guid = 0;                          // subobject NetGUID (0 = actor-level)
                 if (br.Bit() == 0)                      // bIsActor == 0 -> subobject
                 {
@@ -275,7 +275,7 @@ namespace ACRLiveTiming.Decode
                 if (br.err) break;
                 long npb = br.IntPacked();
                 if (npb <= 0 || npb > (endbit - br.pos)) break;
-                outl.Add((br.pos, (int)npb, guid));
+                outl.Add((br.pos, (int)npb, guid, hasRepLayout));
                 br.pos += (int)npb;
             }
             return outl;
@@ -415,6 +415,23 @@ namespace ACRLiveTiming.Decode
         /// </summary>
         public sealed class BlockStream
         {
+            /// <summary>A reassembled Unreal content block. <see cref="Data"/> includes
+            /// the two boundary bytes needed to preserve a non-byte-aligned payload;
+            /// <see cref="BitOffset"/> and <see cref="BitLength"/> identify its exact
+            /// bit range. <see cref="HasRepLayout"/> is the content-block header flag
+            /// that selects property-handle replication.</summary>
+            public readonly record struct ContentBlock(
+                long Guid,
+                long Actor,
+                byte[] Data,
+                int BitOffset,
+                int BitLength,
+                bool HasRepLayout)
+            {
+                public void Deconstruct(out long guid, out long actor, out byte[] data, out int bitOffset)
+                    => (guid, actor, data, bitOffset) = (Guid, Actor, Data, BitOffset);
+            }
+
             readonly Dictionary<int, Pending> _pending = new();
             readonly Dictionary<long, string> _fresh = new();         // this packet's exports
             readonly Dictionary<long, long> _freshOuter = new();      // this packet's outer links
@@ -451,11 +468,11 @@ namespace ACRLiveTiming.Decode
             /// the next Feed.</summary>
             public List<(long guid, string path)> NewGuids { get; } = new();
 
-            public List<(long guid, long actor, byte[] block, int bitoff)> Feed(byte[] pl)
+            public List<ContentBlock> Feed(byte[] pl)
             {
                 NewGuids.Clear();
                 NewIdents.Clear();
-                var outl = new List<(long, long, byte[], int)>();
+                var outl = new List<ContentBlock>();
                 if (pl.Length < 12) return outl;
                 _fresh.Clear();
                 _freshOuter.Clear();
@@ -505,7 +522,7 @@ namespace ACRLiveTiming.Decode
                 return outl;
             }
 
-            IEnumerable<(long guid, long actor, byte[] block, int bitoff)> Handle(Rec first, List<byte> bits)
+            IEnumerable<ContentBlock> Handle(Rec first, List<byte> bits)
             {
                 byte[] merged = PackBits(bits);
                 int total = bits.Count;
@@ -539,8 +556,14 @@ namespace ACRLiveTiming.Decode
                 if (!br.err && !bail)
                 {
                     long bunchActor = _chActor.GetValueOrDefault(first.ch);
-                    foreach (var (ps, npb, guid) in ContentBlocks(br, total))
-                        yield return (guid, bunchActor, Slice(merged, ps >> 3, (ps + npb + 7) >> 3), ps & 7);
+                    foreach (var (ps, npb, guid, hasRepLayout) in ContentBlocks(br, total))
+                        yield return new ContentBlock(
+                            guid,
+                            bunchActor,
+                            Slice(merged, ps >> 3, (ps + npb + 7) >> 3),
+                            ps & 7,
+                            npb,
+                            hasRepLayout);
                 }
 
                 // identity scan on an actor's channel — the identity block replicates in
@@ -631,6 +654,12 @@ namespace ACRLiveTiming.Decode
         static readonly Regex TyreRe = new(
             @"^(Gravel|Tarmac|Snow|Wet|Ice|Asphalt|Mud)", RegexOptions.Compiled);
 
+        /// <summary>True for a wire CarId token. Kept alongside <see cref="MarksIn"/>
+        /// so structural result parsing and the byte-level nation/car join apply the
+        /// same classifier and tyre exclusion.</summary>
+        public static bool IsCarId(string value)
+            => value.Length >= 10 && CarRe.IsMatch(value) && !TyreRe.IsMatch(value);
+
         static IEnumerable<(int start, string text)> Tokens(byte[] d)
         {
             int i = 0, n = d.Length;
@@ -674,7 +703,7 @@ namespace ACRLiveTiming.Decode
                 {
                     int ab = st * 8 + shn;
                     if (Nations.Contains(t)) nmarks.Add((ab, t));
-                    else if (t.Length >= 10 && CarRe.IsMatch(t) && !TyreRe.IsMatch(t))
+                    else if (IsCarId(t))
                     {
                         // strip a trailing Set* suffix; a token STARTING with "Set"
                         // (e.g. SetupGravelDefault) would leave "" — an empty mark
