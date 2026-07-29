@@ -367,8 +367,12 @@ namespace ACRLiveTiming.Model
             // gated and fills the cell later. Provisional mid-stage captures stay out
             // of the counted standings, as before.
             if (!_provisional)
+            {
                 foreach (var name in _natCar.StartedNames)
                     Matrix.MarkDriverStarted(name);
+                foreach (var name in _natCar.DnfNames)
+                    Matrix.MarkDriverDnf(runKey, name);
+            }
         }
 
         /// <summary>

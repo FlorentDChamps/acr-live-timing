@@ -10,13 +10,15 @@ namespace ACRLiveTiming.Model
     // substitution, totals and ranking are the page's job, computed from this block
     // under whatever settings the viewer is using. Shipping a pre-rendered board too
     // would mean two implementations of the same rules kept in sync by hand.
-    // T=measured time, F=matched a real finish-timer peak (IsFinished), S=sector count,
+    // T=measured time (omitted for a zero-split DNF), F=matched a real finish-timer
+    // peak (IsFinished), S=sector count,
     // R=the driver's car never reached the finish phases on this stage (retired,
     // disqualified, or vanished mid-run) — the page must never promote their last
     // split to a final via sector-count fallback.
     public sealed class RawCell
     {
-        public double T { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? T { get; set; }
         public bool F { get; set; }
         public int S { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -426,6 +428,35 @@ namespace ACRLiveTiming.Model
                     _driverOrder.Add(driver);
                     changed = true;
                 }
+            }
+            if (changed) RaiseChanged();
+        }
+
+        /// <summary>Record a protocol-confirmed retirement for a stage even when the
+        /// driver produced no split. This creates the row and an R-only raw cell; no
+        /// timing value is invented.</summary>
+        public void MarkDriverDnf(string columnId, string driver)
+        {
+            bool changed = false;
+            lock (_lock)
+            {
+                driver = ResolveDriverKey(driver);
+                if (!_times.ContainsKey(columnId))
+                {
+                    _times[columnId] = new Dictionary<string, (double, double, int)>();
+                    _labels[columnId] = columnId;
+                    _columnOrder.Add(columnId);
+                    changed = true;
+                }
+                if (!_driverOrder.Contains(driver))
+                {
+                    _driverOrder.Add(driver);
+                    changed = true;
+                }
+                if (!_dnfByColumn.TryGetValue(columnId, out var dnf))
+                    _dnfByColumn[columnId] = dnf = new HashSet<string>();
+                if (dnf.Add(driver)) changed = true;
+                changed |= AttachLastCar(columnId, driver);
             }
             if (changed) RaiseChanged();
         }
@@ -896,14 +927,20 @@ namespace ACRLiveTiming.Model
                 {
                     var rawCells = new List<RawCell?>(_columnOrder.Count);
                     foreach (var id in _columnOrder)
-                        rawCells.Add(_times[id].TryGetValue(driverKey, out var re)
-                            ? new RawCell
+                    {
+                        bool isDnf = _dnfByColumn.TryGetValue(id, out var dnf)
+                            && dnf.Contains(driverKey);
+                        if (_times[id].TryGetValue(driverKey, out var re))
+                            rawCells.Add(new RawCell
                             {
                                 T = re.time, F = IsFinished(id, re.raw), S = re.sectors,
-                                R = (_dnfByColumn.TryGetValue(id, out var dnf) && dnf.Contains(driverKey))
-                                    || (id == lastColumn && retired.Contains(driverKey))
-                            }
-                            : null);
+                                R = isDnf || (id == lastColumn && retired.Contains(driverKey))
+                            });
+                        else if (isDnf)
+                            rawCells.Add(new RawCell { R = true });
+                        else
+                            rawCells.Add(null);
+                    }
 
                     var driver = _driverLabels.GetValueOrDefault(driverKey, driverKey);
                     _nations.TryGetValue(driverKey, out var nation);
