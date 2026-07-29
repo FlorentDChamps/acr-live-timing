@@ -640,18 +640,19 @@
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*" MinWidth="80"/>
+                <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <Button x:Name="DiscordAlertBtn" Grid.Column="0" Content="Alert" IsEnabled="False" Click="DiscordAlertBtn_Click" Margin="0,0,12,0"
                       ToolTip="Post the public live link to Discord. Requires the tunnel to be published."/>
-              <Button x:Name="DiscordStandingsBtn" Grid.Column="1" Content="Standings" IsEnabled="False" Click="DiscordStandingsBtn_Click" Margin="0,0,12,0"
-                      ToolTip="Post the standings image to Discord. Requires at least one stage group."/>
-              <Button x:Name="DiscordRallyBtn" Grid.Column="2" Content="Rally" IsEnabled="False" Click="DiscordRallyBtn_Click" Margin="0,0,6,0"
+              <Button x:Name="DiscordRallyBtn" Grid.Column="1" Content="Rally" IsEnabled="False" Click="DiscordRallyBtn_Click" Margin="0,0,6,0"
                       ToolTip="Post the selected rally's stage results image to Discord."/>
-              <ComboBox x:Name="DiscordRallyBox" Grid.Column="3" MinWidth="80" DisplayMemberPath="Name" IsEnabled="False"
+              <ComboBox x:Name="DiscordRallyBox" Grid.Column="2" MinWidth="80" DisplayMemberPath="Name" IsEnabled="False"
                         SelectionChanged="DiscordRallyBox_SelectionChanged"
                         ToolTip="Select the rally whose stage results will be posted."/>
+              <Button x:Name="DiscordStandingsBtn" Grid.Column="3" Content="Standings" IsEnabled="False" Click="DiscordStandingsBtn_Click"
+                      HorizontalAlignment="Right" Margin="12,0,0,0"
+                      ToolTip="Post the standings image to Discord. Requires at least one stage group."/>
             </Grid>
           </StackPanel>
         </GroupBox>
