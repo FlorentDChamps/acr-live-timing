@@ -27,10 +27,10 @@ const OUT = process.argv[3];
 const PCT = 0.2;
 
 const STAGES = [
-  { id: "run1", name: "SS1 MonteCarloS2Sisteron" },
-  { id: "run2", name: "SS2 AlsaceS4Saverne" },
-  { id: "run3", name: "SS3 WalesS3HafrenNorth" },
-  { id: "run4", name: "SS4 GreeceS4Loutraki" },
+  { id: "run1", name: "SS1 MonteCarloS2Sisteron", group: 1, groupName: "Alpine Rally" },
+  { id: "run2", name: "SS2 AlsaceS4Saverne", group: 1, groupName: "Alpine Rally" },
+  { id: "run3", name: "SS3 WalesS3HafrenNorth", group: 2, groupName: "Forest Rally" },
+  { id: "run4", name: "SS4 GreeceS4Loutraki", group: 2, groupName: "Forest Rally" },
 ];
 
 // times in seconds; null = no time yet (still on stage), "dnf" = started, never finished
@@ -53,13 +53,15 @@ const D = [
 // keeping them in sync by hand — which is how the screenshots silently lost their
 // totals once the page grew a field the fixture did not know about.
 const rows = D.map(([driver, nation, car, times]) => ({
-  driver, nation, car,
+  driver, nation,
   // "dnf" on the RUNNING stage means the car sits in Retire/Disqualify right now —
   // the only signal that lets the page mark the current column. On a past stage the
   // abandon is inferred from the closed column instead, so no flag would be needed.
   retired: times[times.length - 1] === "dnf",
   rawCells: times.map(t =>
     typeof t === "number" ? { t, f: true, s: 6 } : (t === "dnf" ? { t: 0, f: false, s: 3 } : null)),
+  // Mirrors RowView.Cars: one car token per stage, aligned to rawCells.
+  cars: times.map(t => t === null ? null : car),
 }));
 
 // live progression on SS4: cars still out on the stage + those already through
@@ -76,7 +78,7 @@ const progress = [
 ];
 
 const view = {
-  allStages: STAGES.map(s => ({ id: s.id, name: s.name, discarded: false })),
+  allStages: STAGES.map(s => ({ ...s, discarded: false })),
   rows,
   pct: PCT,
   server: "203.0.113.42:9600",

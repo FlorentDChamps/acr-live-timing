@@ -18,6 +18,7 @@
     /* near-white grey for penalty (italic) times: readable, just off the main text */
     --faint: #d9e0e8;
     --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+    --scroll-track: #111720; --scroll-thumb: #3a4657; --scroll-thumb-hover: #58677a;
     /* pinned column widths (border-box, so offsets = cumulative widths) */
     --w-pos: 46px; --w-name: 200px; --w-time: 116px;
     /* overlay background opacity (0..1); set per-overlay via the ?bg= param / host JS */
@@ -30,6 +31,7 @@
       --dim: #6d6263; --accent: #a33a43; --accent-contrast: #fff;
       --sub: #ad4f58; --ok: #217a4b; --faint: #665d5e;
       --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+      --scroll-track: #f0ebea; --scroll-thumb: #bbb1ae; --scroll-thumb-hover: #918684;
     }
   }
   body[data-theme="dark"] {
@@ -37,16 +39,30 @@
     --dim: #8b949e; --accent: #a33a43; --accent-contrast: #fff;
     --sub: #c96a72; --ok: #3fb950; --faint: #d9e0e8;
     --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+    --scroll-track: #111720; --scroll-thumb: #3a4657; --scroll-thumb-hover: #58677a;
   }
   body[data-theme="light"] {
     --bg: #f7f5f4; --panel: #fffdfc; --line: #ddd6d4; --txt: #251f20;
     --dim: #6d6263; --accent: #a33a43; --accent-contrast: #fff;
     --sub: #ad4f58; --ok: #217a4b; --faint: #665d5e;
     --gold: #f2b705; --silver: #94a3b8; --bronze: #e08b43;
+    --scroll-track: #f0ebea; --scroll-thumb: #bbb1ae; --scroll-thumb-hover: #918684;
   }
+  html { height: 100%; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--txt);
          font: 15px/1.4 system-ui, "Segoe UI", Roboto, sans-serif; }
+  /* The normal page is a full-height application shell. Its content pane scrolls
+     the page chrome away first; the footer stays outside it and therefore visible. */
+  body:not(.overlay) { height: 100vh; height: 100dvh; overflow: hidden;
+                       display: flex; flex-direction: column; }
+  body:not(.overlay) > .page-content { flex: 1 1 auto; min-height: 0;
+                                       overflow-y: auto; overflow-x: hidden;
+                                       scrollbar-width: none; }
+  /* This pane only carries the initial page-chrome travel. Hide its native rail so
+     the table's vertical scrollbar is the single visible scrolling control. */
+  body:not(.overlay) > .page-content::-webkit-scrollbar { display: none; }
+  body:not(.overlay) > footer { flex: none; }
   header { padding: 16px 20px; border-bottom: 1px solid var(--line);
            display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
   h1 { font-size: 18px; margin: 0; letter-spacing: .5px; }
@@ -130,7 +146,33 @@
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
          background: var(--dim); margin-right: 6px; vertical-align: middle; }
   .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
-  .wrap { padding: 16px 20px; overflow-x: auto; }
+  .wrap { padding: 16px 20px 0; }
+  /* The board bar reaches the top only after the page header/progression has
+     scrolled away; it then stays there while the table rows continue below it. */
+  body:not(.overlay) .boardbar { position: sticky; top: 0; z-index: 4;
+                                  margin-bottom: 0; padding-bottom: 10px; background: var(--bg); }
+  /* Mirror the table's bottom rail just above the always-visible footer. It stays
+     available while rows scroll, but appears only when the columns overflow. */
+  .table-hscroll { position: fixed; left: 20px; right: 20px; bottom: var(--footer-height, 0px); z-index: 10;
+                   height: 14px; margin: 0; overflow-x: scroll; overflow-y: hidden;
+                   scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+                   background: var(--scroll-track); border-radius: 4px; }
+  .table-hscroll-inner { height: 1px; }
+  .table-hscroll::-webkit-scrollbar { height: 8px; }
+  .table-hscroll::-webkit-scrollbar-track { background: var(--scroll-track); }
+  .table-hscroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border: 2px solid var(--scroll-track); border-radius: 999px; }
+  .table-hscroll::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+  /* The table gets a dedicated viewport: rows scroll vertically and the native
+     horizontal scrollbar remains attached to its bottom edge. */
+  .table-scroll { max-height: min(640px, 62vh); overflow: auto; scrollbar-gutter: stable;
+                  scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+  .table-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .table-scroll::-webkit-scrollbar-track { background: var(--scroll-track); }
+  .table-scroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border: 2px solid var(--scroll-track);
+                                            border-radius: 999px; }
+  .table-scroll::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+  .table-scroll::-webkit-scrollbar-corner { background: var(--scroll-track); }
+  body:not(.overlay) .table-scroll { height: var(--table-viewport-height, min(640px, 62vh)); max-height: none; }
   table { border-collapse: collapse; }
   th, td { padding: 8px 12px; text-align: right; white-space: nowrap;
            border-bottom: 1px solid var(--line); vertical-align: middle; }
@@ -195,7 +237,7 @@
   .silver { color: var(--silver); }
   .bronze { color: var(--bronze); }
   td.name.gold, td.name.silver, td.name.bronze { font-weight: 700; }
-  footer { padding: 12px 20px; color: var(--dim); font-size: 12px; }
+  footer { padding: 6px 20px 12px; color: var(--dim); font-size: 12px; }
   footer a { color: var(--dim); text-decoration: underline; }
   footer a:hover { color: var(--accent); }
   .empty-state { padding: 40px 20px; color: var(--dim); text-align: center; }
@@ -214,7 +256,8 @@
     background: transparent; overflow: hidden;
   }
   /* overlays never scroll — content is clipped to the window (resize to reveal) */
-  body.overlay .wrap { overflow: hidden; }
+  body.overlay .table-scroll { max-height: none; overflow: hidden; }
+  body.overlay .table-hscroll { display: none !important; }
   body.overlay header, body.overlay .stagebar, body.overlay footer { display: none !important; }
   body.view-classification .progwrap { display: none !important; }
   body.view-classification .boardbar { display: none !important; }
@@ -344,14 +387,15 @@
     body:not(.overlay) #server, body:not(.overlay) #thresh,
     body:not(.overlay) #state { display: none; }
     body:not(.overlay) h1 { font-size: 16px; }
-    body:not(.overlay) .wrap { padding: 8px 4px; }
+    body:not(.overlay) .wrap { padding: 8px 4px 0; }
+    body:not(.overlay) .table-hscroll { left: 4px; right: 4px; }
     body:not(.overlay) th, body:not(.overlay) td { padding: 5px 6px; }
     body:not(.overlay) th.pos, body:not(.overlay) td.pos { padding-left: 1px; padding-right: 4px; }
     body:not(.overlay) th { font-size: 10px; letter-spacing: .2px; }
     body:not(.overlay) .stagename { font-size: 10px; }
     body:not(.overlay) th.name, body:not(.overlay) td.name { left: var(--w-pos); }
     body:not(.overlay) .t-diff, body:not(.overlay) .car { font-size: 9px; }
-    body:not(.overlay) footer { padding: 10px 14px; font-size: 11px; }
+    body:not(.overlay) footer { padding: 6px 14px 10px; font-size: 11px; }
     body:not(.overlay) .stagebar { padding: 8px 14px 0; gap: 10px; }
     body:not(.overlay) .progwrap { padding: 8px 10px 0; }
     body:not(.overlay) .progtrack { height: 74px; }
@@ -389,6 +433,7 @@
     </div>
     <button id="cfgreset" disabled>Reset to host config</button>
   </div>
+  <main class="page-content" id="pageContent">
   <header>
     <img id="logo" alt="" width="22" height="22">
     <h1>ACR Live Timing</h1>
@@ -434,12 +479,16 @@
         <button type="button" class="exportbtn" id="exportPng" title="Export table as PNG" aria-label="Export table as PNG">&#128247;</button>
       </div>
     </div>
-    <div class="empty-state" id="empty">Waiting for data…</div>
-    <table id="tbl" style="display:none">
-      <thead><tr id="head"></tr></thead>
-      <tbody id="body"></tbody>
-    </table>
+    <div class="table-hscroll" id="tableHScroll" hidden aria-label="Scroll table horizontally"><div class="table-hscroll-inner" id="tableHScrollInner"></div></div>
+    <div class="table-scroll">
+      <div class="empty-state" id="empty">Waiting for data…</div>
+      <table id="tbl" style="display:none">
+        <thead><tr id="head"></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
   </div>
+  </main>
   <footer>Updates automatically ·
     <span class="gold">gold</span>/<span class="silver">silver</span>/<span class="bronze">bronze</span> = top 3 ·
     <span style="color:var(--faint);font-style:italic">grey italic</span> = stage time capped in total ·
@@ -945,6 +994,97 @@ function rallyName(all, groups, group) {
 // ---- settings panel: build/sync from the latest host payload + current overrides --
 const cfgEls = {};
 let stageIdsKey = "";
+let scrollLayoutFrame = 0;
+function syncScrollLayout() {
+  scrollLayoutFrame = 0;
+  if (document.body.classList.contains("overlay")) return;
+  const page = document.getElementById("pageContent");
+  const board = document.querySelector(".boardbar");
+  const tableScroll = document.querySelector(".table-scroll");
+  const table = document.getElementById("tbl");
+  const hscroll = document.getElementById("tableHScroll");
+  const hscrollInner = document.getElementById("tableHScrollInner");
+  const wrap = document.getElementById("wrap");
+  const footer = document.querySelector("footer");
+  if (!page || !board || !tableScroll || !table || !hscroll || !hscrollInner || !wrap || !footer) return;
+  document.body.style.setProperty("--footer-height", footer.offsetHeight + "px");
+  // When the page chrome has scrolled away, the board bar and this viewport fill
+  // the page pane exactly. That leaves the footer outside the scrolling area.
+  const baseHeight = page.clientHeight - board.offsetHeight;
+  const overflows = table.style.display !== "none" && table.scrollWidth > tableScroll.clientWidth + 1;
+  hscroll.hidden = !overflows;
+  tableScroll.style.setProperty("--table-viewport-height", Math.max(120, baseHeight) + "px");
+  if (!overflows) { tableScroll.scrollLeft = 0; return; }
+  // Match the table's scroll range even when its vertical rail makes it a few
+  // pixels narrower than this separate horizontal rail.
+  hscrollInner.style.width = Math.max(hscroll.clientWidth,
+    table.scrollWidth + hscroll.clientWidth - tableScroll.clientWidth) + "px";
+  if (Math.abs(hscroll.scrollLeft - tableScroll.scrollLeft) > 1)
+    hscroll.scrollLeft = tableScroll.scrollLeft;
+}
+function scheduleScrollLayout() {
+  if (!scrollLayoutFrame) scrollLayoutFrame = requestAnimationFrame(syncScrollLayout);
+}
+function initScrollLayout() {
+  const page = document.getElementById("pageContent");
+  const tableScroll = document.querySelector(".table-scroll");
+  const hscroll = document.getElementById("tableHScroll");
+  if (!page || !tableScroll || !hscroll) return;
+  const scrollPageBeforeTable = deltaY => {
+    const pageMax = page.scrollHeight - page.clientHeight;
+    if (deltaY > 0 && page.scrollTop < pageMax - 1) {
+      page.scrollTop = Math.min(pageMax, page.scrollTop + deltaY);
+      return true;
+    }
+    if (deltaY < 0 && tableScroll.scrollTop <= 0 && page.scrollTop > 0) {
+      page.scrollTop = Math.max(0, page.scrollTop + deltaY);
+      return true;
+    }
+    return false;
+  };
+  // Wheel the page chrome out of view before moving table rows. Reversing at the
+  // first row brings the page chrome back, so the interaction is one continuous
+  // vertical journey even though the table owns its horizontal scrollbar.
+  tableScroll.addEventListener("wheel", event => {
+    if (event.ctrlKey || event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    if (scrollPageBeforeTable(event.deltaY)) event.preventDefault();
+  }, { passive: false });
+  // Touch input does not emit wheel events. Route vertical swipes in the table
+  // through the same hand-off, so a phone user can reveal the page chrome from
+  // any table row instead of having to start the gesture in the header.
+  let touch = null;
+  tableScroll.addEventListener("touchstart", event => {
+    const point = event.touches[0];
+    touch = point ? { x: point.clientX, y: point.clientY } : null;
+  }, { passive: true });
+  tableScroll.addEventListener("touchmove", event => {
+    const point = event.touches[0];
+    if (!point || !touch) return;
+    const deltaX = touch.x - point.clientX;
+    const deltaY = touch.y - point.clientY;
+    touch = { x: point.clientX, y: point.clientY };
+    if (Math.abs(deltaX) > Math.abs(deltaY)) return;
+    if (scrollPageBeforeTable(deltaY)) event.preventDefault();
+  }, { passive: false });
+  tableScroll.addEventListener("touchend", () => { touch = null; }, { passive: true });
+  tableScroll.addEventListener("touchcancel", () => { touch = null; }, { passive: true });
+  tableScroll.addEventListener("scroll", () => {
+    if (Math.abs(hscroll.scrollLeft - tableScroll.scrollLeft) > 1)
+      hscroll.scrollLeft = tableScroll.scrollLeft;
+  });
+  hscroll.addEventListener("scroll", () => {
+    if (Math.abs(tableScroll.scrollLeft - hscroll.scrollLeft) > 1)
+      tableScroll.scrollLeft = hscroll.scrollLeft;
+  });
+  window.addEventListener("resize", scheduleScrollLayout);
+  if (typeof ResizeObserver === "function") {
+    const observer = new ResizeObserver(scheduleScrollLayout);
+    [page, document.querySelector("header"), document.getElementById("stagebar"),
+     document.getElementById("progwrap"), document.querySelector(".boardbar"), document.querySelector("footer")]
+      .filter(Boolean).forEach(element => observer.observe(element));
+  }
+  scheduleScrollLayout();
+}
 function initPanel() {
   const $ = id => document.getElementById(id);
   Object.assign(cfgEls, {
@@ -1208,6 +1348,7 @@ function render(v) {
   syncTabBar();
   if (activeTab === "standings") {
     renderStandings(v);
+    scheduleScrollLayout();
     return;
   }
 
@@ -1255,6 +1396,7 @@ function render(v) {
     const overlayTable = document.body.classList.contains("view-classification");
     empty.style.display = overlayTable ? "none" : "block";
     tbl.style.display = overlayTable ? "" : "none";
+    scheduleScrollLayout();
     return;
   }
   empty.style.display = "none";
@@ -1399,6 +1541,7 @@ function render(v) {
 
     body.appendChild(tr);
   });
+  scheduleScrollLayout();
 }
 
 const RALLY_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
@@ -1721,12 +1864,17 @@ function pngHeaderLayout(data, widths, ctx) {
   const paddingY = 10, stageLineHeight = 14, nameLineHeight = 13;
   const cells = data.headers.map((header, i) => {
     const stage = i > 2 && /^(SS\d+)\s*(.*)$/.exec(header);
-    if (!stage) return { header, stage: null, lines: [] };
+    const rally = activeTab === "standings" && i > 2;
     ctx.font = "500 12px system-ui, Segoe UI, Roboto, sans-serif";
-    return { header, stage, lines: stage[2] ? wrapCanvasText(ctx, stage[2], widths[i] - 24) : [] };
+    if (stage) return { header, stage, rally: false,
+      lines: stage[2] ? wrapCanvasText(ctx, stage[2], widths[i] - 24) : [] };
+    return { header, stage: null, rally,
+      lines: rally ? wrapCanvasText(ctx, header, widths[i] - 24) : [] };
   });
   const headerHeight = Math.max(40, ...cells.map(cell => cell.stage
     ? paddingY * 2 + stageLineHeight + cell.lines.length * nameLineHeight
+    : cell.rally
+      ? paddingY * 2 + cell.lines.length * nameLineHeight
     : paddingY * 2 + 14));
   return { cells, headerHeight, paddingY, stageLineHeight, nameLineHeight };
 }
@@ -1778,6 +1926,12 @@ function drawResultsPng(data, flags, includeTitle = true) {
       ctx.fillStyle = palette.txt; ctx.font = "500 12px system-ui, Segoe UI, Roboto, sans-serif";
       cell.lines.forEach((line, lineIndex) =>
         ctx.fillText(line, textX, top + headerLayout.paddingY + headerLayout.stageLineHeight + 11 + lineIndex * headerLayout.nameLineHeight));
+    } else if (cell.rally) {
+      ctx.textAlign = "right";
+      const textX = x + cellWidth - 12;
+      ctx.fillStyle = palette.txt; ctx.font = "500 12px system-ui, Segoe UI, Roboto, sans-serif";
+      cell.lines.forEach((line, lineIndex) =>
+        ctx.fillText(line, textX, top + headerLayout.paddingY + 11 + lineIndex * headerLayout.nameLineHeight));
     } else {
       ctx.textAlign = i === 1 ? "left" : i === 0 ? "center" : "right";
       const textX = i === 1 ? x + 12 : i === 0 ? x + cellWidth / 2 : x + cellWidth - 12;
@@ -1955,6 +2109,7 @@ async function poll() {
 }
 syncThemeButton();
 initPanel();
+initScrollLayout();
 // The server bakes the current state into #statecache, so first paint comes from it
 // with no /state round-trip. A copy saved via the browser's "Save page as" opens as
 // file:// with no server behind it: the baked state renders and the settings panel
