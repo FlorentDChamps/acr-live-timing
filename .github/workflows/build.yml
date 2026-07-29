@@ -16,6 +16,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -115,6 +117,10 @@ jobs:
           body: |
             ## Changes
             ${{ env.CHANGES }}
+
+            ## Documentation
+            - [README (English)](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/README.md)
+            - [README en français](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/README.fr.md)
 
             **SHA-256** — `ACRLiveTiming-${{ env.VERSION }}-win-x64.exe`
             ```
