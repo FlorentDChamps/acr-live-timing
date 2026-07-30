@@ -910,6 +910,15 @@ namespace ACRLiveTiming.UI
             _engine.Matrix.PageDescription = PageDescBox.Text;
         }
 
+        void PenaltyStep_Click(object sender, RoutedEventArgs e)
+        {
+            double step = double.Parse((string)((Button)sender).Tag, CultureInfo.InvariantCulture);
+            var text = PctBox.Text.Trim().Replace(',', '.');
+            double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var cur);
+            var next = Math.Min(500, Math.Max(0, Math.Round(cur + step)));
+            PctBox.Text = next.ToString(CultureInfo.InvariantCulture);
+        }
+
         void ProgressWindowStep_Click(object sender, RoutedEventArgs e)
         {
             double step = double.Parse((string)((Button)sender).Tag, CultureInfo.InvariantCulture);
