@@ -2082,17 +2082,23 @@ window.acrLiveTimingExport = {
   },
   async rallyPng(group) {
     if (!lastServer) throw new Error("No live state is available");
-    if (!Number.isInteger(group) || group <= 0) throw new Error("Invalid rally group");
+    if (!Number.isInteger(group) || group < 0) throw new Error("Invalid rally group");
     const all = lastServer.allStages || [];
     const groups = effGroups(lastServer);
-    const selected = all.filter(stage => groups.get(stage.id) === group);
-    if (!selected.length) throw new Error("The selected rally has no stages");
+    // Group 0 exports every stage of the host's published selection, exactly like
+    // picking "All stages" in the page's rally selector.
+    const selected = group === 0
+      ? all.filter(stage => !hostDiscarded(lastServer).has(stage.id))
+      : all.filter(stage => groups.get(stage.id) === group);
+    if (!selected.length)
+      throw new Error(group === 0 ? "There are no stages to export" : "The selected rally has no stages");
     // Match selecting this rally in the page: it becomes the visible stage set,
     // then the shared canvas exporter renders that board without its PNG title.
     activeTab = "stages";
-    ov.groupFilter = group;
+    ov.groupFilter = group === 0 ? null : group;
     groupSelection = new Set(selected.map(stage => stage.id));
-    ov.discarded = new Set(all.filter(stage => !groupSelection.has(stage.id)).map(stage => stage.id));
+    ov.discarded = group === 0 ? null
+      : new Set(all.filter(stage => !groupSelection.has(stage.id)).map(stage => stage.id));
     sortKey = "total";
     ov.theme = "dark";
     applyTheme("dark");
