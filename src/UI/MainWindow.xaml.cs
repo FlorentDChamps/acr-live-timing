@@ -1005,6 +1005,9 @@ namespace ACRLiveTiming.UI
                 .Select(group => new DiscordRallyOption(group.Key,
                     string.IsNullOrWhiteSpace(group.First().GroupName) ? $"Rally {group.Key}" : group.First().GroupName))
                 .ToList();
+            // Group 0 = the page's "All stages" board (the host's published selection).
+            if (view.AllStages.Count > 0)
+                rallies.Insert(0, new DiscordRallyOption(0, "All stages"));
             DiscordRallyBox.ItemsSource = rallies;
             DiscordRallyBox.SelectedItem = rallies.FirstOrDefault(rally => rally.Group == selectedGroup)
                 ?? rallies.FirstOrDefault();
