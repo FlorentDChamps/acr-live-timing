@@ -746,9 +746,9 @@ namespace ACRLiveTiming.UI
 
         void SavePcap_Unchecked(object sender, RoutedEventArgs e) => StopPcap();
 
-        void FinishGating_Changed(object sender, RoutedEventArgs e)
+        void HideSplits_Changed(object sender, RoutedEventArgs e)
         {
-            if (_engine != null) _engine.Matrix.FinishGating = FinishGatingCheck.IsChecked == true;
+            if (_engine != null) _engine.Matrix.HideSplits = HideSplitsCheck.IsChecked == true;
         }
 
         void ProgressFixed_Changed(object sender, RoutedEventArgs e)
@@ -1143,7 +1143,7 @@ namespace ACRLiveTiming.UI
             ProgressWindowBox.Text = _settings.ProgressWindowKm.ToString("0.0", inv);
             ProgressFixedCheck.IsChecked = _settings.ProgressFixed;
             ReplayPauseBox.Text = _settings.ReplayPause.ToString(inv);
-            FinishGatingCheck.IsChecked = _settings.FinishGating;
+            HideSplitsCheck.IsChecked = _settings.HideSplits;
             HideNationsCheck.IsChecked = _settings.HideNations;
             PageTitleBox.Text = _settings.PageTitle;
             PageDescBox.Text = _settings.PageDescription;
@@ -1189,7 +1189,7 @@ namespace ACRLiveTiming.UI
             _settings.ProgressWindowKm = ParseD(ProgressWindowBox.Text, _settings.ProgressWindowKm);
             _settings.ProgressFixed = ProgressFixedCheck.IsChecked == true;
             _settings.ReplayPause = ParseD(ReplayPauseBox.Text, _settings.ReplayPause);
-            _settings.FinishGating = FinishGatingCheck.IsChecked == true;
+            _settings.HideSplits = HideSplitsCheck.IsChecked == true;
             _settings.HideNations = HideNationsCheck.IsChecked == true;
             _settings.Dark = _dark;
             _settings.PageTitle = PageTitleBox.Text;

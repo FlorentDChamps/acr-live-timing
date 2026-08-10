@@ -36,7 +36,13 @@ Cloudflare tunnel link.
 - **Live stage results** — driver names, split-validated final times (ms-exact vs
   the in-game screen, penalties included), stage name, nation flag and car model.
   The displayed car list follows the selected stages, preserving a driver changing
-  car between stages and removing duplicate models.
+  car between stages and removing duplicate models. While a stage is running
+  (Racing through Spectating, back to the stage history at Results), with
+  **Hide split times** off (the default), the board keeps the total pinned on the
+  left and replaces stage history with cumulative
+  sector splits followed by the final stage time. Each column shows its gap and top
+  three, while rows automatically follow the latest available split classification.
+  The regular stage history returns at Results.
 - **Session classification** — one column per stage run, running totals and ranks.
   Configurable *penalty-cap rule*: a driver missing a stage is counted at
   `slowest completed time × (1 + penalty-cap %)` and flagged.
@@ -57,17 +63,18 @@ Cloudflare tunnel link.
   side, an optional **Discord webhook** (Discord panel) posts to your channel in one
   click: a live-link alert, the standings board or a selected rally's results as an
   image. The webhook URL is stored encrypted, readable only by your Windows account.
-- **Finish-gated reveal** — a driver's time appears only once they actually cross
-  the finish line, so intermediate splits never flicker or climb on the board.
-  Detection is event-driven and exact: the game replicates a per-car race phase
+- **Hide split times** — in the stage history, a driver's final time is validated
+  only once they actually cross the finish line. Detection is event-driven and exact:
+  the game replicates a per-car race phase
   (`RaceStateData.Phase`); the transition to *Ended* marks the finish the instant it
   happens, with the frozen stage timer matching the displayed result to the
   millisecond. Streamed packet-by-packet, so replays reveal the same progression as
   live regardless of playback speed. A tool locking on mid-session re-identifies the
   timer stream from its wire shape, so no stage restart is needed; only genuinely
   timer-less captures (older recordings) fall back to split-completion gating.
-  Toggleable in the Config panel — with gating off, the page shows each driver's
-  latest cumulative split as it arrives.
+  **Hide split times** is off by default: leave it off for the dedicated live sector
+  board, or turn it on to keep the former stage-history board and hide intermediate
+  times until the finish.
 - **DNF display** — a driver who never crossed the line is shown as **DNF** on that
   stage (counted at the penalty cap, like an absence). On the running stage it
   appears the moment the car's race phase turns *Retire/Disqualify*; when a stage
@@ -102,7 +109,7 @@ Cloudflare tunnel link.
 - **Per-viewer display settings** — a gear button on the web page opens a panel that
   mirrors the host's ranking/display controls **locally**: exclude stages from the
   totals, change the penalty cap %, resize the progression window or toggle its
-  fixed range, hide nationalities, toggle finish gating, filter by rally, sort by
+  fixed range, hide nationalities, toggle **Hide split times**, filter by rally, sort by
   any column, and
   switch the page's light/dark theme. Changing a stage/penalty/gating setting
   recomputes the board in the browser from the raw per-stage data the page already
@@ -367,7 +374,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*), exact to the ms, streamed live |
 | DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; the replicated results' retirement flag is decoded too, so even a zero-split quit is listed as DNF |
 | Live stage progression | ✅ horizontal track above the board, fixed range behind the leader by default (leader↔tail auto-fit as an option); markers named at spawn (PlayerState identity block), first-split fallback — can be partial during the first stage after lock-on |
-| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, finish gating, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config |
+| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config |
 | Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names; independent per-rally classification and championship points, shared with every viewer |
 | Result exports | ✅ copy / CSV / PNG buttons on the page; host-side Discord webhook (live alert, standings board, rally results) |
 | Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header |

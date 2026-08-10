@@ -39,7 +39,13 @@ en un clic.
   (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la spéciale,
   drapeau de nationalité et modèle de voiture. La liste de voitures affichée suit les
   spéciales sélectionnées : un changement de voiture entre spéciales est conservé et
-  les doublons sont retirés.
+  les doublons sont retirés. Pendant qu'une spéciale se court (phases Course à
+  Spectateur, retour à l'historique aux résultats), avec **Hide split times**
+  désactivé (valeur par défaut), le tableau conserve le total à gauche et remplace
+  l'historique des spéciales par les splits cumulés de chaque
+  secteur puis le temps final de la spéciale. Chaque colonne affiche l'écart au
+  meilleur temps et son top 3 ; les lignes suivent automatiquement le classement du
+  dernier split disponible. L'historique habituel réapparaît aux résultats.
 - **Classement de session** — une colonne par run de spéciale, totaux et rangs.
   *Plafond de pénalité* configurable : un pilote absent d'une spéciale est compté au
   `temps finalisé le plus lent × (1 + plafond de pénalité %)` et signalé.
@@ -63,9 +69,9 @@ en un clic.
   votre salon en un clic : une alerte avec le lien live, le tableau des points ou les
   résultats d'un rallye en image. L'URL du webhook est stockée chiffrée, lisible
   uniquement par votre compte Windows.
-- **Affichage à l'arrivée** — le temps d'un pilote n'apparaît qu'une fois la ligne
-  d'arrivée franchie, pour que les temps intermédiaires ne clignotent jamais ni ne
-  « montent » au tableau. La détection est événementielle et exacte : le jeu
+- **Affichage à l'arrivée** — dans l'historique des spéciales, le temps final d'un
+  pilote n'est validé qu'une fois la ligne d'arrivée franchie. La détection est
+  événementielle et exacte : le jeu
   réplique une phase de course par voiture (`RaceStateData.Phase`) ; le passage à
   *Ended* marque l'arrivée à l'instant précis, le chronomètre gelé correspondant au
   résultat affiché à la milliseconde. Streamée paquet par paquet : un replay révèle
@@ -73,8 +79,9 @@ en un clic.
   accroche de l'outil en cours de session ré-identifie le flux chrono à sa forme
   réseau — aucun redémarrage de spéciale nécessaire ; seules les captures réellement
   sans chrono (anciens enregistrements) se replient sur le gating par splits
-  complets. Activable/désactivable dans le panneau Config — gating coupé, la page
-  montre le dernier split cumulé de chaque pilote au fil de l'eau.
+  complets. **Hide split times** est désactivé par défaut : le décocher affiche la vue
+  de secteurs en direct pendant la course ; le cocher conserve l'ancien tableau des
+  spéciales et masque les temps intermédiaires jusqu'à l'arrivée.
 - **Affichage des DNF** — un pilote qui n'a jamais franchi la ligne est affiché
   **DNF** sur cette spéciale (compté au temps plafond de pénalité, comme une
   absence). Sur la spéciale en cours, il apparaît dès que la phase de course de la
@@ -113,7 +120,7 @@ en un clic.
   ouvre un panneau qui reprend **localement** les réglages de classement/affichage de
   l'hôte : exclure des spéciales du total, changer le plafond de pénalité %, régler la
   fenêtre de progression ou basculer sa portée fixe, masquer les nationalités,
-  activer/couper le finish gating, filtrer par rallye, trier par n'importe quelle
+  activer/couper **Hide split times**, filtrer par rallye, trier par n'importe quelle
   colonne et basculer le thème clair/sombre de la page.
   Modifier une spéciale/pénalité/gating **recalcule le tableau dans le navigateur** à
   partir des données brutes par spéciale que la page reçoit déjà — sans jamais toucher
@@ -399,7 +406,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
 | Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; le drapeau d'abandon des résultats répliqués est décodé aussi, donc même un abandon à zéro split est listé DNF |
 | Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
-| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, finish gating, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
+| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
 | Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
 | Exports de résultats | ✅ boutons copie / CSV / PNG sur la page ; webhook Discord côté hôte (alerte live, tableau des points, résultats de rallye) |
 | Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page |

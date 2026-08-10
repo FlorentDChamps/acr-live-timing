@@ -617,11 +617,11 @@
                         Checked="ProgressFixed_Changed" Unchecked="ProgressFixed_Changed"
                         ToolTip="On: the progression bar always spans the full range above, leader pinned on the right. Off: the bar auto-fits the running field (leader to last car), using the range as a maximum."/>
             </StackPanel>
-            <CheckBox x:Name="FinishGatingCheck" Content="Hide split times (finish gating)"
-                      IsChecked="True" Margin="0,8,0,0"
-                      Checked="FinishGating_Changed" Unchecked="FinishGating_Changed"
-                      ToolTip="On: reveal a time only once the car has crossed the finish line (RaceStateData timer), hiding intermediate sector splits. Off: show each driver's latest cumulative split as it arrives."/>
-            <CheckBox x:Name="HideNationsCheck" Content="Hide nationalities (shared view)"
+            <CheckBox x:Name="HideSplitsCheck" Content="Hide split times"
+                      IsChecked="False" Margin="0,8,0,0"
+                      Checked="HideSplits_Changed" Unchecked="HideSplits_Changed"
+                      ToolTip="On: keep the usual stage columns while a stage is running and reveal only confirmed finish times. Off: show the live sector board, sorted by the latest split."/>
+            <CheckBox x:Name="HideNationsCheck" Content="Hide nationalities"
                       IsChecked="False" Margin="0,8,0,0"
                       Checked="HideNations_Changed" Unchecked="HideNations_Changed"
                       ToolTip="Privacy: when on, driver nationality flags are removed from the shared web page (local and public). Names and times still show. Turn on if you publish the page and would rather not expose other players' nationalities."/>

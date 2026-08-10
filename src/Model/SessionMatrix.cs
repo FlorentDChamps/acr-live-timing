@@ -21,6 +21,8 @@ namespace ACRLiveTiming.Model
         public double? T { get; set; }
         public bool F { get; set; }
         public int S { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<double>? Splits { get; set; } // penalty-free cumulative sector times
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool R { get; set; }
     }
@@ -72,8 +74,8 @@ namespace ACRLiveTiming.Model
         public bool ProgressFixed { get; set; }         // freeze the window at its max span (no auto-fit)
         // Host defaults + regime flag, so a web viewer's settings panel can seed its
         // controls and its "reset" can restore the host's configuration.
-        public bool HasRaceState { get; set; }   // finish-timer stream exists (enables finish gating)
-        public bool FinishGating { get; set; }   // host's finish-gating setting (viewer default)
+        public bool HasRaceState { get; set; }   // finish-timer stream exists
+        public bool HideSplits { get; set; }     // host's hide-splits setting (viewer default)
         public string Version { get; set; } = "";  // host app version, shown in the page footer
     }
 
@@ -103,6 +105,9 @@ namespace ACRLiveTiming.Model
         // or, when no finish data is available, once their sector count reaches the
         // column max (fallback gating).
         readonly Dictionary<string, Dictionary<string, (double time, double raw, int sectors)>> _times = new();
+        // id -> driver -> complete cumulative split chain. Kept separately so the
+        // established latest-result storage and scoring rules remain unchanged.
+        readonly Dictionary<string, Dictionary<string, List<double>>> _splits = new();
         readonly List<string> _driverOrder = new();
         // penalty-free finish times (raw) reported by the RaceStateData timer; a result
         // is a real FINISH iff its raw time matches one of these. Each entry is tagged
@@ -130,6 +135,9 @@ namespace ACRLiveTiming.Model
         // NetGUIDs), so the binding is re-learned each run the same way.
         readonly Dictionary<long, string> _carNames = new();
         readonly Dictionary<long, List<double>> _carPendingRaws = new(); // not-yet-matched car times
+        // Current-run cumulative splits decoded directly from each car's sectors
+        // component. Kept by guid until the car is named, then mirrored to _splits.
+        readonly Dictionary<long, List<double>> _carLiveSplits = new();
         readonly Dictionary<string, List<double>> _seenRaws = new();     // driver -> raws, CURRENT run
         // previous run's raws: a car's sectors array is re-broadcast at SPAWN with the
         // PREVIOUS stage's splits still in it — matching against these names every
@@ -156,9 +164,7 @@ namespace ACRLiveTiming.Model
         double _pct = 0.50;
         double _progressWindowKm = 0.8;   // MAX span of the auto-fitting progression window (km)
         bool _progressFixed = true;       // freeze the window at the max span instead of auto-fitting
-        bool _finishGating = true;   // true: hide splits, reveal only real finishes
-                                     //       (RaceStateData timer). false: sector-gate
-                                     //       (older behaviour — reveal on full sector chain).
+        bool _hideSplits;             // true: keep the historical board and hide splits
 
         public string ServerLabel { get; set; } = "";
         public string StateLabel { get; set; } = "";
@@ -209,6 +215,14 @@ namespace ACRLiveTiming.Model
                         || old.sectors > current.sectors
                         || (old.sectors == current.sectors && old.time > current.time + 0.01))
                         column[to] = old;
+            foreach (var column in _splits.Values)
+                if (column.Remove(from, out var oldSplits))
+                {
+                    if (!column.TryGetValue(to, out var currentSplits))
+                        column[to] = oldSplits;
+                    else
+                        MergeSplitChain(currentSplits, oldSplits);
+                }
 
             if (_nations.Remove(from, out var nation) && !_nations.ContainsKey(to)) _nations[to] = nation;
             if (_lastCars.Remove(from, out var lastCar) && !_lastCars.ContainsKey(to)) _lastCars[to] = lastCar;
@@ -277,6 +291,7 @@ namespace ACRLiveTiming.Model
             {
                 if (_times.ContainsKey(id)) return;
                 _times[id] = new Dictionary<string, (double, double, int)>();
+                _splits[id] = new Dictionary<string, List<double>>();
                 _labels[id] = label;
                 _columnOrder.Add(id);
                 _currentStage = label;
@@ -386,6 +401,10 @@ namespace ACRLiveTiming.Model
         }
 
         public void AddResult(string columnId, string driver, double time, double raw, int sectors)
+            => AddResult(columnId, driver, time, raw, sectors, null);
+
+        public void AddResult(string columnId, string driver, double time, double raw, int sectors,
+                              IReadOnlyList<double>? splits)
         {
             bool changed = false;
             lock (_lock)
@@ -395,12 +414,21 @@ namespace ACRLiveTiming.Model
                 {
                     column = new Dictionary<string, (double, double, int)>();
                     _times[columnId] = column;
+                    _splits[columnId] = new Dictionary<string, List<double>>();
                     _labels[columnId] = columnId;
                     _columnOrder.Add(columnId);
                     changed = true;
                 }
                 if (!_driverOrder.Contains(driver)) { _driverOrder.Add(driver); changed = true; }
                 changed |= AttachLastCar(columnId, driver);
+                if (splits != null && splits.Count > 0)
+                {
+                    if (!_splits.TryGetValue(columnId, out var splitColumn))
+                        _splits[columnId] = splitColumn = new Dictionary<string, List<double>>();
+                    if (!splitColumn.TryGetValue(driver, out var known))
+                        splitColumn[driver] = known = new List<double>();
+                    changed |= MergeSplitChain(known, splits);
+                }
                 // Prefer the furthest sector reached. Within the same sector keep the
                 // largest cumulative total (latest penalty/result update). Sector count
                 // must win over value: a structurally valid S1 can still carry a stale
@@ -418,7 +446,7 @@ namespace ACRLiveTiming.Model
 
         /// <summary>Add a standings row as soon as a driver's first split is observed,
         /// without storing that partial as a stage result. The time cell remains empty
-        /// until the normal finish-gating path reveals a complete result.</summary>
+        /// until the normal finish-confirmation path reveals a complete result.</summary>
         public void MarkDriverStarted(string driver)
         {
             bool changed = false;
@@ -446,6 +474,7 @@ namespace ACRLiveTiming.Model
                 if (!_times.ContainsKey(columnId))
                 {
                     _times[columnId] = new Dictionary<string, (double, double, int)>();
+                    _splits[columnId] = new Dictionary<string, List<double>>();
                     _labels[columnId] = columnId;
                     _columnOrder.Add(columnId);
                     changed = true;
@@ -607,6 +636,88 @@ namespace ACRLiveTiming.Model
         }
 
         /// <summary>
+        /// Record a cumulative split straight from RaceSectorsPlayerData. This event
+        /// arrives at the checkpoint, unlike the slower results block. A car must have
+        /// moved and be running so the previous stage's sector array, re-broadcast at
+        /// spawn, is retained for naming but never shown as a current split.
+        /// </summary>
+        public void AddCarSplit(long id, double raw)
+        {
+            if (raw <= 0) return;
+            bool changed = false;
+            lock (_lock)
+            {
+                if (!_carNames.ContainsKey(id))
+                {
+                    if (!_carPendingRaws.TryGetValue(id, out var pending))
+                    {
+                        if (_carPendingRaws.Count >= 512)
+                            _carPendingRaws.Remove(_carPendingRaws.Keys.First());
+                        _carPendingRaws[id] = pending = new List<double>();
+                    }
+                    if (!pending.Exists(value => Math.Abs(value - raw) < 0.01))
+                        pending.Add(raw);
+                    if (pending.Count > 64) pending.RemoveAt(0);
+                    changed |= TryNameCar(id);
+                }
+
+                bool currentRun = _carsLive.TryGetValue(id, out var car)
+                    && car.Dist > 50
+                    && (car.Phase == RaceStateWire.PhaseRunning || car.Phase < 0);
+                if (currentRun)
+                {
+                    if (!_carLiveSplits.TryGetValue(id, out var splits))
+                        _carLiveSplits[id] = splits = new List<double>();
+                    if (!splits.Exists(value => Math.Abs(value - raw) < 0.01))
+                    {
+                        splits.Add(raw);
+                        splits.Sort();
+                        changed = true;
+                    }
+                    if (_carNames.TryGetValue(id, out var driver))
+                        changed |= PublishCarSplits(driver, splits);
+                }
+            }
+            if (changed) RaiseChanged();
+        }
+
+        // Caller holds _lock. Surface direct sector events in the current column even
+        // before the results component has produced its latest-result RawCell.
+        bool PublishCarSplits(string driver, IReadOnlyList<double> splits)
+        {
+            if (_columnOrder.Count == 0 || splits.Count == 0) return false;
+            driver = ResolveDriverKey(driver);
+            var columnId = _columnOrder[^1];
+            if (!_splits.TryGetValue(columnId, out var column))
+                _splits[columnId] = column = new Dictionary<string, List<double>>();
+            if (!column.TryGetValue(driver, out var known))
+                column[driver] = known = new List<double>();
+
+            bool changed = MergeSplitChain(known, splits);
+            if (!_driverOrder.Contains(driver)) { _driverOrder.Add(driver); changed = true; }
+            changed |= AttachLastCar(columnId, driver);
+            return changed;
+        }
+
+        // Single conflict rule for every split-chain writer (results chain, live
+        // sector events, driver merge): extend the chain, and on a same-index
+        // disagreement keep the larger cumulative time.
+        static bool MergeSplitChain(List<double> known, IReadOnlyList<double> splits)
+        {
+            bool changed = false;
+            for (int i = 0; i < splits.Count; i++)
+            {
+                if (i >= known.Count) { known.Add(splits[i]); changed = true; }
+                else if (splits[i] > known[i] + 0.001)
+                {
+                    known[i] = splits[i];
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        /// <summary>
         /// Bind a car marker to a driver from the spawn-time identity block (the
         /// steamid+pseudo strings on the car's owner PlayerState channel) — a
         /// deterministic bind, available BEFORE the start, unlike the time-match of
@@ -629,6 +740,8 @@ namespace ACRLiveTiming.Model
                         _carNames.Remove(stale);
                     _carNames[id] = driver;
                     _carPendingRaws.Remove(id);
+                    if (_carLiveSplits.TryGetValue(id, out var splits))
+                        changed |= PublishCarSplits(driver, splits);
                     // NB: the driver is NOT added to the standings here — ident naming
                     // covers everyone with a car actor, including lobby members who
                     // never start. UpdateCarProgress promotes them to a standings row
@@ -668,6 +781,7 @@ namespace ACRLiveTiming.Model
                             dnf.Add(drv);
                 }
                 _carsLive.Clear();
+                _carLiveSplits.Clear();
                 _seenRawsPrev = new Dictionary<string, List<double>>(_seenRaws);
                 _seenRaws.Clear();
             }
@@ -700,6 +814,8 @@ namespace ACRLiveTiming.Model
                 _carNames.Remove(stale);
             _carNames[id] = match;
             _carPendingRaws.Remove(id);
+            if (_carLiveSplits.TryGetValue(id, out var splits))
+                PublishCarSplits(match, splits);
             // surface the driver in the standings the moment their marker is named,
             // even before they finish a stage: they get a row (penalty-substituted
             // cells until a real time lands), so the leaderboard mirrors the grid.
@@ -712,6 +828,7 @@ namespace ACRLiveTiming.Model
             lock (_lock)
             {
                 _times.Clear();
+                _splits.Clear();
                 _labels.Clear();
                 _columnOrder.Clear();
                 _driverOrder.Clear();
@@ -730,6 +847,7 @@ namespace ACRLiveTiming.Model
                 _carsLive.Clear();
                 _carNames.Clear();
                 _carPendingRaws.Clear();
+                _carLiveSplits.Clear();
                 _seenRaws.Clear();
                 _seenRawsPrev = new Dictionary<string, List<double>>();
                 _carSeq.Clear();
@@ -763,6 +881,7 @@ namespace ACRLiveTiming.Model
             lock (_lock)
             {
                 _times.Clear();
+                _splits.Clear();
                 _labels.Clear();
                 _columnOrder.Clear();
                 _driverOrder.Clear();
@@ -774,6 +893,7 @@ namespace ACRLiveTiming.Model
                 _dnfByColumn.Clear();
                 _hasRaceState = false;
                 _carsLive.Clear();   // drop pre-reset live positions (not published post-reset)
+                _carLiveSplits.Clear();
                 _lobbyPhase = "";
                 _stageStart = "";
                 _stageWeather = "";
@@ -865,14 +985,14 @@ namespace ACRLiveTiming.Model
         }
 
         /// <summary>
-        /// true (default): reveal a cell only when its raw time matches a real finish
-        /// (RaceStateData timer peak), hiding intermediate splits. false: reveal each
-        /// driver's latest cumulative split as it arrives.
+        /// true: keep the historical stage board while running and reveal a cell only
+        /// when its raw time matches a real finish. false (default): use the dedicated
+        /// live sector board while a stage is running (Racing through Post race).
         /// </summary>
-        public bool FinishGating
+        public bool HideSplits
         {
-            get { lock (_lock) return _finishGating; }
-            set { lock (_lock) _finishGating = value; RaiseChanged(); }
+            get { lock (_lock) return _hideSplits; }
+            set { lock (_lock) _hideSplits = value; RaiseChanged(); }
         }
 
         /// <summary>true (default): the progression window always spans
@@ -941,10 +1061,21 @@ namespace ACRLiveTiming.Model
                     {
                         bool isDnf = _dnfByColumn.TryGetValue(id, out var dnf)
                             && dnf.Contains(driverKey);
+                        List<double>? splitValues = null;
+                        if (_splits.TryGetValue(id, out var splitColumn)
+                            && splitColumn.TryGetValue(driverKey, out var storedSplits))
+                            splitValues = storedSplits;
                         if (_times[id].TryGetValue(driverKey, out var re))
                             rawCells.Add(new RawCell
                             {
                                 T = re.time, F = IsFinished(id, re.raw), S = re.sectors,
+                                Splits = splitValues != null ? new List<double>(splitValues) : null,
+                                R = isDnf || (id == lastColumn && retired.Contains(driverKey))
+                            });
+                        else if (splitValues != null && splitValues.Count > 0)
+                            rawCells.Add(new RawCell
+                            {
+                                S = splitValues.Count, Splits = new List<double>(splitValues),
                                 R = isDnf || (id == lastColumn && retired.Contains(driverKey))
                             });
                         else if (isDnf)
@@ -1011,7 +1142,7 @@ namespace ACRLiveTiming.Model
                     ProgressWindowKm = _progressWindowKm,
                     ProgressFixed = _progressFixed,
                     HasRaceState = _hasRaceState,
-                    FinishGating = _finishGating,
+                    HideSplits = _hideSplits,
                     Version = AppInfo.Version
                 };
             }
