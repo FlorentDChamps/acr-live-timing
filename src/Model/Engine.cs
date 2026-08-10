@@ -214,12 +214,14 @@ namespace ACRLiveTiming.Model
                     Matrix.SetDriverIdentity(driver, steamId, eosPuid);
                     Matrix.NameCarFromIdent(carId, driver);
                 }
-                foreach (var (carId, time) in _tracker.NewSplitPairs)
-                    Matrix.AddCarTime(carId, time);
-                foreach (var (carId, time) in _tracker.NewFinishPairs)
-                    Matrix.AddCarTime(carId, time);
+                // Apply progress first: AddCarSplit uses the current phase/distance
+                // to reject the previous stage's sectors re-broadcast at spawn.
                 if (_tracker.Progress.Count > 0)
                     Matrix.UpdateCarProgress(_tracker.Progress);
+                foreach (var (carId, time) in _tracker.NewSplitPairs)
+                    Matrix.AddCarSplit(carId, time);
+                foreach (var (carId, time) in _tracker.NewFinishPairs)
+                    Matrix.AddCarTime(carId, time);
             }
             catch { /* best-effort finish detection */ }
 
@@ -355,7 +357,8 @@ namespace ACRLiveTiming.Model
             // provisional (mid-stage) run we still run the scan for its accumulators and
             // the naming scratch below, but publish NO results (the stage is uncounted).
             foreach (var (name, total, raw, sectors) in _natCar.Feed(payload, shifted, fstrs))
-                if (!_provisional) Matrix.AddResult(runKey, name, total, raw, sectors);
+                if (!_provisional)
+                    Matrix.AddResult(runKey, name, total, raw, sectors, _natCar.ResultSplitsFor(name));
             // naming scratch: every (name, raw) incl. 1-sector partials — binds a car
             // marker to its driver at the FIRST split. The table receives S1 only from
             // the separately validated results-component scan.

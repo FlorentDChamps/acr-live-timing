@@ -288,7 +288,16 @@
     --w-time: 100px; padding-left: 4px; padding-right: 10px; }
   /* general classification only: drop the per-stage columns, keep #/Driver/Total */
   body.view-classification th.cell, body.view-classification td.cell { display: none !important; }
-  /* Total is the last column now — no divider needed on its right edge */
+  /* During Racing, replace Total with the column driving the live ranking. */
+  body.view-classification.live-board.live-latest-ready th.total,
+  body.view-classification.live-board.live-latest-ready td.total { display: none !important; }
+  body.view-classification th.cell.live-latest,
+  body.view-classification td.cell.live-latest {
+    --w-time: 100px; display: table-cell !important;
+    width: var(--w-time); min-width: var(--w-time); max-width: var(--w-time);
+    padding-left: 4px; padding-right: 10px;
+  }
+  /* The compact overlay does not use the pinned-block divider. */
   body.view-classification td.total, body.view-classification th.total { border-right: none; }
   body.view-progress .wrap { display: none !important; }
   /* progression floats flush to the window: no padding, only the track shows */
@@ -298,7 +307,7 @@
 
   /* ---- viewer settings panel (normal page only; hidden in OBS overlay modes) ----
      Mirrors the IHM's ranking/display controls locally: stage exclusion, penalty %,
-     progression window, hide nationalities, finish gating. Held in SESSION MEMORY
+     progression window, hide nationalities, hide splits. Held in SESSION MEMORY
      (no persistence) so a reload reverts; "Reset" restores the host's config. */
   #cfgbtn { position: fixed; top: 10px; right: 12px; z-index: 20;
             width: 34px; height: 34px; border-radius: 8px; cursor: pointer; padding: 0;
@@ -422,9 +431,9 @@
         <label for="cfgWin">Progression window km</label>
         <span class="cfgpair"><input type="number" id="cfgWin" min="0.1" max="50" step="0.1" />
           <label class="cfgfix" title="Freeze the bar at the full range instead of auto-fitting the field."><input type="checkbox" id="cfgWinFix" />fixed</label></span></div>
-      <div class="cfgrow" title="On: reveal a time only once the car has crossed the finish line, hiding intermediate sector splits. Off: show each driver's latest cumulative split as it arrives.">
-        <label for="cfgGate">Finish gating</label>
-        <input type="checkbox" id="cfgGate" /></div>
+      <div class="cfgrow" title="On: keep the usual stage columns while a stage is running and reveal only confirmed finish times. Off: show the live sector board, sorted by the latest split.">
+        <label for="cfgHideSplits">Hide split times</label>
+        <input type="checkbox" id="cfgHideSplits" /></div>
       <div class="cfgrow" title="Remove driver nationality flags from your view.">
         <label for="cfgNat">Hide nationalities</label>
         <input type="checkbox" id="cfgNat" /></div>
@@ -794,14 +803,15 @@ function renderProgress(list, windowKm, fixed) {
 
 // ---- viewer overrides (session memory; null on a field = follow the host) --------
 // The host publishes its config in /state; a viewer may locally diverge on any of
-// these. Only stage-exclusion / penalty% / finish-gating change the standings and
+// these. Only stage-exclusion / penalty% / hide-splits change the standings and
 // trigger a client-side recompute from the ungated `rawCells`; hide-nations and the
 // progression window are purely presentational. Nothing is persisted — a reload
 // (or Reset) drops back to the host's published config.
-const ov = { discarded: null, pct: null, finishGating: null, hideNations: null, theme: null, progKm: null,
+const ov = { discarded: null, pct: null, hideSplits: null, hideNations: null, theme: null, progKm: null,
              progFixed: null, groupFilter: null };
 let lastServer = null;
 let lastRendered = null;
+let lastHostHideSplits = null;
 let sortKey = "total";  // total by default; stage keys are stable stage ids
 let standingsSortKey = "total"; // points are naturally sorted from highest to lowest
 let activeTab = "stages";
@@ -809,7 +819,7 @@ let groupSelection = new Set();
 const seenStageIds = new Set();
 
 const hasOverride = () =>
-  ov.discarded !== null || ov.pct !== null || ov.finishGating !== null ||
+  ov.discarded !== null || ov.pct !== null || ov.hideSplits !== null ||
   ov.hideNations !== null || ov.theme !== null || ov.progKm !== null ||
   ov.progFixed !== null || ov.groupFilter !== null;
 
@@ -820,6 +830,7 @@ const effGroups = hostGroups;  // rally definitions always come from the host
 const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
 // `!== false` so a cached payload from a host without the field defaults to fixed
 const progFixedOf   = v => ov.progFixed !== null ? ov.progFixed : v.progressFixed !== false;
+const hideSplitsOn  = v => ov.hideSplits !== null ? ov.hideSplits : !!v.hideSplits;
 const hideNatOn     = () => ov.hideNations === true;
 function applyTheme(theme) {
   // Remove the attribute entirely for "system": an EMPTY data-theme still counts
@@ -853,7 +864,7 @@ systemTheme.addEventListener("change", () => { if (ov.theme === null) syncThemeB
 // rendered classification: reveal gating, penalty substitution, totals, ranking and
 // sort all happen here, from the ungated per-column `rawCells` (t=time, f=matched a
 // real finish peak, s=sectors), parameterised by cfg (excluded stage ids, penalty
-// fraction, finish gating). A viewer override is just a different cfg.
+// fraction, hide-splits policy). A viewer override is just a different cfg.
 function computeView(v, cfg, withPositionChange = true) {
   const all = v.allStages || [];
   const N = all.length;
@@ -887,7 +898,7 @@ function computeView(v, cfg, withPositionChange = true) {
   // With gating off, show one comparable split level at a time: the furthest sector
   // the field has reached. As soon as S2/S3/finish appears, older levels disappear.
   const revealed = (rc, c) => rc != null &&
-    (cfg.finishGating ? completed(rc, c) : rc.s === maxSec[c]);
+    (cfg.hideSplits ? completed(rc, c) : rc.s === maxSec[c]);
   for (const c of incl) {
     let worst = -Infinity;
     for (const r of src) {
@@ -977,7 +988,7 @@ function effectiveView(v) {
     discarded: effDiscarded(v),
     groups: effGroups(v),
     pct: ov.pct !== null ? ov.pct : (v.pct || 0),
-    finishGating: ov.finishGating !== null ? ov.finishGating : !!v.finishGating
+    hideSplits: hideSplitsOn(v)
   });
 }
 
@@ -990,7 +1001,7 @@ function standingsView(v) {
   return computeView(v, {
     discarded, groups,
     pct: ov.pct !== null ? ov.pct : (v.pct || 0),
-    finishGating: ov.finishGating !== null ? ov.finishGating : !!v.finishGating
+    hideSplits: hideSplitsOn(v)
   });
 }
 function displayedView(v) { return activeTab === "standings" ? standingsView(v) : effectiveView(v); }
@@ -1100,7 +1111,7 @@ function initPanel() {
   Object.assign(cfgEls, {
     btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), win: $("cfgWin"),
     winFix: $("cfgWinFix"),
-    gate: $("cfgGate"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
+    hideSplits: $("cfgHideSplits"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
     groupToggle: $("cfgGroupToggle"),
     groupFilter: $("groupFilter"), groupSelect: $("groupSelect"),
     tabStages: $("tabStages"), tabStandings: $("tabStandings"),
@@ -1136,7 +1147,7 @@ function initPanel() {
     ov.progKm = isNaN(n) ? null : Math.max(0.1, n); reRender();
   });
   cfgEls.winFix.addEventListener("change", () => { ov.progFixed = cfgEls.winFix.checked; reRender(); });
-  cfgEls.gate.addEventListener("change", () => { ov.finishGating = cfgEls.gate.checked; reRender(); });
+  cfgEls.hideSplits.addEventListener("change", () => { ov.hideSplits = cfgEls.hideSplits.checked; reRender(); });
   cfgEls.nat.addEventListener("change", () => { ov.hideNations = cfgEls.nat.checked; reRender(); });
   cfgEls.groupToggle.addEventListener("click", () => {
     if (!lastServer) return;
@@ -1165,7 +1176,7 @@ function initPanel() {
     }
   });
   cfgEls.reset.addEventListener("click", () => {
-    ov.discarded = ov.pct = ov.finishGating = ov.hideNations = ov.theme = ov.progKm =
+    ov.discarded = ov.pct = ov.hideSplits = ov.hideNations = ov.theme = ov.progKm =
       ov.progFixed = ov.groupFilter = null;
     applyTheme("system");
     syncThemeButton();
@@ -1275,8 +1286,8 @@ function syncPanel(v) {
     cfgEls.win.value = (w != null ? +(+w).toFixed(1) : "");
   }
   if (cfgEls.winFix !== active) cfgEls.winFix.checked = progFixedOf(v);
-  if (cfgEls.gate !== active)
-    cfgEls.gate.checked = ov.finishGating !== null ? ov.finishGating : !!v.finishGating;
+  if (cfgEls.hideSplits !== active)
+    cfgEls.hideSplits.checked = hideSplitsOn(v);
   if (cfgEls.nat !== active) cfgEls.nat.checked = hideNatOn();
   buildStages(v);
   cfgEls.reset.disabled = !hasOverride();
@@ -1305,6 +1316,14 @@ function readStateCache() {
 
 // host payload -> effective view -> render + refresh the panel
 function applyServer(v) {
+  // The desktop option is the shared live default. If the host changes it while
+  // this page is open, drop a stale per-viewer choice so the new policy is applied
+  // immediately here as well as in the streaming overlays. The viewer can still
+  // choose a different value afterwards from this page's settings panel.
+  const hostHideSplits = !!v.hideSplits;
+  if (lastHostHideSplits !== null && hostHideSplits !== lastHostHideSplits)
+    ov.hideSplits = null;
+  lastHostHideSplits = hostHideSplits;
   lastServer = v;
   // Browsers use document.title as the default name for "Save page as".
   if (location.protocol !== "file:") {
@@ -1316,6 +1335,110 @@ function applyServer(v) {
   writeStateCache(v);
   render(displayedView(v));
   syncPanel(v);
+}
+
+// While a stage is running (Racing through Spectating) the stage history is
+// replaced by a checkpoint board for the current run: cumulative sectors appear
+// as they are observed and the final column is always the complete stage time. Totals still come from computeView, so
+// live splits can never leak into the rally aggregate.
+function buildLiveSplitBoard(v) {
+  const source = lastServer || v;
+  const all = source.allStages || [];
+  const currentIndex = all.length - 1;
+  const currentId = currentIndex >= 0 ? all[currentIndex].id : null;
+  const computedIndex = (v.stages || []).findIndex(stage => stage.id === currentId);
+  const rawByDriver = new Map((source.rows || []).map(row => [row.driver, row]));
+  // Progress markers already carry each named car's race phase, ahead of the
+  // exact-time finish confirmation the cells wait for.
+  const finishedMarkers = new Set((source.progress || [])
+    .filter(car => car.named && car.finished).map(car => car.name));
+  let furthestSector = 0, finishSectors = 0;
+
+  const rows = (v.rows || []).map(row => {
+    const sourceRow = rawByDriver.get(row.driver);
+    const raw = sourceRow && sourceRow.rawCells && currentIndex >= 0
+      ? sourceRow.rawCells[currentIndex] : null;
+    const computed = computedIndex >= 0 && row.cells ? row.cells[computedIndex] : null;
+    // Only use computeView's lost-peak fallback when RaceState is present. Without
+    // that stream, its historical max-sector heuristic cannot distinguish the live
+    // field's newest split from the actual finish while the stage is still running.
+    const final = !!(raw && (raw.f || (source.hasRaceState && computed && computed.final)));
+    const splitCount = raw ? Math.max(raw.s || 0, Array.isArray(raw.splits) ? raw.splits.length : 0) : 0;
+    // A finished car's chain already ends with its stage time: while the
+    // exact-time match is still pending, keep that value out of the sector
+    // columns instead of opening a phantom "Sector N+1" for it.
+    const pendingFinish = !final && finishedMarkers.has(row.driver) && splitCount > 0;
+    furthestSector = Math.max(furthestSector, pendingFinish ? splitCount - 1 : splitCount);
+    if (final) finishSectors = Math.max(finishSectors, splitCount);
+    return { ...row, liveRaw: raw, liveComputed: computed, liveFinal: final };
+  });
+
+  // Once a finish establishes the full chain, its last record belongs in "Stage";
+  // until then every newly observed record is another cumulative sector split.
+  const sectorCount = finishSectors > 0 ? Math.max(0, finishSectors - 1) : furthestSector;
+  const columns = Array.from({ length: sectorCount }, (_, splitIndex) => ({
+    name: "Sector " + (splitIndex + 1), splitIndex, finish: false
+  }));
+  columns.push({ name: "Stage", splitIndex: null, finish: true });
+
+  rows.forEach(row => {
+    const raw = row.liveRaw;
+    const splits = raw && Array.isArray(raw.splits) ? raw.splits.slice() : [];
+    // Compatibility with cached pages/older hosts that only publish the latest
+    // cumulative value: place it at its known sector, without inventing earlier ones.
+    if (raw && splits.length === 0 && !row.liveFinal && raw.t != null && raw.s > 0)
+      splits[raw.s - 1] = raw.t;
+    row.liveValues = columns.map(column => {
+      if (!column.finish) {
+        const time = splits[column.splitIndex];
+        return { time: Number.isFinite(time) ? time : null, split: true, dnf: false,
+                 substituted: false };
+      }
+      if (row.liveFinal && raw && raw.t != null)
+        return { time: raw.t, split: false, dnf: false,
+                 substituted: !!(row.liveComputed && row.liveComputed.substituted) };
+      const dnf = !!(raw && raw.r) || !!(row.liveComputed && row.liveComputed.dnf);
+      return { time: null, split: false, dnf, substituted: false };
+    });
+  });
+
+  const latestIndex = finishSectors > 0 ? columns.length - 1
+    : sectorCount > 0 ? sectorCount - 1 : -1;
+  if (latestIndex >= 0) columns[latestIndex].latest = true;
+  rows.sort((a, b) => {
+    if (latestIndex < 0) return a.rank - b.rank;
+    const av = a.liveValues[latestIndex].time, bv = b.liveValues[latestIndex].time;
+    if (av == null || bv == null) return av == null ? (bv == null ? a.rank - b.rank : 1) : -1;
+    return (av - bv) || (a.rank - b.rank);
+  });
+  rows.forEach((row, index) => row.liveRank = index + 1);
+
+  // From Sector 2 onward (then at the finish), compare with the immediately
+  // preceding checkpoint. No arrow is inferred unless both times are available.
+  rows.forEach(row => row.liveRankChange = null);
+  if (latestIndex > 0) {
+    const ranksAt = columnIndex => new Map(rows
+      .filter(row => row.liveValues[columnIndex].time != null)
+      .sort((a, b) => (a.liveValues[columnIndex].time - b.liveValues[columnIndex].time)
+        || (a.rank - b.rank))
+      .map((row, index) => [row.driver, index + 1]));
+    const previousRanks = ranksAt(latestIndex - 1);
+    const currentRanks = ranksAt(latestIndex);
+    rows.forEach(row => {
+      if (previousRanks.has(row.driver) && currentRanks.has(row.driver))
+        row.liveRankChange = previousRanks.get(row.driver) - currentRanks.get(row.driver);
+    });
+  }
+
+  columns.forEach((column, columnIndex) => {
+    const timed = rows.filter(row => {
+      const value = row.liveValues[columnIndex];
+      return value.time != null && !value.dnf && !value.substituted;
+    }).sort((a, b) => a.liveValues[columnIndex].time - b.liveValues[columnIndex].time);
+    column.fastest = timed.length ? timed[0].liveValues[columnIndex].time : null;
+    column.medals = new Map(timed.slice(0, 3).map((row, index) => [row.driver, index + 1]));
+  });
+  return { rows, columns };
 }
 
 function render(v) {
@@ -1360,20 +1483,33 @@ function render(v) {
 
   renderProgress(v.progress, progKmOf(v), progFixedOf(v));
   syncTabBar();
+  // The live board covers the whole run: Racing, then the end sequence
+  // (Finishing / Post race) where the last cars' splits are still coming in, then
+  // Spectating, where finishers watch the cars still out on the stage. The
+  // historical board returns at Results, once the stage is settled.
+  const liveSplits = (v.phase === "Racing" || v.phase === "Finishing" || v.phase === "Post race"
+      || v.phase === "Spectating")
+    && !hideSplitsOn(v);
+  document.body.classList.toggle("live-board", liveSplits && activeTab === "stages");
+  document.body.classList.remove("live-latest-ready");
   if (activeTab === "standings") {
     renderStandings(v);
     scheduleScrollLayout();
     return;
   }
 
+  const live = liveSplits;
+  const liveBoard = live ? buildLiveSplitBoard(v) : null;
   const stages = v.stages || [];
   const rankedRows = v.rows || [];
-  const rows = rankedRows.slice();
+  const rows = live ? liveBoard.rows : rankedRows.slice();
   syncGroupFilter();
-  const stageCols = stages
-    .map((stage, cellIndex) => ({ ...stage, cellIndex }))
-    .filter(stage => ov.groupFilter == null || stage.group === ov.groupFilter);
-  if (sortKey !== "total" && !stageCols.some(stage => stage.id === sortKey)) sortKey = "total";
+  const stageCols = live
+    ? liveBoard.columns.map((column, cellIndex) => ({ ...column, cellIndex }))
+    : stages.map((stage, cellIndex) => ({ ...stage, cellIndex }))
+        .filter(stage => ov.groupFilter == null || stage.group === ov.groupFilter);
+  document.body.classList.toggle("live-latest-ready", live && stageCols.some(stage => stage.latest));
+  if (!live && sortKey !== "total" && !stageCols.some(stage => stage.id === sortKey)) sortKey = "total";
   const tbl = document.getElementById("tbl");
   const empty = document.getElementById("empty");
   empty.textContent = "Waiting for data…";
@@ -1400,8 +1536,9 @@ function render(v) {
   }
   addTh("#", "pos");
   addTh("Driver", "name");
-  addTh("Total", "total", "total");
-  stageCols.forEach(stage => addTh(stageHeaderHtml(stage.name), "cell", stage.id));
+  addTh("Total", "total", live ? null : "total");
+  stageCols.forEach(stage => addTh(live ? esc(stage.name) : stageHeaderHtml(stage.name),
+    "cell" + (live && stage.latest ? " live-latest" : ""), live ? null : stage.id));
 
   if (rows.length === 0) {
     document.getElementById("body").innerHTML = "";
@@ -1426,14 +1563,16 @@ function render(v) {
     const cell = cellIndex < 0 ? null : r.cells && r.cells[cellIndex];
     return cell && !cell.dnf && cell.real != null ? cell.real : null;
   };
-  rows.sort((a, b) => {
-    const av = sortValue(a), bv = sortValue(b);
-    if (av == null || bv == null) return av == null ? (bv == null ? a.rank - b.rank : 1) : -1;
-    return (av - bv) || (a.rank - b.rank);
-  });
+  if (!live)
+    rows.sort((a, b) => {
+      const av = sortValue(a), bv = sortValue(b);
+      if (av == null || bv == null) return av == null ? (bv == null ? a.rank - b.rank : 1) : -1;
+      return (av - bv) || (a.rank - b.rank);
+    });
 
   // per stage column: the 3 fastest real times get gold/silver/bronze
-  const stageMedal = stageCols.map(({ cellIndex }) => {
+  const stageMedal = stageCols.map(({ cellIndex, medals }) => {
+    if (live) return medals;
     const m = new Map();
     rows.map(r => ({ d: r.driver, c: r.cells ? r.cells[cellIndex] : null }))
         // finish times only — an intermediate split never takes a podium slot
@@ -1445,7 +1584,8 @@ function render(v) {
   });
 
   // per stage column: fastest real time (reference for the small gap line)
-  const stageFastest = stageCols.map(({ cellIndex }) => {
+  const stageFastest = stageCols.map(({ cellIndex, fastest }) => {
+    if (live) return fastest;
     let best = Infinity;
     rows.forEach(r => {
       const c = r.cells && r.cells[cellIndex];
@@ -1463,8 +1603,8 @@ function render(v) {
     const tdPos = document.createElement("td");
     tdPos.className = "pos";
     const mark = document.createElement("span");
-    if (r.rankChange != null) {
-      const movement = r.rankChange;
+    const movement = live ? r.liveRankChange : r.rankChange;
+    if (movement != null) {
       mark.className = "rankchange " + (movement > 0 ? "up" : movement < 0 ? "down" : "same");
       mark.textContent = movement > 0 ? "▲" : movement < 0 ? "▼" : "=";
       mark.title = movement > 0 ? `Gained ${movement} position${movement === 1 ? "" : "s"}`
@@ -1475,7 +1615,7 @@ function render(v) {
       mark.setAttribute("aria-hidden", "true");
     }
     tdPos.appendChild(mark);
-    tdPos.appendChild(document.createTextNode(r.rank));
+    tdPos.appendChild(document.createTextNode(live ? r.liveRank : r.rank));
     tr.appendChild(tdPos);
 
     const tdName = document.createElement("td");
@@ -1521,17 +1661,28 @@ function render(v) {
     }
     tr.appendChild(tdTot);
 
-    stageCols.forEach(({ cellIndex }, s) => {
-      const cell = r.cells && r.cells[cellIndex];
+    stageCols.forEach(({ cellIndex, latest }, s) => {
+      const cell = live ? r.liveValues[cellIndex] : r.cells && r.cells[cellIndex];
       const td = document.createElement("td");
       td.classList.add("cell");
+      if (live && latest) td.classList.add("live-latest");
       const fastest = stageFastest[s];
-      const gap = (cell.real != null && fastest != null) ? fmtGap(cell.real - fastest) : "";
+      const value = live ? cell.time : cell.real;
+      const gap = (value != null && fastest != null) ? fmtGap(value - fastest) : "";
       if (cell.dnf) {
         // started the stage (posted splits) but never crossed the line
         td.classList.add("dnf");
         setCell(td, "DNF", "");
         td.title = "Did not finish — counted as penalty in total";
+      } else if (live && cell.time != null) {
+        if (cell.substituted) td.classList.add("pen");
+        setCell(td, fmt(cell.time), gap);
+        td.title = cell.split ? "Cumulative sector split" :
+          cell.substituted ? "Stage time over the penalty cap" : "Stage time";
+        const mc = medalClass(stageMedal[s].get(r.driver));
+        if (mc) td.classList.add(mc);
+      } else if (live) {
+        setCell(td, "", "");
       } else if (cell.real != null && !cell.final) {
         // Latest cumulative split at the field's current sector level. Display-only:
         // it is never used as a stage finish or added to the aggregate total.
@@ -1608,7 +1759,7 @@ function renderStandings(v) {
     const standing = computeView(source, {
       discarded, groups,
       pct: ov.pct !== null ? ov.pct : (source.pct || 0),
-      finishGating: ov.finishGating !== null ? ov.finishGating : !!source.finishGating
+      hideSplits: hideSplitsOn(source)
     }).rows.filter(row => row.timed);
     standing.forEach((row, index) => {
       const score = RALLY_POINTS[index] || 0;
@@ -2099,6 +2250,9 @@ window.acrLiveTimingExport = {
     ov.discarded = group === 0 ? null
       : new Set(all.filter(stage => !groupSelection.has(stage.id)).map(stage => stage.id));
     sortKey = "total";
+    // Force the historical stage board: during Racing the page would otherwise
+    // swap in the live sector board, which ignores the rally selection above.
+    ov.hideSplits = true;
     ov.theme = "dark";
     applyTheme("dark");
     syncThemeButton();

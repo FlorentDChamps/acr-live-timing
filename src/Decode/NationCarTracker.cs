@@ -112,15 +112,14 @@ namespace ACRLiveTiming.Decode
 
         /// <summary>Every (name, raw) pair of the LAST Feed, 1-sector partials
         /// INCLUDED — the car-naming scratch (a car is bound to a driver at its first
-        /// split). Feed also returns these partials; finish gating decides whether the
-        /// table reveals them. Consume before the next call; the list is reused.</summary>
+        /// split). Feed also returns these partials; the display policy decides whether
+        /// the table reveals them. Consume before the next call; the list is reused.</summary>
         public IReadOnlyList<(string name, double raw)> NameRaws => _nameRaws;
         readonly List<(string name, double raw)> _nameRaws = new();
 
         /// <summary>Drivers present in a structurally decoded rally-results component
         /// in the LAST Feed. Includes first-sector partials, so the standings can add
-        /// the name immediately; the split itself is revealed only when finish gating
-        /// is disabled.</summary>
+        /// the name immediately; the split itself follows the active display policy.</summary>
         public IReadOnlyList<string> StartedNames => _startedNames;
         readonly List<string> _startedNames = new();
 
@@ -130,6 +129,15 @@ namespace ACRLiveTiming.Decode
         /// nothing.</summary>
         public IReadOnlyList<string> DnfNames => _dnfNames;
         readonly List<string> _dnfNames = new();
+
+        // Complete cumulative split chain for each result returned by the LAST Feed.
+        // Engine consumes it immediately alongside Feed's backwards-compatible tuple.
+        readonly Dictionary<string, IReadOnlyList<double>> _resultSplits = new();
+        public IReadOnlyList<double>? ResultSplitsFor(string name)
+        {
+            lock (_lock)
+                return _resultSplits.TryGetValue(name, out var splits) ? splits : null;
+        }
 
         public void Reset()
         {
@@ -148,6 +156,7 @@ namespace ACRLiveTiming.Decode
                 _nameRaws.Clear();
                 _startedNames.Clear();
                 _dnfNames.Clear();
+                _resultSplits.Clear();
                 _dirty = false;
             }
         }
@@ -178,18 +187,20 @@ namespace ACRLiveTiming.Decode
             // The broad scan's partials feed the naming scratch and join map. Only the
             // structurally gated results-component scan below promotes S1 into the
             // matrix's raw cells, avoiding unrelated one-float signature collisions.
-            var best = new Dictionary<string, (double raw, double pen, int sectors)>();
+            var best = new Dictionary<string, (double raw, double pen, IReadOnlyList<double> splits)>();
             _nameRaws.Clear();
             _startedNames.Clear();
             _dnfNames.Clear();
             lock (_lock)
             {
+                _resultSplits.Clear();
                 LearnAliases(fstrs[0]);
                 for (int shift = 0; shift < 8; shift++)
                 {
-                    foreach (var (rawName, raw, pen, sectors) in ResultScanner.ResultsIn(shifted[shift], fstrs[shift], includePartials: true))
+                    foreach (var (rawName, raw, pen, splits) in ResultScanner.DetailedResultsIn(shifted[shift], fstrs[shift], includePartials: true))
                     {
                         var name = Canon(rawName);               // short persona -> EOS display name
+                        int sectors = splits.Count;
                         uint key = BitConverter.ToUInt32(BitConverter.GetBytes((float)raw), 0);
                         // bounded like _marked: one entry per distinct split float ever
                         // seen — unbounded growth over a many-hour lobby otherwise
@@ -197,7 +208,7 @@ namespace ACRLiveTiming.Decode
                         _nameRaws.Add((name, raw));
                         if (sectors < 2) continue;               // reliable S1 is added from the results component below
                         if (!best.TryGetValue(name, out var cur) || raw > cur.raw)
-                            best[name] = (raw, pen, sectors);
+                            best[name] = (raw, pen, splits);
                     }
                 }
             }
@@ -263,12 +274,13 @@ namespace ACRLiveTiming.Decode
                         lock (_lock)
                         {
                             for (int shift = 0; shift < 8; shift++)
-                                foreach (var (rawName, raw, pen, sectors) in ResultScanner.ResultsIn(
+                                foreach (var (rawName, raw, pen, splits) in ResultScanner.DetailedResultsIn(
                                     resultShifted[shift], resultFstrs[shift],
                                     includePartials: true, strictPartials: true))
                                 {
                                     if (LobbyDecoder.IsNation(rawName)) continue;
                                     var name = Canon(rawName);
+                                    int sectors = splits.Count;
                                     if (!_startedNames.Contains(name)) _startedNames.Add(name);
                                     // The broad packet scan deliberately rejects S1: at
                                     // one sector its signature can collide with unrelated
@@ -276,7 +288,7 @@ namespace ACRLiveTiming.Decode
                                     // (and after nation filtering) it is safe to publish.
                                     if (sectors == 1
                                         && (!best.TryGetValue(name, out var cur) || raw > cur.raw))
-                                        best[name] = (raw, pen, sectors);
+                                        best[name] = (raw, pen, splits);
                                 }
                         }
                     }
@@ -329,8 +341,14 @@ namespace ACRLiveTiming.Decode
             catch { /* best-effort block decode; results above are already safe */ }
 
             var results = new List<(string, double, double, int)>();
-            foreach (var kv in best)
-                results.Add((kv.Key, kv.Value.raw + kv.Value.pen, kv.Value.raw, kv.Value.sectors));
+            lock (_lock)
+            {
+                foreach (var kv in best)
+                {
+                    _resultSplits[kv.Key] = kv.Value.splits.ToArray();
+                    results.Add((kv.Key, kv.Value.raw + kv.Value.pen, kv.Value.raw, kv.Value.splits.Count));
+                }
+            }
             return results;
         }
 

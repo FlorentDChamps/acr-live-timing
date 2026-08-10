@@ -47,6 +47,16 @@ const D = [
   ["RookieLine",   "Poland",        "RenaultClioRally5",    [402.882, 371.008, null,    null]],
 ];
 
+const LIVE_SPLITS = {
+  K_Vainio: [55.441, 112.830, 174.992],
+  Tramontana: [53.880, 109.554, 166.228, 222.901],
+  alpaka: [52.774, 107.991, 163.445, 219.117],
+  Sudtirol_92: [54.115, 110.440, 168.774],
+  RookieLine: [58.902, 120.226],
+};
+const finalSplits = total => Array.from({ length: 6 }, (_, i) =>
+  Number((total * (i + 1) / 6).toFixed(3)));
+
 // Only the ungated per-cell data, exactly what the host publishes: gating, penalty
 // substitution, totals, ranking and ordering are all the page's job. Emitting a
 // pre-computed board here would mean reimplementing those rules in this fixture and
@@ -58,10 +68,18 @@ const rows = D.map(([driver, nation, car, times]) => ({
   // the only signal that lets the page mark the current column. On a past stage the
   // abandon is inferred from the closed column instead, so no flag would be needed.
   retired: times[times.length - 1] === "dnf",
-  rawCells: times.map(t =>
-    typeof t === "number" ? { t, f: true, s: 6 } : (t === "dnf" ? { t: 0, f: false, s: 3 } : null)),
+  rawCells: times.map((t, stageIndex) => {
+    if (typeof t === "number") return { t, f: true, s: 6, splits: finalSplits(t) };
+    if (stageIndex === times.length - 1 && LIVE_SPLITS[driver]) {
+      const splits = LIVE_SPLITS[driver];
+      return { t: splits[splits.length - 1], f: false, s: splits.length, splits,
+               r: t === "dnf" };
+    }
+    return null;
+  }),
   // Mirrors RowView.Cars: one car token per stage, aligned to rawCells.
-  cars: times.map(t => t === null ? null : car),
+  cars: times.map((t, stageIndex) =>
+    t === null && !(stageIndex === times.length - 1 && LIVE_SPLITS[driver]) ? null : car),
 }));
 
 // live progression on SS4: cars still out on the stage + those already through
@@ -70,6 +88,8 @@ const progress = [
   { name: "Vosgien",      named: true, dist: 9400, finished: true,  out: false, pos: 1 },
   { name: "nordkapp",     named: true, dist: 9400, finished: true,  out: false, pos: 2 },
   { name: "MistralDrift", named: true, dist: 9400, finished: true,  out: false, pos: 3 },
+  { name: "ArdennesRB",   named: true, dist: 9400, finished: true,  out: false, pos: 5 },
+  { name: "pinewood",     named: true, dist: 9400, finished: true,  out: false, pos: 8 },
   { name: "alpaka",       named: true, dist: 8120, finished: false, out: false, pos: 7 },
   { name: "Sudtirol_92",  named: true, dist: 7460, finished: false, out: false, pos: 9 },
   { name: "Tramontana",   named: true, dist: 6890, finished: false, out: false, pos: 6 },
@@ -92,7 +112,7 @@ const view = {
   progress,
   progressWindowKm: WINDOW_KM,
   hasRaceState: true,
-  finishGating: true,
+  hideSplits: false,
   version: "1.0.0",
 };
 

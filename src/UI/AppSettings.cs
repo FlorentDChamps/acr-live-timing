@@ -32,7 +32,7 @@ namespace ACRLiveTiming.UI
         public double PenaltyPct { get; set; } = 50;
         public double ProgressWindowKm { get; set; } = 0.8;   // max span of the auto-fitting progression window (km)
         public bool ProgressFixed { get; set; } = true;       // freeze the window at the max span (no auto-fit)
-        public bool FinishGating { get; set; } = true;
+        public bool HideSplits { get; set; }
         public bool HideNations { get; set; }
         public double ReplayPause { get; set; } = 0;
         public bool Dark { get; set; }

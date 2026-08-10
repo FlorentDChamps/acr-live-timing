@@ -74,6 +74,19 @@ namespace ACRLiveTiming.Decode
             byte[] payload, List<FStr> fstrs, bool includePartials = false,
             bool strictPartials = false)
         {
+            foreach (var result in DetailedResultsIn(payload, fstrs, includePartials, strictPartials))
+                yield return (result.name, result.raw, result.pen, result.splits.Count);
+        }
+
+        /// <summary>
+        /// Detailed variant used by the live split board. It preserves every
+        /// cumulative sector time in the validated chain while <see cref="ResultsIn"/>
+        /// keeps its original, backwards-compatible latest-time contract.
+        /// </summary>
+        public static IEnumerable<(string name, double raw, double pen, IReadOnlyList<double> splits)> DetailedResultsIn(
+            byte[] payload, List<FStr> fstrs, bool includePartials = false,
+            bool strictPartials = false)
+        {
             var names = new List<(int end, string name)>();
             foreach (var f in fstrs)
                 if (Names.IsPlayerName(f.Text)) names.Add((f.End, f.Text));
@@ -128,7 +141,7 @@ namespace ACRLiveTiming.Decode
                 // chain would corrupt the column's max sector count), plus at most
                 // one 1-sector partial (consumers decide whether it is naming-only).
                 if (owner != null && seen.Add(owner.Value.name + (chain.Count == 1 ? "|p" : "")))
-                    yield return (owner.Value.name, chain[chain.Count - 1], pen, chain.Count);
+                    yield return (owner.Value.name, chain[chain.Count - 1], pen, chain);
             }
         }
     }
