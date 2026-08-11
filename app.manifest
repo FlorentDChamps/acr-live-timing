@@ -14,4 +14,20 @@
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" /> <!-- Win 10/11 -->
     </application>
   </compatibility>
+  <!-- DPI-unaware, deliberately. A System DPI Aware process (the WPF default)
+       snapshots its scale at launch: started while a fullscreen game holds the
+       display in a scaled mode (e.g. a 4K game over a 1080p desktop), the process
+       is born at the game's scale, and the WebView2 runtime then lays the overlay
+       pages out at that scale over hosts sized for the desktop — the page is
+       clipped to the top-left corner, permanently. Unaware, every window always
+       reports 96 DPI whatever the display was doing at launch, which is exactly
+       the (healthy) behaviour of a session started from the desktop; DWM handles
+       any real monitor scaling. Cost: on desktops scaled above 100 % the UI is
+       DWM-stretched instead of natively scaled. -->
+  <asmv3:application xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
+    <asmv3:windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">unaware</dpiAwareness>
+    </asmv3:windowsSettings>
+  </asmv3:application>
 </assembly>
