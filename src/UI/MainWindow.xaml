@@ -588,17 +588,23 @@
         <GroupBox Header="Config">
           <StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-              <TextBlock Text="Penalty cap: last +" VerticalAlignment="Center"/>
-              <TextBox x:Name="PctBox" Text="50" Width="46" Margin="6,0,2,0"
-                       TextChanged="PctBox_TextChanged"
-                       ToolTip="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic on the page)."/>
-              <StackPanel VerticalAlignment="Center">
-                <Button Content="▲" Tag="10" Click="PenaltyStep_Click"
-                        Padding="0" FontSize="8" Width="16" Height="12" ToolTip="+10 %"/>
-                <Button Content="▼" Tag="-10" Click="PenaltyStep_Click"
-                        Padding="0" FontSize="8" Width="16" Height="12" Margin="0,1,0,0" ToolTip="-10 %"/>
+              <StackPanel x:Name="PenaltyCapPanel" Orientation="Horizontal">
+                <TextBlock Text="Penalty cap: last +" VerticalAlignment="Center"/>
+                <TextBox x:Name="PctBox" Text="50" Width="46" Margin="6,0,2,0"
+                         TextChanged="PctBox_TextChanged"
+                         ToolTip="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic on the page)."/>
+                <StackPanel VerticalAlignment="Center">
+                  <Button Content="▲" Tag="10" Click="PenaltyStep_Click"
+                          Padding="0" FontSize="8" Width="16" Height="12" ToolTip="+10 %"/>
+                  <Button Content="▼" Tag="-10" Click="PenaltyStep_Click"
+                          Padding="0" FontSize="8" Width="16" Height="12" Margin="0,1,0,0" ToolTip="-10 %"/>
+                </StackPanel>
+                <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0"/>
               </StackPanel>
-              <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0"/>
+              <CheckBox x:Name="DnfNoRejoinCheck" Content="DNF – No Rejoin"
+                        VerticalAlignment="Center" Margin="14,0,0,0"
+                        Checked="DnfNoRejoin_Changed" Unchecked="DnfNoRejoin_Changed"
+                        ToolTip="On: a first non-finished stage makes the driver permanently DNF for the rally. Later stage times remain visible but do not count in the general classification."/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
               <TextBlock Text="Max progression range:" VerticalAlignment="Center"/>

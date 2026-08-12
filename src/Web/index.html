@@ -229,6 +229,7 @@
             font-weight: 400; font-style: normal; color: var(--dim); }
   /* stage time over the cap (real stage time shown) -> grey italic */
   td.pen { color: var(--faint); font-style: italic; }
+  td.ignored { color: var(--faint); font-style: italic; }
   /* live cumulative split: visible for comparison, never counted as a finish */
   td.split { color: var(--dim); }
   /* started the stage but never crossed the line -> light grey italic, like a penalized time */
@@ -338,6 +339,7 @@
   .cfgrow input[type=number] { width: 76px; background: var(--bg); color: var(--txt);
             border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
             font: inherit; text-align: right; }
+  .cfgrow input:disabled { opacity: .45; cursor: not-allowed; }
   .cfgpair { display: flex; align-items: center; gap: 7px; }
   .cfgpair .cfgfix { display: flex; align-items: center; gap: 4px; cursor: pointer;
                      color: var(--dim); font-size: 11px; }
@@ -427,6 +429,9 @@
       <div class="cfgrow" title="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic).">
         <label for="cfgPct">Penalty cap %</label>
         <input type="number" id="cfgPct" min="0" max="500" step="1" /></div>
+      <div class="cfgrow" title="After a driver's first non-finished stage, keep later stage times visible but classify the driver DNF with no general-classification total.">
+        <label for="cfgDnfNoRejoin">DNF – No Rejoin</label>
+        <input type="checkbox" id="cfgDnfNoRejoin" /></div>
       <div class="cfgrow" title="Span of the progression bar. Fixed on: the bar always spans this range, leader pinned on the right. Fixed off: the bar auto-fits the field (leader to last car), this value capping how wide it can stretch. Either way, cars further back than the range are hidden.">
         <label for="cfgWin">Progression window km</label>
         <span class="cfgpair"><input type="number" id="cfgWin" min="0.1" max="50" step="0.1" />
@@ -807,11 +812,12 @@ function renderProgress(list, windowKm, fixed) {
 // trigger a client-side recompute from the ungated `rawCells`; hide-nations and the
 // progression window are purely presentational. Nothing is persisted — a reload
 // (or Reset) drops back to the host's published config.
-const ov = { discarded: null, pct: null, hideSplits: null, hideNations: null, theme: null, progKm: null,
+const ov = { discarded: null, pct: null, dnfNoRejoin: null, hideSplits: null, hideNations: null, theme: null, progKm: null,
              progFixed: null, groupFilter: null };
 let lastServer = null;
 let lastRendered = null;
 let lastHostHideSplits = null;
+let lastHostDnfNoRejoin = null;
 let sortKey = "total";  // total by default; stage keys are stable stage ids
 let standingsSortKey = "total"; // points are naturally sorted from highest to lowest
 let activeTab = "stages";
@@ -819,7 +825,7 @@ let groupSelection = new Set();
 const seenStageIds = new Set();
 
 const hasOverride = () =>
-  ov.discarded !== null || ov.pct !== null || ov.hideSplits !== null ||
+  ov.discarded !== null || ov.pct !== null || ov.dnfNoRejoin !== null || ov.hideSplits !== null ||
   ov.hideNations !== null || ov.theme !== null || ov.progKm !== null ||
   ov.progFixed !== null || ov.groupFilter !== null;
 
@@ -831,6 +837,7 @@ const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
 // `!== false` so a cached payload from a host without the field defaults to fixed
 const progFixedOf   = v => ov.progFixed !== null ? ov.progFixed : v.progressFixed !== false;
 const hideSplitsOn  = v => ov.hideSplits !== null ? ov.hideSplits : !!v.hideSplits;
+const dnfNoRejoinOn = v => ov.dnfNoRejoin !== null ? ov.dnfNoRejoin : !!v.dnfNoRejoin;
 const hideNatOn     = () => ov.hideNations === true;
 function applyTheme(theme) {
   // Remove the attribute entirely for "system": an EMPTY data-theme still counts
@@ -911,6 +918,8 @@ function computeView(v, cfg, withPositionChange = true) {
   const rows = src.map(r => {
     const cells = [];
     let total = 0, totalSubstituted = false;
+    let firstDnf = -1, completedBeforeDnf = 0, timeBeforeDnf = 0;
+    const participated = incl.some(c => r.rawCells && r.rawCells[c] != null);
     for (const c of incl) {
       const rc = r.rawCells ? r.rawCells[c] : null;
       const has = rc != null;
@@ -921,23 +930,42 @@ function computeView(v, cfg, withPositionChange = true) {
       // flag (rc.r — retire/disqualify or vanished actor, live or snapshot at column
       // close) is authoritative; the peer-finished inference remains as fallback for
       // closed columns where no car-state signal was captured at all.
-      const dnf = !final && has &&
-                  (!!rc.r || (v.hasRaceState &&
-                    (all[c].id !== currentCol ? confirmed[c] : !!r.retired)));
+      const settled = all[c].id !== currentCol || v.phase === "Results";
+      const dnf = !final && (
+        (has && (!!rc.r || (v.hasRaceState &&
+          (all[c].id !== currentCol ? confirmed[c] : !!r.retired)))) ||
+        // Under No Rejoin, missing a settled stage is also the first failure to
+        // finish. `participated` prevents drivers with no start in this rally from
+        // being promoted from DNS to DNF merely because other drivers finished.
+        (cfg.dnfNoRejoin && participated && settled));
+      if (cfg.dnfNoRejoin && firstDnf < 0 && dnf) firstDnf = cells.length;
+      const counted = !cfg.dnfNoRejoin || firstDnf < 0;
       if (!(c in slowest)) {
         cells.push({ real, effective: finalTime == null ? 0 : finalTime,
-                     substituted: false, empty: true, dnf, final });
-        if (finalTime != null) total += finalTime;
+                     substituted: false, empty: true, dnf, final, counted });
+        if (counted && finalTime != null) total += finalTime;
+        if (firstDnf < 0 && finalTime != null) {
+          completedBeforeDnf++; timeBeforeDnf += finalTime;
+        }
         continue;
       }
       const threshold = slowest[c] * (1 + cfg.pct);
       let effective, substituted;
-      if (finalTime == null) { effective = threshold; substituted = true; }
+      // No Rejoin is a complete alternative to penalty-cap scoring: completed
+      // stages keep their real time, an unsettled absence adds nothing, and once
+      // settled that absence makes the driver DNF with no general total.
+      if (cfg.dnfNoRejoin) { effective = finalTime == null ? 0 : finalTime; substituted = false; }
+      else if (finalTime == null) { effective = threshold; substituted = true; }
       else if (finalTime > threshold) { effective = threshold; substituted = true; }
       else { effective = finalTime; substituted = false; }
-      total += effective;
-      if (substituted) totalSubstituted = true;
-      cells.push({ real, effective, substituted, empty: false, dnf, final });
+      if (counted) {
+        total += effective;
+        if (substituted) totalSubstituted = true;
+      }
+      if (firstDnf < 0 && finalTime != null) {
+        completedBeforeDnf++; timeBeforeDnf += finalTime;
+      }
+      cells.push({ real, effective, substituted, empty: false, dnf, final, counted });
     }
     // `timed` = has at least one completed stage time, so it is classified. Computed
     // once here: the sort comparator would otherwise rescan every cell per comparison.
@@ -946,19 +974,50 @@ function computeView(v, cfg, withPositionChange = true) {
     // selection therefore sees exactly the cars used in that selection.
     const cars = [...new Set(incl.map(c => r.rawCells && r.rawCells[c] &&
       r.cars && r.cars[c]).filter(Boolean))];
-    return { driver: r.driver, cells, total, totalSubstituted,
-             timed: cells.some(c => c.final), nation: r.nation, cars };
+    const timed = cells.some(c => c.final);
+    const status = cfg.dnfNoRejoin
+      ? (firstDnf >= 0 ? "dnf" : incl.length === 0 ? "pending"
+        : !participated ? "dns" : timed ? "finisher" : "pending")
+      : (timed ? "classified" : "unclassified");
+    return { driver: r.driver, cells, total, totalSubstituted, timed,
+             classified: cfg.dnfNoRejoin ? status === "finisher" || status === "dnf" : timed,
+             pointEligible: cfg.dnfNoRejoin ? status === "finisher" || status === "dnf" : timed,
+             status, completedBeforeDnf, timeBeforeDnf, nation: r.nation, cars };
   });
 
-  // Timed drivers first, then capped total asc and ordinal name tiebreak. A row
-  // without any completed time must never outrank a classified driver on a cap tie.
+  // Legacy mode keeps the capped-total order. No Rejoin puts every finisher before
+  // DNF, then orders DNF by stages completed before the first abandon and by the
+  // real cumulative time on those stages. The name only stabilises display order;
+  // it is deliberately excluded from the DNF rank-equivalence rule below.
   rows.sort((a, b) => {
+    if (cfg.dnfNoRejoin) {
+      const category = row => row.status === "finisher" ? 0 : row.status === "dnf" ? 1
+        : row.status === "pending" ? 2 : 3;
+      const categoryDiff = category(a) - category(b);
+      if (categoryDiff) return categoryDiff;
+      if (a.status === "dnf") {
+        const dnfDiff = (b.completedBeforeDnf - a.completedBeforeDnf) ||
+          (a.timeBeforeDnf - b.timeBeforeDnf);
+        if (dnfDiff) return dnfDiff;
+      } else if (a.status === "finisher") {
+        const finishedDiff = b.cells.filter(c => c.final).length - a.cells.filter(c => c.final).length;
+        const finisherDiff = (a.total - b.total) || finishedDiff;
+        if (finisherDiff) return finisherDiff;
+      }
+      return a.driver < b.driver ? -1 : a.driver > b.driver ? 1 : 0;
+    }
     if (a.timed !== b.timed) return a.timed ? -1 : 1;
     const finishedDiff = b.cells.filter(c => c.final).length - a.cells.filter(c => c.final).length;
     return (a.total - b.total) || finishedDiff ||
       (a.driver < b.driver ? -1 : a.driver > b.driver ? 1 : 0);
   });
-  rows.forEach((r, i) => r.rank = i + 1);
+  rows.forEach((r, i) => {
+    const previous = i > 0 ? rows[i - 1] : null;
+    const tiedDnf = cfg.dnfNoRejoin && previous && r.status === "dnf" && previous.status === "dnf" &&
+      r.completedBeforeDnf === previous.completedBeforeDnf && r.timeBeforeDnf === previous.timeBeforeDnf;
+    const tiedDns = cfg.dnfNoRejoin && previous && r.status === "dns" && previous.status === "dns";
+    r.rank = tiedDnf || tiedDns ? previous.rank : i + 1;
+  });
 
   // General-classification movement since the previous selected stage. Re-run the
   // exact same scoring rules without the newest selected column, so caps, DNF and
@@ -968,8 +1027,8 @@ function computeView(v, cfg, withPositionChange = true) {
     const priorDiscarded = new Set(cfg.discarded);
     priorDiscarded.add(all[incl[incl.length - 1]].id);
     const priorRows = computeView(v, Object.assign({}, cfg, { discarded: priorDiscarded }), false).rows;
-    const priorRanks = new Map(priorRows.filter(r => r.timed).map(r => [r.driver, r.rank]));
-    rows.forEach(r => r.rankChange = r.timed && priorRanks.has(r.driver)
+    const priorRanks = new Map(priorRows.filter(r => r.classified).map(r => [r.driver, r.rank]));
+    rows.forEach(r => r.rankChange = r.classified && priorRanks.has(r.driver)
       ? priorRanks.get(r.driver) - r.rank : null);
   } else {
     rows.forEach(r => r.rankChange = null);
@@ -977,7 +1036,7 @@ function computeView(v, cfg, withPositionChange = true) {
 
   return Object.assign({}, v, {
     stages: incl.map(c => ({ id: all[c].id, name: all[c].name, group: cfg.groups.get(all[c].id) || 0 })),
-    rows, pct: cfg.pct
+    rows, pct: cfg.pct, dnfNoRejoin: !!cfg.dnfNoRejoin
   });
 }
 
@@ -988,6 +1047,7 @@ function effectiveView(v) {
     discarded: effDiscarded(v),
     groups: effGroups(v),
     pct: ov.pct !== null ? ov.pct : (v.pct || 0),
+    dnfNoRejoin: dnfNoRejoinOn(v),
     hideSplits: hideSplitsOn(v)
   });
 }
@@ -1001,6 +1061,7 @@ function standingsView(v) {
   return computeView(v, {
     discarded, groups,
     pct: ov.pct !== null ? ov.pct : (v.pct || 0),
+    dnfNoRejoin: dnfNoRejoinOn(v),
     hideSplits: hideSplitsOn(v)
   });
 }
@@ -1109,7 +1170,7 @@ function initScrollLayout() {
 function initPanel() {
   const $ = id => document.getElementById(id);
   Object.assign(cfgEls, {
-    btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), win: $("cfgWin"),
+    btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), dnfNoRejoin: $("cfgDnfNoRejoin"), win: $("cfgWin"),
     winFix: $("cfgWinFix"),
     hideSplits: $("cfgHideSplits"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
     groupToggle: $("cfgGroupToggle"),
@@ -1141,6 +1202,9 @@ function initPanel() {
   cfgEls.pct.addEventListener("input", () => {
     const n = parseFloat(cfgEls.pct.value);
     ov.pct = isNaN(n) ? null : Math.max(0, n) / 100; reRender();
+  });
+  cfgEls.dnfNoRejoin.addEventListener("change", () => {
+    ov.dnfNoRejoin = cfgEls.dnfNoRejoin.checked; reRender();
   });
   cfgEls.win.addEventListener("input", () => {
     const n = parseFloat(cfgEls.win.value);
@@ -1176,7 +1240,7 @@ function initPanel() {
     }
   });
   cfgEls.reset.addEventListener("click", () => {
-    ov.discarded = ov.pct = ov.hideSplits = ov.hideNations = ov.theme = ov.progKm =
+    ov.discarded = ov.pct = ov.dnfNoRejoin = ov.hideSplits = ov.hideNations = ov.theme = ov.progKm =
       ov.progFixed = ov.groupFilter = null;
     applyTheme("system");
     syncThemeButton();
@@ -1281,6 +1345,8 @@ function syncPanel(v) {
   const active = document.activeElement;
   if (cfgEls.pct !== active)
     cfgEls.pct.value = Math.round(((ov.pct !== null ? ov.pct : (v.pct || 0)) * 100));
+  if (cfgEls.dnfNoRejoin !== active) cfgEls.dnfNoRejoin.checked = dnfNoRejoinOn(v);
+  cfgEls.pct.disabled = dnfNoRejoinOn(v);
   if (cfgEls.win !== active) {
     const w = progKmOf(v);
     cfgEls.win.value = (w != null ? +(+w).toFixed(1) : "");
@@ -1324,6 +1390,10 @@ function applyServer(v) {
   if (lastHostHideSplits !== null && hostHideSplits !== lastHostHideSplits)
     ov.hideSplits = null;
   lastHostHideSplits = hostHideSplits;
+  const hostDnfNoRejoin = !!v.dnfNoRejoin;
+  if (lastHostDnfNoRejoin !== null && hostDnfNoRejoin !== lastHostDnfNoRejoin)
+    ov.dnfNoRejoin = null;
+  lastHostDnfNoRejoin = hostDnfNoRejoin;
   lastServer = v;
   // Browsers use document.title as the default name for "Save page as".
   if (location.protocol !== "file:") {
@@ -1444,8 +1514,9 @@ function buildLiveSplitBoard(v) {
 function render(v) {
   lastRendered = v;
   document.getElementById("state").textContent = v.state || "";
-  document.getElementById("thresh").textContent =
-    "Penalty cap: last +" + Math.round((v.pct || 0) * 100) + "%";
+  document.getElementById("thresh").textContent = v.dnfNoRejoin
+    ? "DNF – No Rejoin"
+    : "Penalty cap: last +" + Math.round((v.pct || 0) * 100) + "%";
   document.getElementById("dot").className = "dot" + (v.state === "Connected" ? " on" : "");
   // host version: separator lives here so the whole thing vanishes when absent
   document.getElementById("ver").textContent = v.version ? " · v" + v.version : "";
@@ -1553,12 +1624,14 @@ function render(v) {
   empty.style.display = "none";
   tbl.style.display = "";
 
-  const leader = rankedRows[0] ? rankedRows[0].total : 0;
+  const leaderRow = rankedRows.find(r => r.timed && (!v.dnfNoRejoin || r.status === "finisher"));
+  const leader = leaderRow ? leaderRow.total : 0;
 
   // One ascending order only: a real/displayed time first, then DNF or no time.
   // Keep the overall classification rank as a stable tiebreaker and in the # column.
   const sortValue = r => {
-    if (sortKey === "total") return r.timed ? r.total : null;
+    if (sortKey === "total")
+      return r.timed && (!v.dnfNoRejoin || r.status === "finisher") ? r.total : null;
     const cellIndex = stages.findIndex(stage => stage.id === sortKey);
     const cell = cellIndex < 0 ? null : r.cells && r.cells[cellIndex];
     return cell && !cell.dnf && cell.real != null ? cell.real : null;
@@ -1651,7 +1724,13 @@ function render(v) {
     // until the driver has at least one completed stage time; after that, absent/DNF
     // stages contribute their configured cap exactly as they do to the sort.
     tdTot.className = "total" + (nmc ? " " + nmc : "");
-    if (!r.timed) {
+    if (v.dnfNoRejoin && r.status === "dnf") {
+      setCell(tdTot, "DNF", "");
+      tdTot.title = "Did not finish — no general-classification total";
+    } else if (v.dnfNoRejoin && r.status === "dns") {
+      setCell(tdTot, "DNS", "");
+      tdTot.title = "Did not start any selected stage";
+    } else if (!r.timed) {
       setCell(tdTot, "", "");
       tdTot.title = "No stage time yet";
     } else {
@@ -1673,7 +1752,19 @@ function render(v) {
         // started the stage (posted splits) but never crossed the line
         td.classList.add("dnf");
         setCell(td, "DNF", "");
-        td.title = "Did not finish — counted as penalty in total";
+        td.title = v.dnfNoRejoin
+          ? "Did not finish — driver remains DNF, no general-classification total"
+          : "Did not finish — counted as penalty in total";
+      } else if (!live && v.dnfNoRejoin && cell.counted === false) {
+        // A rejoin after the first abandon remains useful as a stage result, but is
+        // visually separated from times that contributed to the general result.
+        td.classList.add("ignored");
+        setCell(td, cell.real != null ? fmt(cell.real) : "", gap);
+        td.title = cell.real != null
+          ? "Stage time after DNF — not counted in the general classification"
+          : "After DNF — not counted in the general classification";
+        const mc = medalClass(stageMedal[s].get(r.driver));
+        if (mc) td.classList.add(mc);
       } else if (live && cell.time != null) {
         if (cell.substituted) td.classList.add("pen");
         setCell(td, fmt(cell.time), gap);
@@ -1759,13 +1850,14 @@ function renderStandings(v) {
     const standing = computeView(source, {
       discarded, groups,
       pct: ov.pct !== null ? ov.pct : (source.pct || 0),
+      dnfNoRejoin: dnfNoRejoinOn(source),
       hideSplits: hideSplitsOn(source)
-    }).rows.filter(row => row.timed);
-    standing.forEach((row, index) => {
-      const score = RALLY_POINTS[index] || 0;
+    }).rows.filter(row => row.pointEligible);
+    standing.forEach(row => {
+      const score = RALLY_POINTS[row.rank - 1] || 0;
       const item = scores.get(row.driver);
       if (!item) return;
-      item.byRally.set(group, { score, rank: index + 1 });
+      item.byRally.set(group, { score, rank: row.rank });
       item.total += score;
     });
   });
