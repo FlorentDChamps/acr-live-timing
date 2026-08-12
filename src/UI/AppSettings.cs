@@ -30,6 +30,7 @@ namespace ACRLiveTiming.UI
         // options
         public int Port { get; set; } = 8080;
         public double PenaltyPct { get; set; } = 50;
+        public bool DnfNoRejoin { get; set; }
         public double ProgressWindowKm { get; set; } = 0.8;   // max span of the auto-fitting progression window (km)
         public bool ProgressFixed { get; set; } = true;       // freeze the window at the max span (no auto-fit)
         public bool HideSplits { get; set; }

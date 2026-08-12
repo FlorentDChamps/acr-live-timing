@@ -83,7 +83,13 @@ Cloudflare tunnel link.
   fallback for capture gaps. The retirement flag of the game's replicated results is
   also decoded directly, so even a driver who quits **before the first split** is
   listed as DNF — with no time, since none was ever set — instead of silently
-  disappearing.
+  disappearing. The optional **DNF – No Rejoin** rule makes that first non-finish
+  permanent for the rally: later stage times remain visible but no longer contribute
+  to a general-classification total. Finishers stay ahead of every DNF; DNF ties use
+  completed stages before the first abandon, then their real cumulative time on
+  those stages. A driver with no start in the rally is DNS. This mode replaces the
+  penalty cap for the selected stages, while ranked DNF remain eligible for
+  championship points.
 - **Live stage progression** — a horizontal track above the board shows every
   driver's live position along the current stage. By default the track spans a
   **fixed configurable range** behind the leader (a stable scale); unchecking

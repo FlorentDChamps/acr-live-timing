@@ -751,6 +751,13 @@ namespace ACRLiveTiming.UI
             if (_engine != null) _engine.Matrix.HideSplits = HideSplitsCheck.IsChecked == true;
         }
 
+        void DnfNoRejoin_Changed(object sender, RoutedEventArgs e)
+        {
+            bool enabled = DnfNoRejoinCheck.IsChecked == true;
+            if (PenaltyCapPanel != null) PenaltyCapPanel.IsEnabled = !enabled;
+            if (_engine != null) _engine.Matrix.DnfNoRejoin = enabled;
+        }
+
         void ProgressFixed_Changed(object sender, RoutedEventArgs e)
         {
             if (_engine != null) _engine.Matrix.ProgressFixed = ProgressFixedCheck.IsChecked == true;
@@ -1140,6 +1147,7 @@ namespace ACRLiveTiming.UI
             var inv = CultureInfo.InvariantCulture;
             PortBox.Text = _settings.Port.ToString(inv);
             PctBox.Text = _settings.PenaltyPct.ToString(inv);
+            DnfNoRejoinCheck.IsChecked = _settings.DnfNoRejoin;
             ProgressWindowBox.Text = _settings.ProgressWindowKm.ToString("0.0", inv);
             ProgressFixedCheck.IsChecked = _settings.ProgressFixed;
             ReplayPauseBox.Text = _settings.ReplayPause.ToString(inv);
@@ -1186,6 +1194,7 @@ namespace ACRLiveTiming.UI
             var inv = CultureInfo.InvariantCulture;
             if (int.TryParse(PortBox.Text.Trim(), out var port)) _settings.Port = port;
             _settings.PenaltyPct = ParseD(PctBox.Text, _settings.PenaltyPct);
+            _settings.DnfNoRejoin = DnfNoRejoinCheck.IsChecked == true;
             _settings.ProgressWindowKm = ParseD(ProgressWindowBox.Text, _settings.ProgressWindowKm);
             _settings.ProgressFixed = ProgressFixedCheck.IsChecked == true;
             _settings.ReplayPause = ParseD(ReplayPauseBox.Text, _settings.ReplayPause);

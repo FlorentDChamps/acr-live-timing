@@ -62,6 +62,7 @@ namespace ACRLiveTiming.Model
         public List<StageInfo> AllStages { get; set; } = new();  // every run column (for UI checkboxes)
         public List<RowView> Rows { get; set; } = new();         // arrival order; the page sorts
         public double Pct { get; set; }
+        public bool DnfNoRejoin { get; set; }
         public string State { get; set; } = "";
         public string Phase { get; set; } = "";        // lobby FSM phase ("Racing", "Results", …)
         public string CurrentStage { get; set; } = ""; // last known current-stage label
@@ -162,6 +163,7 @@ namespace ACRLiveTiming.Model
         readonly Dictionary<string, string> _driverLabels = new();
         const string AccountKeyPrefix = "\u001faccount:";
         double _pct = 0.50;
+        bool _dnfNoRejoin;
         double _progressWindowKm = 0.8;   // MAX span of the auto-fitting progression window (km)
         bool _progressFixed = true;       // freeze the window at the max span instead of auto-fitting
         bool _hideSplits;             // true: keep the historical board and hide splits
@@ -974,6 +976,14 @@ namespace ACRLiveTiming.Model
             set { lock (_lock) _pct = value; RaiseChanged(); }
         }
 
+        /// <summary>Once a driver fails to finish a stage, keep their later stage
+        /// times visible but permanently classify them DNF for this rally.</summary>
+        public bool DnfNoRejoin
+        {
+            get { lock (_lock) return _dnfNoRejoin; }
+            set { lock (_lock) _dnfNoRejoin = value; RaiseChanged(); }
+        }
+
         /// <summary>Max span (km) of the auto-fitting live-progression window. The bar
         /// stretches to fit the running field [tail, leader]; this is the ceiling on
         /// that span (past it the leader stays right-pinned, further cars hidden).
@@ -1131,6 +1141,7 @@ namespace ACRLiveTiming.Model
                     AllStages = all,
                     Rows = rows,
                     Pct = _pct,
+                    DnfNoRejoin = _dnfNoRejoin,
                     State = StateLabel,
                     Phase = _lobbyPhase,
                     CurrentStage = _currentStage,

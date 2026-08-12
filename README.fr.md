@@ -91,7 +91,14 @@ en un clic.
   « un autre a fini, pas lui » en repli pour les trous de capture. Le drapeau
   d'abandon des résultats répliqués par le jeu est aussi décodé directement : même
   un pilote qui quitte **avant le premier split** est listé DNF — sans temps,
-  puisqu'il n'en a jamais posé — au lieu de disparaître silencieusement.
+  puisqu'il n'en a jamais posé — au lieu de disparaître silencieusement. La règle
+  optionnelle **DNF – No Rejoin** rend ce premier abandon définitif pour le rallye :
+  les temps des spéciales suivantes restent visibles mais ne contribuent plus à un
+  total général. Tous les finishers précèdent les DNF ; ceux-ci sont départagés par
+  le nombre de spéciales terminées avant le premier abandon, puis par leur temps réel
+  cumulé sur ces seules spéciales. Un pilote sans aucun départ dans le rallye est DNS.
+  Ce mode remplace le plafond de pénalité pour les spéciales sélectionnées, tandis
+  que les DNF classés restent éligibles aux points de championnat.
 - **Progression de spéciale en direct** — une piste horizontale au-dessus du tableau
   montre la position live de chaque pilote sur la spéciale en cours. Par défaut la
   piste couvre une **portée fixe configurable** derrière le leader (échelle stable) ;
