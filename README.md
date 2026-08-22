@@ -35,6 +35,9 @@ Cloudflare tunnel link.
   protocol signature (IP and port change every lobby, nothing is hardcoded).
 - **Live stage results** — driver names, split-validated final times (ms-exact vs
   the in-game screen, penalties included), stage name, nation flag and car model.
+  Stage and car names read as the game shows them (e.g. *Vallée de Munster Montée*,
+  *Alfa Romeo GTA 1300 Junior*), resolved from an embedded catalog of ACR's content
+  tables; anything not in the catalog keeps its wire identifier.
   The displayed car list follows the selected stages, preserving a driver changing
   car between stages and removing duplicate models. While a stage is running
   (Racing through Spectating, back to the stage history at Results), with
@@ -374,7 +377,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 |---|---|
 | Server→client traffic | cleartext (unencrypted), decoded |
 | Split + final times per driver | ✅ ms-exact vs in-game screen, penalties included |
-| Stage name | ✅ |
+| Stage name | ✅ level + driven route (Full/Short/Cut, Forward/Reverse), shown as the in-game route name from the embedded content catalog (wire id kept in the JSON state). The route is replicated at lobby join, at the service-park load and when the host picks the next stage — not when the stage itself loads — so start the tool **before joining** to get the first stage's route |
 | Nation + car per driver/stage | ✅ read at JOIN from the player's participant actor (deterministic, no lap time needed); car retained per stage and listed without duplicates across the selected stages; time-anchored binding kept as fallback — screenshot-validated |
 | Complete finisher list | ✅ multi-bit-shift scan |
 | Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*), exact to the ms, streamed live |

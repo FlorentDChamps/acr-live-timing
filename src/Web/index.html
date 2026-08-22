@@ -973,7 +973,7 @@ function computeView(v, cfg, withPositionChange = true) {
     // de-duplicate the selected stages' list. A viewer changing their stage
     // selection therefore sees exactly the cars used in that selection.
     const cars = [...new Set(incl.map(c => r.rawCells && r.rawCells[c] &&
-      r.cars && r.cars[c]).filter(Boolean))];
+      ((r.carNames && r.carNames[c]) || (r.cars && r.cars[c]))).filter(Boolean))];
     const timed = cells.some(c => c.final);
     const status = cfg.dnfNoRejoin
       ? (firstDnf >= 0 ? "dnf" : incl.length === 0 ? "pending"
@@ -1542,7 +1542,7 @@ function render(v) {
     badge.className = "phasebadge" +
       (v.phase === "Racing" ? " racing" :
        v.phase === "Results" || v.phase === "Finishing" ? " results" : "");
-    document.getElementById("curstage").textContent = v.currentStage || "";
+    document.getElementById("curstage").textContent = v.currentStageName || v.currentStage || "";
     // in-game start time (weather timeline) + stage weather forecast
     const meta = [];
     if (v.stageStart) meta.push("Start " + v.stageStart);

@@ -252,13 +252,17 @@ namespace ACRLiveTiming.Model
 
             // stage/route labelling. Two token sources with different timing (probed on
             // all captures via the --stagescan harness):
-            //   * base level name — byte-aligned, broadcast at map load and in later
-            //     bursts. Authoritative base for the current run.
-            //   * route VARIANT (…Cut2Reverse) — appears bit-shifted only, at exactly two
-            //     moments: at JOIN, replicating the stage in progress (falls INSIDE the
-            //     post-run-start window => it is the CURRENT run's route), and during a
-            //     stage's results phase as the NEXT stage pre-loads, BEFORE its run-start
-            //     event (falls OUTSIDE the window => it is the NEXT run's route).
+            //   * base level name — the persistent level's object path, byte-aligned,
+            //     broadcast at map load and in later bursts. Authoritative base for the
+            //     current run.
+            //   * route VARIANT (<level><Full|Short<n>|Cut<n>><Forward|Reverse>) — the
+            //     game state's travel/pending track FName, replicated at JOIN (the stage
+            //     in progress, INSIDE the post-run-start window => the CURRENT run's
+            //     route), when the host picks the next stage in the results hub and at
+            //     the service-park load (OUTSIDE the window => the NEXT run's route). It
+            //     is NOT re-sent when the stage map itself loads, so a client that joined
+            //     before the capture started cannot recover the first stage's route.
+            //     Any bit shift, including byte-aligned.
             //   * a RESTART of the same stage broadcasts nothing at all (no map travel)
             //     => the route is inherited (see StartNewRun).
             // A stage's FString is normally byte-aligned, but a host capture showed
@@ -266,7 +270,7 @@ namespace ACRLiveTiming.Model
             // 4 and 6. `strings` combines every aligned view, like the variant/FSM scans
             // below, so the first stage is labelled even when no byte-aligned base
             // level is replicated to this client.
-            var anchor = Names.StageNameIn(strings);
+            var anchor = Names.StageBaseIn(strings);
             if (anchor != null)
             {
                 // The base name re-broadcasts when the NEXT map pre-loads, which happens
@@ -281,16 +285,15 @@ namespace ACRLiveTiming.Model
                     _currentBase = anchor;
             }
             if (_stageScanBudget > 0) _stageScanBudget--;
-            // one pass over every shifted view serves both the route-variant scan
-            // (shifts 1-7 only: variants never appear byte-aligned) and the lobby
-            // FSM phase scan (all shifts: the transition tokens appear anywhere).
+            // one pass over every shifted view serves both the route-variant scan and
+            // the lobby FSM phase scan (the tokens appear at any shift).
             string? fsm = null;
             for (int sh = 0; sh < 8; sh++)
             {
                 foreach (var f in fstrs[sh])
                 {
                     var s = f.Text;
-                    if (sh > 0 && Names.IsVariant(s))
+                    if (Names.IsVariant(s))
                     {
                         if (_stageScanBudget > 0) _routeVariant = s;
                         else _pendingVariant = s;
@@ -336,20 +339,17 @@ namespace ACRLiveTiming.Model
             if (wx != null)
                 Matrix.SetStageWeather(
                     $"{WeatherForecast.TypeNames[wx.Value.type]} · {wx.Value.temp:0.#}°C");
-            if (_currentBase != null)
+            // the variant labels the run while it drives the current level (level aliases
+            // included: "Weles…" routes on a "Wales…" level); a stale variant from another
+            // level is simply not displayed (never nulled: the matching base may just not
+            // have arrived yet). Before any base has been seen the variant stands alone.
+            string? label = _routeVariant != null
+                            && (_currentBase == null || Names.VariantExtends(_routeVariant, _currentBase))
+                ? _routeVariant : _currentBase;
+            if (label != null && label != _currentStage)
             {
-                // the variant labels the run only while it extends the current base; a
-                // stale variant from another level is simply not displayed (never nulled:
-                // the matching base may just not have arrived yet).
-                string label = (_routeVariant != null
-                                && _routeVariant.Length > _currentBase.Length
-                                && _routeVariant.StartsWith(_currentBase, StringComparison.Ordinal))
-                    ? _routeVariant : _currentBase;
-                if (label != _currentStage)
-                {
-                    _currentStage = label;
-                    Matrix.SetLabel(runKey, RunLabel(_runIndex, label));
-                }
+                _currentStage = label;
+                Matrix.SetLabel(runKey, RunLabel(_runIndex, label));
             }
 
             // one scan serves both: per-driver results for the matrix AND the nation/car

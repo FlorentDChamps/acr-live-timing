@@ -1,0 +1,799 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "gameData": "ACRContent",
+    "generatedBy": "tools/extract-acr-content.py"
+  },
+  "locations": [
+    {
+      "id": "Alsace",
+      "name": "Alsace",
+      "country": {
+        "id": "France",
+        "name": "France"
+      },
+      "surfaces": [
+        {
+          "id": "Tarmac",
+          "percentage": 1.0
+        }
+      ]
+    },
+    {
+      "id": "Greece",
+      "name": "Greece",
+      "country": {
+        "id": "Greece",
+        "name": "Greece"
+      },
+      "surfaces": [
+        {
+          "id": "Gravel",
+          "percentage": 0.78999996
+        },
+        {
+          "id": "Tarmac",
+          "percentage": 0.21
+        }
+      ]
+    },
+    {
+      "id": "Livigno",
+      "name": "Livigno Circuit",
+      "country": {
+        "id": "Italy",
+        "name": "Italy"
+      },
+      "surfaces": [
+        {
+          "id": "Snow",
+          "percentage": 1.0
+        }
+      ]
+    },
+    {
+      "id": "MonteCarlo",
+      "name": "Monte Carlo",
+      "country": {
+        "id": "Monaco",
+        "name": "Monaco"
+      },
+      "surfaces": [
+        {
+          "id": "Tarmac",
+          "percentage": 1.0
+        }
+      ]
+    },
+    {
+      "id": "Wales",
+      "name": "Wales",
+      "country": {
+        "id": "Wales",
+        "name": "Wales"
+      },
+      "surfaces": [
+        {
+          "id": "Gravel",
+          "percentage": 1.0
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "id": "AlsaceS2MunsterFullForward",
+      "wireId": "AlsaceS2MunsterFullForward",
+      "locationId": "Alsace",
+      "trackId": "Munster",
+      "name": "Vallée de Munster Montée",
+      "shortName": "Montée",
+      "lengthKm": 10.3,
+      "known": true
+    },
+    {
+      "id": "AlsaceS2MunsterFullReverse",
+      "wireId": "AlsaceS2MunsterFullReverse",
+      "locationId": "Alsace",
+      "trackId": "Munster",
+      "name": "Vallée de Munster Descente",
+      "shortName": "Descente",
+      "lengthKm": 10.3,
+      "known": true
+    },
+    {
+      "id": "AlsaceS2MunsterShort1Forward",
+      "wireId": "AlsaceS2MunsterShort1Forward",
+      "locationId": "Alsace",
+      "trackId": "Munster",
+      "name": "Luttenbach près Munster",
+      "shortName": "Luttenbach",
+      "lengthKm": 7.0,
+      "known": true
+    },
+    {
+      "id": "AlsaceS2MunsterShort1Reverse",
+      "wireId": "AlsaceS2MunsterShort1Reverse",
+      "locationId": "Alsace",
+      "trackId": "Munster",
+      "name": "Forêt de Munster",
+      "shortName": "Forêt",
+      "lengthKm": 6.8,
+      "known": true
+    },
+    {
+      "id": "AlsaceS2MunsterShort2Forward",
+      "wireId": "AlsaceS2MunsterShort2Forward",
+      "locationId": "Alsace",
+      "trackId": "Munster",
+      "name": "Sommet de Munster",
+      "shortName": "Sommet",
+      "lengthKm": 5.3,
+      "known": true
+    },
+    {
+      "id": "AlsaceS2MunsterShort2Reverse",
+      "wireId": "AlsaceS2MunsterShort2Reverse",
+      "locationId": "Alsace",
+      "trackId": "Munster",
+      "name": "Col du petit Ballon",
+      "shortName": "Petit Ballon",
+      "lengthKm": 5.6,
+      "known": true
+    },
+    {
+      "id": "AlsaceS4SaverneFullForward",
+      "wireId": "AlsaceS4SaverneFullForward",
+      "locationId": "Alsace",
+      "trackId": "Saverne",
+      "name": "Forêt de Saverne",
+      "shortName": "Forêt",
+      "lengthKm": 9.1,
+      "known": true
+    },
+    {
+      "id": "AlsaceS4SaverneFullReverse",
+      "wireId": "AlsaceS4SaverneFullReverse",
+      "locationId": "Alsace",
+      "trackId": "Saverne",
+      "name": "Steigenbach",
+      "shortName": "Steigenbach",
+      "lengthKm": 8.9,
+      "known": true
+    },
+    {
+      "id": "AlsaceS4SaverneShort1Forward",
+      "wireId": "AlsaceS4SaverneShort1Forward",
+      "locationId": "Alsace",
+      "trackId": "Saverne",
+      "name": "Obersteigen",
+      "shortName": "Obersteigen",
+      "lengthKm": 4.6,
+      "known": true
+    },
+    {
+      "id": "AlsaceS4SaverneShort1Reverse",
+      "wireId": "AlsaceS4SaverneShort1Reverse",
+      "locationId": "Alsace",
+      "trackId": "Saverne",
+      "name": "La traversée de La Mossig",
+      "shortName": "La Mossig",
+      "lengthKm": 4.6,
+      "known": true
+    },
+    {
+      "id": "GreeceS3ElatiaCut1Forward",
+      "wireId": "GreeceS3ElatiaCut1Forward",
+      "locationId": "Greece",
+      "trackId": "GreeceS3Elatia",
+      "name": "Elatia",
+      "shortName": "Elatia",
+      "lengthKm": 4.9,
+      "known": true
+    },
+    {
+      "id": "GreeceS3ElatiaCut1Reverse",
+      "wireId": "GreeceS3ElatiaCut1Reverse",
+      "locationId": "Greece",
+      "trackId": "GreeceS3Elatia",
+      "name": "Elatia Reverse",
+      "shortName": "Elatia Reverse",
+      "lengthKm": 6.2,
+      "known": true
+    },
+    {
+      "id": "GreeceS3ElatiaCut2Forward",
+      "wireId": "GreeceS3ElatiaCut2Forward",
+      "locationId": "Greece",
+      "trackId": "GreeceS3Elatia",
+      "name": "Zeli",
+      "shortName": "Zeli",
+      "lengthKm": 5.5,
+      "known": true
+    },
+    {
+      "id": "GreeceS3ElatiaCut2Reverse",
+      "wireId": "GreeceS3ElatiaCut2Reverse",
+      "locationId": "Greece",
+      "trackId": "GreeceS3Elatia",
+      "name": "Zeli Reverse",
+      "shortName": "Zeli Reverse",
+      "lengthKm": 5.5,
+      "known": true
+    },
+    {
+      "id": "GreeceS3ElatiaFullForward",
+      "wireId": "GreeceS3ElatiaFullForward",
+      "locationId": "Greece",
+      "trackId": "GreeceS3Elatia",
+      "name": "Elatia - Zeli",
+      "shortName": "Elatia - Zeli",
+      "lengthKm": 11.6,
+      "known": true
+    },
+    {
+      "id": "GreeceS3ElatiaFullReverse",
+      "wireId": "GreeceS3ElatiaFullReverse",
+      "locationId": "Greece",
+      "trackId": "GreeceS3Elatia",
+      "name": "Zeli - Elatia",
+      "shortName": "Zeli - Elatia",
+      "lengthKm": 11.7,
+      "known": true
+    },
+    {
+      "id": "GreeceS4LoutrakiCut1Forward",
+      "wireId": "GreeceS4LoutrakiCut1Forward",
+      "locationId": "Greece",
+      "trackId": "GreeceS4Loutraki",
+      "name": "New Loutraki",
+      "shortName": "New Loutraki",
+      "lengthKm": 4.9,
+      "known": true
+    },
+    {
+      "id": "GreeceS4LoutrakiCut1Reverse",
+      "wireId": "GreeceS4LoutrakiCut1Reverse",
+      "locationId": "Greece",
+      "trackId": "GreeceS4Loutraki",
+      "name": "New Loutraki Reverse",
+      "shortName": "New Loutraki Reverse",
+      "lengthKm": 4.9,
+      "known": true
+    },
+    {
+      "id": "GreeceS4LoutrakiCut2Forward",
+      "wireId": "GreeceS4LoutrakiCut2Forward",
+      "locationId": "Greece",
+      "trackId": "GreeceS4Loutraki",
+      "name": "Aghii Theodori",
+      "shortName": "Aghii Theodori",
+      "lengthKm": 5.8,
+      "known": true
+    },
+    {
+      "id": "GreeceS4LoutrakiCut2Reverse",
+      "wireId": "GreeceS4LoutrakiCut2Reverse",
+      "locationId": "Greece",
+      "trackId": "GreeceS4Loutraki",
+      "name": "Aghii Theodori Reverse",
+      "shortName": "Aghii Theodori Reverse",
+      "lengthKm": 5.7,
+      "known": true
+    },
+    {
+      "id": "GreeceS4LoutrakiFullForward",
+      "wireId": "GreeceS4LoutrakiFullForward",
+      "locationId": "Greece",
+      "trackId": "GreeceS4Loutraki",
+      "name": "Loutraki - Aghii Theodori",
+      "shortName": "Loutraki - Aghii Theodori",
+      "lengthKm": 10.2,
+      "known": true
+    },
+    {
+      "id": "GreeceS4LoutrakiFullReverse",
+      "wireId": "GreeceS4LoutrakiFullReverse",
+      "locationId": "Greece",
+      "trackId": "GreeceS4Loutraki",
+      "name": "Aghii Theodori - Loutraki",
+      "shortName": "Aghii Theodori - Loutraki",
+      "lengthKm": 10.2,
+      "known": true
+    },
+    {
+      "id": "LivignoTestTrack01FullForward",
+      "wireId": "LivignoTestTrack01FullForward",
+      "locationId": "Livigno",
+      "trackId": "LivignoTestTrack01",
+      "name": "Main Circuit",
+      "shortName": "Main Circuit",
+      "lengthKm": 0.9,
+      "known": true
+    },
+    {
+      "id": "LivignoTestTrack01FullReverse",
+      "wireId": "LivignoTestTrack01FullReverse",
+      "locationId": "Livigno",
+      "trackId": "LivignoTestTrack01",
+      "name": "Main Circuit Reverse",
+      "shortName": "Main Reverse",
+      "lengthKm": 0.9,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneCut1Forward",
+      "wireId": "MonteCarloS1BolleneCut1Forward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "La Bollène-Vésubie - Turini",
+      "shortName": "Turini Montée",
+      "lengthKm": 11.8,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneCut1Reverse",
+      "wireId": "MonteCarloS1BolleneCut1Reverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "Turini - La Bollène-Vésubie",
+      "shortName": "Turini Descente",
+      "lengthKm": 11.8,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneCut2Forward",
+      "wireId": "MonteCarloS1BolleneCut2Forward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "Turini - Peïra Cava",
+      "shortName": "Turini - Peïra Cava",
+      "lengthKm": 6.3,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneCut2Reverse",
+      "wireId": "MonteCarloS1BolleneCut2Reverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "Peïra Cava - Turini",
+      "shortName": "Peïra Cava - Turini",
+      "lengthKm": 6.3,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneCut3Forward",
+      "wireId": "MonteCarloS1BolleneCut3Forward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "Pra d'Alart",
+      "shortName": "Pra d'Alart",
+      "lengthKm": 5.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneFullForward",
+      "wireId": "MonteCarloS1BolleneFullForward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "La Bollène-Vésubie - Peïra Cava",
+      "shortName": "La Bollène",
+      "lengthKm": 18.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS1BolleneFullReverse",
+      "wireId": "MonteCarloS1BolleneFullReverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "Peïra Cava - La Bollène-Vésubie",
+      "shortName": "Peïra Cava",
+      "lengthKm": 18.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS2SisteronCut1Forward",
+      "wireId": "MonteCarloS2SisteronCut1Forward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS2Sisteron",
+      "name": "Sisteron - Mézien",
+      "shortName": "Sisteron - Mézien",
+      "lengthKm": 7.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS2SisteronCut1Reverse",
+      "wireId": "MonteCarloS2SisteronCut1Reverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS2Sisteron",
+      "name": "Mézien - Sisteron",
+      "shortName": "Mézien - Sisteron",
+      "lengthKm": 7.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS2SisteronCut2Forward",
+      "wireId": "MonteCarloS2SisteronCut2Forward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS2Sisteron",
+      "name": "Mézien - St. Geniez",
+      "shortName": "Mézien - St. Geniez",
+      "lengthKm": 5.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS2SisteronCut2Reverse",
+      "wireId": "MonteCarloS2SisteronCut2Reverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS2Sisteron",
+      "name": "St. Geniez - Mézien",
+      "shortName": "St. Geniez - Mézien",
+      "lengthKm": 5.2,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS2SisteronFullForward",
+      "wireId": "MonteCarloS2SisteronFullForward",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS2Sisteron",
+      "name": "Sisteron - St. Geniez",
+      "shortName": "Sisteron - St. Geniez",
+      "lengthKm": 13.1,
+      "known": true
+    },
+    {
+      "id": "MonteCarloS2SisteronFullReverse",
+      "wireId": "MonteCarloS2SisteronFullReverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS2Sisteron",
+      "name": "St. Geniez - Sisteron",
+      "shortName": "St. Geniez - Sisteron",
+      "lengthKm": 13.1,
+      "known": true
+    },
+    {
+      "id": "MonteCarlosS1BolleneCut3Reverse",
+      "wireId": "MonteCarloS1BolleneCut3Reverse",
+      "locationId": "MonteCarlo",
+      "trackId": "MonteCarloS1Bollene",
+      "name": "Sommet de Turini",
+      "shortName": "Sommet de Turini",
+      "lengthKm": 5.3,
+      "known": true
+    },
+    {
+      "id": "WalesS3HafrenNorthCut1Forward",
+      "wireId": "WelesS3HafrenNorthCut1Forward",
+      "locationId": "Wales",
+      "trackId": "WalesS3HafrenNorth",
+      "name": "Cwmbiga - Fedw Fain",
+      "shortName": "Hafren Forest",
+      "lengthKm": 6.1,
+      "known": true
+    },
+    {
+      "id": "WalesS3HafrenNorthCut1Reverse",
+      "wireId": "WelesS3HafrenNorthCut1Reverse",
+      "locationId": "Wales",
+      "trackId": "WalesS3HafrenNorth",
+      "name": "Fedw Fain - Cwmbiga",
+      "shortName": "Fedw Fain",
+      "lengthKm": 6.1,
+      "known": true
+    },
+    {
+      "id": "WalesS3HafrenNorthCut2Forward",
+      "wireId": "WelesS3HafrenNorthCut2Forward",
+      "locationId": "Wales",
+      "trackId": "WalesS3HafrenNorth",
+      "name": "Banc Gwyn - Afon Biga",
+      "shortName": "Banc Gwyn",
+      "lengthKm": 5.4,
+      "known": true
+    },
+    {
+      "id": "WalesS3HafrenNorthCut2Reverse",
+      "wireId": "WelesS3HafrenNorthCut2Reverse",
+      "locationId": "Wales",
+      "trackId": "WalesS3HafrenNorth",
+      "name": "Afon Biga - Banc Gwyn",
+      "shortName": "Ospreys",
+      "lengthKm": 5.4,
+      "known": true
+    },
+    {
+      "id": "WalesS3HafrenNorthFullForward",
+      "wireId": "WelesS3HafrenNorthFullForward",
+      "locationId": "Wales",
+      "trackId": "WalesS3HafrenNorth",
+      "name": "Cwmbiga - Afon Biga",
+      "shortName": "Cwmbiga",
+      "lengthKm": 11.3,
+      "known": true
+    },
+    {
+      "id": "WalesS3HafrenNorthFullReverse",
+      "wireId": "WelesS3HafrenNorthFullReverse",
+      "locationId": "Wales",
+      "trackId": "WalesS3HafrenNorth",
+      "name": "Afon Biga - Cwmbiga",
+      "shortName": "Afon Biga",
+      "lengthKm": 11.0,
+      "known": true
+    },
+    {
+      "id": "WalesS4HafrenSouthFullForward",
+      "wireId": "WelesS4HafrenSouthFullForward",
+      "locationId": "Wales",
+      "trackId": "WalesS4HafrenSouth",
+      "name": "Afon Bidno - Severn",
+      "shortName": "Afon Bidno",
+      "lengthKm": 4.8,
+      "known": true
+    },
+    {
+      "id": "WalesS4HafrenSouthFullReverse",
+      "wireId": "WelesS4HafrenSouthFullReverse",
+      "locationId": "Wales",
+      "trackId": "WalesS4HafrenSouth",
+      "name": "Severn - Afon Bidno",
+      "shortName": "Severn",
+      "lengthKm": 4.8,
+      "known": true
+    }
+  ],
+  "cars": [
+    {
+      "id": "AlfaRomeoGTA1300",
+      "manufacturer": "AlfaRomeo",
+      "name": "GTA 1300 Junior",
+      "displayName": "Alfa Romeo GTA 1300 Junior",
+      "class": {
+        "id": "H3",
+        "name": "H3"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "AlpineA110",
+      "manufacturer": "Alpine",
+      "name": "A110 1.8",
+      "displayName": "Alpine A110 1.8",
+      "class": {
+        "id": "H2",
+        "name": "H2"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "AudiQuattroGr4",
+      "manufacturer": "Audi",
+      "name": "Quattro Gr.4",
+      "displayName": "Audi Quattro Gr.4",
+      "class": {
+        "id": "H1",
+        "name": "H1"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "CitroenXsaraWRC",
+      "manufacturer": "Citroen",
+      "name": "Xsara WRC",
+      "displayName": "Citroën Xsara WRC",
+      "class": {
+        "id": "WR20Evo2",
+        "name": "WR Evo2"
+      },
+      "group": {
+        "id": "GroupWR",
+        "name": "Group WR"
+      }
+    },
+    {
+      "id": "Fiat124Abarth",
+      "manufacturer": "Fiat",
+      "name": "124 Abarth Rally 16V",
+      "displayName": "Fiat 124 Abarth Rally 16V",
+      "class": {
+        "id": "H2",
+        "name": "H2"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "Fiat131Abarth",
+      "manufacturer": "Fiat",
+      "name": "131 Abarth",
+      "displayName": "Fiat 131 Abarth",
+      "class": {
+        "id": "H1",
+        "name": "H1"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "HyundaiI20NRally2",
+      "manufacturer": "Hyundai",
+      "name": "i20 Rally2",
+      "displayName": "Hyundai i20 Rally2",
+      "class": {
+        "id": "Rally2",
+        "name": "Rally2/R5"
+      },
+      "group": {
+        "id": "GroupR",
+        "name": "Group R"
+      }
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo",
+      "manufacturer": "Lancia",
+      "name": "Delta Integrale Evoluzione",
+      "displayName": "Lancia Delta Integrale Evoluzione",
+      "class": {
+        "id": "A8_Evo2",
+        "name": "A8 Evo2"
+      },
+      "group": {
+        "id": "GroupA",
+        "name": "Group A"
+      }
+    },
+    {
+      "id": "LanciaFulviaHF",
+      "manufacturer": "Lancia",
+      "name": "Fulvia Coupé HF",
+      "displayName": "Lancia Fulvia Coupé HF",
+      "class": {
+        "id": "H3",
+        "name": "H3"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "LanciaRally037Evo2",
+      "manufacturer": "Lancia",
+      "name": "Rally 037 Evoluzione 2",
+      "displayName": "Lancia Rally 037 Evoluzione 2",
+      "class": {
+        "id": "B2",
+        "name": "B2"
+      },
+      "group": {
+        "id": "GroupB",
+        "name": "Group B"
+      }
+    },
+    {
+      "id": "LanciaStratosHF",
+      "manufacturer": "Lancia",
+      "name": "Stratos HF",
+      "displayName": "Lancia Stratos HF",
+      "class": {
+        "id": "H1",
+        "name": "H1"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "MiniCooperS1275",
+      "manufacturer": "Mini",
+      "name": "Mini Cooper S",
+      "displayName": "Mini Cooper S",
+      "class": {
+        "id": "H3",
+        "name": "H3"
+      },
+      "group": {
+        "id": "Group2/4",
+        "name": "Group 2/4"
+      }
+    },
+    {
+      "id": "Peugeot206",
+      "manufacturer": "Peugeot",
+      "name": "206 WRC",
+      "displayName": "Peugeot 206 WRC",
+      "class": {
+        "id": "WR20Evo1",
+        "name": "WR Evo1"
+      },
+      "group": {
+        "id": "GroupWR",
+        "name": "Group WR"
+      }
+    },
+    {
+      "id": "Peugeot208Rally4",
+      "manufacturer": "Peugeot",
+      "name": "208 Rally4",
+      "displayName": "Peugeot 208 Rally4",
+      "class": {
+        "id": "Rally4",
+        "name": "Rally4"
+      },
+      "group": {
+        "id": "GroupR",
+        "name": "Group R"
+      }
+    },
+    {
+      "id": "Peugeot306IIMaxiKitCar",
+      "manufacturer": "Peugeot",
+      "name": "306 II Maxi",
+      "displayName": "Peugeot 306 II Maxi",
+      "class": {
+        "id": "K11",
+        "name": "K11"
+      },
+      "group": {
+        "id": "GroupA",
+        "name": "Group A"
+      }
+    },
+    {
+      "id": "SkodaFabiaRSRally2",
+      "manufacturer": "Skoda",
+      "name": "Fabia RS Rally2",
+      "displayName": "Škoda Fabia RS Rally2",
+      "class": {
+        "id": "Rally2",
+        "name": "Rally2/R5"
+      },
+      "group": {
+        "id": "GroupR",
+        "name": "Group R"
+      }
+    },
+    {
+      "id": "SubaruImprezaS3",
+      "manufacturer": "Subaru",
+      "name": "Impreza S3",
+      "displayName": "Subaru Impreza S3",
+      "class": {
+        "id": "A8_Evo3",
+        "name": "A8 Evo3"
+      },
+      "group": {
+        "id": "GroupA",
+        "name": "Group A"
+      }
+    },
+    {
+      "id": "VWPoloGTIR5",
+      "manufacturer": "Volkswagen",
+      "name": "Polo GTI R5",
+      "displayName": "Volkswagen Polo GTI R5",
+      "class": {
+        "id": "Rally2",
+        "name": "Rally2/R5"
+      },
+      "group": {
+        "id": "GroupR",
+        "name": "Group R"
+      }
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ACRLiveTiming.Content;
 using ACRLiveTiming.Decode;
 
 namespace ACRLiveTiming.Model
@@ -36,12 +37,16 @@ namespace ACRLiveTiming.Model
         // CarId per stage, aligned to AllStages. The page selects and de-duplicates
         // these client-side, so its list follows the viewer's selected stages.
         public List<string?> Cars { get; set; } = new();
+        // Display labels aligned to <see cref="Cars"/>. The raw CarId above is always
+        // retained for API consumers and troubleshooting.
+        public List<string?> CarNames { get; set; } = new();
     }
 
     public sealed class StageInfo
     {
         public string Id { get; set; } = "";      // stable column key (UI checkboxes)
         public string Name { get; set; } = "";    // display label, e.g. "SS1 AlsaceS4Saverne"
+        public string RouteId { get; set; } = ""; // ACR level/route identifier (catalog id when known, wire string otherwise)
         public bool Discarded { get; set; }
         public int Group { get; set; }             // 0 = ungrouped; positive values are host group ids
         public string GroupName { get; set; } = ""; // host-set rally name (empty = default "Rally N")
@@ -66,6 +71,7 @@ namespace ACRLiveTiming.Model
         public string State { get; set; } = "";
         public string Phase { get; set; } = "";        // lobby FSM phase ("Racing", "Results", …)
         public string CurrentStage { get; set; } = ""; // last known current-stage label
+        public string CurrentStageName { get; set; } = ""; // display label from the content catalog
         public string Title { get; set; } = "";         // operator-set page title (empty = hidden)
         public string Description { get; set; } = "";    // operator-set page description (empty = hidden)
         public string StageStart { get; set; } = "";   // IN-GAME time of day of the stage start (HH:mm)
@@ -1034,14 +1040,19 @@ namespace ACRLiveTiming.Model
             lock (_lock)
             {
                 var all = _columnOrder
-                    .Select(id => new StageInfo
+                    .Select(id =>
                     {
-                        Id = id,
-                        Name = _labels.TryGetValue(id, out var label) ? label : id,
-                        Discarded = _discarded.Contains(id),
-                        Group = _groups.TryGetValue(id, out var group) ? group : 0,
-                        GroupName = _groups.TryGetValue(id, out group)
-                            ? _groupNames.GetValueOrDefault(group, $"Rally {group}") : ""
+                        var rawLabel = _labels.TryGetValue(id, out var label) ? label : id;
+                        return new StageInfo
+                        {
+                            Id = id,
+                            Name = ContentCatalog.StageLabelName(rawLabel),
+                            RouteId = ContentCatalog.CanonicalRouteId(ContentCatalog.RouteIdFromLabel(rawLabel)),
+                            Discarded = _discarded.Contains(id),
+                            Group = _groups.TryGetValue(id, out var group) ? group : 0,
+                            GroupName = _groups.TryGetValue(id, out group)
+                                ? _groupNames.GetValueOrDefault(group, $"Rally {group}") : ""
+                        };
                     })
                     .ToList();
                 // Drivers whose car is currently retired/disqualified. This is a DIRECT
@@ -1097,16 +1108,22 @@ namespace ACRLiveTiming.Model
                     var driver = _driverLabels.GetValueOrDefault(driverKey, driverKey);
                     _nations.TryGetValue(driverKey, out var nation);
                     var cars = new List<string?>(_columnOrder.Count);
+                    var carNames = new List<string?>(_columnOrder.Count);
                     foreach (var id in _columnOrder)
-                        cars.Add(_carsByColumn.TryGetValue(id, out var columnCars)
-                            && columnCars.TryGetValue(driverKey, out var car) ? car : null);
+                    {
+                        var car = _carsByColumn.TryGetValue(id, out var columnCars)
+                            && columnCars.TryGetValue(driverKey, out var value) ? value : null;
+                        cars.Add(car);
+                        carNames.Add(car == null ? null : ContentCatalog.CarName(car));
+                    }
                     rows.Add(new RowView
                     {
                         Driver = driver,
                         Retired = retired.Contains(driverKey),
                         Nation = nation,
                         RawCells = rawCells,
-                        Cars = cars
+                        Cars = cars,
+                        CarNames = carNames
                     });
                 }
 
@@ -1145,6 +1162,7 @@ namespace ACRLiveTiming.Model
                     State = StateLabel,
                     Phase = _lobbyPhase,
                     CurrentStage = _currentStage,
+                    CurrentStageName = ContentCatalog.StageLabelName(_currentStage),
                     StageStart = _stageStart,
                     StageWeather = _stageWeather,
                     Title = _pageTitle,

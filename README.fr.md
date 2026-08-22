@@ -37,7 +37,10 @@ en un clic.
   n'est codé en dur).
 - **Résultats de spéciale en direct** — pseudos, temps finaux validés par les splits
   (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la spéciale,
-  drapeau de nationalité et modèle de voiture. La liste de voitures affichée suit les
+  drapeau de nationalité et modèle de voiture. Les noms de spéciales et de voitures
+  sont ceux affichés par le jeu (ex. *Vallée de Munster Montée*, *Alfa Romeo GTA 1300
+  Junior*), résolus depuis un catalogue embarqué des tables de contenu d'ACR ; ce qui
+  n'y figure pas garde son identifiant brut. La liste de voitures affichée suit les
   spéciales sélectionnées : un changement de voiture entre spéciales est conservé et
   les doublons sont retirés. Pendant qu'une spéciale se court (phases Course à
   Spectateur, retour à l'historique aux résultats), avec **Hide split times**
@@ -407,7 +410,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 |---|---|
 | Trafic serveur→client | en clair (non chiffré), décodé |
 | Temps splits + final par pilote | ✅ exact au ms vs écran en jeu, pénalités incluses |
-| Nom de la spéciale | ✅ |
+| Nom de la spéciale | ✅ niveau + route courue (Full/Short/Cut, Forward/Reverse), affichée avec le nom de route du jeu via le catalogue de contenu embarqué (identifiant brut conservé dans l'état JSON). La route est répliquée à l'entrée dans le lobby, au chargement du parc d'assistance et quand l'hôte choisit la spéciale suivante — pas au chargement de la spéciale elle-même — donc lancer l'outil **avant de rejoindre** pour avoir la route de la première spéciale |
 | Nationalité + voiture par pilote/spéciale | ✅ lus dès l'entrée au lobby depuis l'acteur participant du joueur (déterministe, aucun temps nécessaire) ; voiture conservée par spéciale et listée sans doublon sur la sélection ; liaison par le temps conservée en repli — validé sur captures d'écran |
 | Liste complète des arrivants | ✅ scan multi-décalage de bits |
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
