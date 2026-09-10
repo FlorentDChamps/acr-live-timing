@@ -277,7 +277,8 @@ publish.bat         # single-file Release exe in .\publish\
    stages into rallies (*Stages — select to group*) and open the page's **Standings**
    tab for per-rally results and championship points. Use **Reset session** to clear
    the board between events (it keeps the decoded nations, cars and the current stage
-   name so a same-stage restart is not left unlabelled).
+   name so a same-stage restart is not left unlabelled). The board is never cleared
+   on its own: a host migration or a server change mid-rally keeps the standings.
 
 ## Streaming with OBS
 
