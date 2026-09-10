@@ -4,14 +4,12 @@ using ACRLiveTiming.Content;
 namespace ACRLiveTiming.Decode
 {
     /// <summary>
-    /// Name/stage classification, ported from the original protocol-RE prototype.
-    /// Distinguishes player
-    /// display names from EOS GUIDs and stage/level names.
+    /// Stage and route name classification for the FString tokens the engine still
+    /// scans (the persistent level path, the lobby FSM markers) and for the route
+    /// names read from the replicated game state.
     /// </summary>
     public static class Names
     {
-        static readonly Regex Hex32 = new(@"^[0-9A-Fa-f]{32}$", RegexOptions.Compiled);
-
         // stage name: <Location>S<num><Name>[<Variant>]. Location may be multi-word
         // CamelCase (GreeceS4Loutraki, WalesS3HafrenNorth, MonteCarloS2Sisteron); an
         // optional route variant may follow (MonteCarloS2SisteronCut2Reverse — a cut /
@@ -27,25 +25,6 @@ namespace ACRLiveTiming.Decode
         /// <summary>Run-start event markers: a fresh table / stage.</summary>
         public static readonly string[] RunStart =
             { "FSM.Flow.BeginStartSequence", "RaceEventTimer.PreSemaphore" };
-
-        // setup-ref punctuation, rejected in player names (hot path: no per-call alloc)
-        static readonly char[] SetupChars = { '(', ')', ':' };
-
-        public static bool IsPlayerName(string s)
-        {
-            // A name only OWNS a result block when it sits next to a valid duplicate-
-            // signature split chain (ResultScanner), so engine tokens / car models /
-            // setup fields / nation names never bind — no reject-list needed here (a
-            // hardcoded brand + nation blacklist was verified redundant on every capture
-            // and dropped). We only exclude the two things that DO look name-like and can
-            // sit near a block: EOS GUIDs (32 hex) and stage/level names.
-            // Player names CAN contain '.' or '-' (atsam.88, 2K-Tan); setup refs use '(' ':' ')'.
-            if (Hex32.IsMatch(s) || StageRe.IsMatch(s))
-                return false;
-            if (s.IndexOfAny(SetupChars) >= 0)
-                return false;
-            return s.Length >= 2 && s.Length <= 24;
-        }
 
         /// <summary>True if s is a route VARIANT (Full/Short/Cut + Forward/Reverse suffix,
         /// or a route the content catalog knows), not the bare level name. The variant
