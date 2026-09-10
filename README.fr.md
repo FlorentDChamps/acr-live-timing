@@ -375,7 +375,7 @@ dans les réglages du webhook côté Discord ; chaque message reste discrètemen
 
 L'envoi est manuel — rien n'est jamais posté sans un clic.
 
-<img src="docs/discord-messages.png" alt="Messages Alert et Standings postés dans un salon Discord" width="480">
+<img src="docs/discord-messages.png" alt="Messages Alert et Standings postés dans un salon Discord" width="300">
 
 ## Antivirus & SmartScreen
 
@@ -422,7 +422,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page |
 | Positions / écarts live | 🟡 position live par voiture décodée, pas encore affichée en classement |
 
-Développé contre **Assetto Corsa Rally 0.5.1**. Une mise à jour du jeu qui change le
+Développé contre **Assetto Corsa Rally 0.6** (Unreal Engine 5.6.1). Une mise à jour du jeu qui change le
 format réseau — ou active un chiffrement — peut casser le décodage à tout moment.
 L'outil lit **uniquement du clair** et ne tentera jamais de déchiffrer un flux
 chiffré : si ACR chiffre son trafic, il le signale et le live timing s'arrête,

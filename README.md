@@ -344,7 +344,7 @@ header, with a link to this project.
 
 Sends are manual — nothing is ever posted without a click.
 
-<img src="docs/discord-messages.png" alt="Alert and standings messages posted to a Discord channel" width="480">
+<img src="docs/discord-messages.png" alt="Alert and standings messages posted to a Discord channel" width="300">
 
 ## Antivirus & SmartScreen
 
@@ -389,7 +389,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header |
 | Live positions / gaps | 🟡 per-car live position decoded, not yet surfaced as a ranking |
 
-Built against **Assetto Corsa Rally 0.5.1**. A game update that changes the wire format
+Built against **Assetto Corsa Rally 0.6** (Unreal Engine 5.6.1). A game update that changes the wire format
 — or turns on encryption — can break the decoding at any time. The tool reads
 **cleartext only** and will never attempt to decrypt an encrypted stream: if ACR
 encrypts its traffic, it says so and live timing simply stops working.
