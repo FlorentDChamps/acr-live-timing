@@ -1,20 +1,23 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using ACRLiveTiming.Content;
 
 namespace ACRLiveTiming.Decode
 {
     /// <summary>
-    /// UE replication decoder (written against UE 5.4.3, unchanged on 5.6.1 / ACR 0.6) —
-    /// nation + car per driver. Ported 1:1 from
-    /// the original protocol-RE prototype. The results-manager replicates, per
-    /// driver, an element
-    /// FRaceParticipantRallyResultEntry whose last cumulative sector Time equals the
-    /// driver's raw total (an exact float32, unique per driver, that ResultScanner
-    /// already extracts with the pseudo). We reassemble the (possibly partial) net
-    /// bunches into content blocks, locate that float's byte pattern, then read the
-    /// first CarId token forward and the first Nationality token after it — binding
-    /// nation+car to the exact driver by time, no channel/guid/proximity guess.
-    /// Validated ms-exact vs in-game screenshots.
+    /// UE replication decoder (written against UE 5.4.3; UE 5.6.1 / ACR 0.6 adds one
+    /// partial-bunch header flag, auto-detected per stream) — nation + car per driver.
+    /// Ported 1:1 from the original protocol-RE prototype. We reassemble the (possibly
+    /// partial) net bunches into content blocks. The results-manager replicates, per
+    /// driver, an element FRaceParticipantRallyResultEntry whose last cumulative sector
+    /// Time equals the driver's raw total (an exact float32, unique per driver, that
+    /// ResultScanner already extracts with the pseudo): locating that float's byte
+    /// pattern and reading the first CarId token forward binds the car to the exact
+    /// driver by time, no channel/guid/proximity guess. Up to ACR 0.5 the element also
+    /// carried the driver's Nationality (read right after the car); since 0.6 that
+    /// data lives only in the player's RaceParticipantData component, which
+    /// NationCarTracker binds through the component's owner actor. Validated ms-exact
+    /// vs in-game screenshots.
     /// </summary>
     public static class LobbyDecoder
     {
@@ -185,7 +188,14 @@ namespace ACRLiveTiming.Decode
             public string? chname;
         }
 
-        static List<Rec>? TryParse(byte[] pl, int start)
+        // UE 5.4 serialises two partial-bunch flags (bPartialInitial, bPartialFinal);
+        // UE 5.5+ inserts bPartialCustomExportsFinal between them. The layout is not
+        // announced on the wire, so a stream tries its preferred width first and flips
+        // after the other one tiles a few packets in a row (see ParsePacket).
+        const int PartialBitsUe54 = 2;
+        const int PartialBitsUe55 = 3;
+
+        static List<Rec>? TryParse(byte[] pl, int start, int partialBits)
         {
             var br = new BR(pl) { pos = start };
             int end = PayloadEnd(pl);
@@ -207,7 +217,12 @@ namespace ACRLiveTiming.Decode
                 int bPartial = br.Bit();
                 if (bReliable != 0) br.ReadInt(MAX_CHSEQUENCE);
                 int pInit = 0, pFin = 0;
-                if (bPartial != 0) { pInit = br.Bit(); pFin = br.Bit(); }
+                if (bPartial != 0)
+                {
+                    pInit = br.Bit();
+                    if (partialBits == PartialBitsUe55) br.Bit();   // bPartialCustomExportsFinal
+                    pFin = br.Bit();
+                }
                 string? chname = null;
                 if (bReliable != 0 || bOpen != 0) chname = ReadName(br);
                 long nbits = br.ReadInt(MAXPKT_BITS);
@@ -225,12 +240,26 @@ namespace ACRLiveTiming.Decode
             return tiled ? outl : null;
         }
 
-        static List<Rec> ParsePacket(byte[] pl)
+        /// <summary>Parse one packet's bunch headers, preferring the partial-flag
+        /// layout that tiled the previous packets; a packet that only tiles under the
+        /// other layout is still used, and three such packets in a row flip the
+        /// preference (an occasional accidental tiling never flips it).</summary>
+        static List<Rec> ParsePacket(byte[] pl, ref int partialBits, ref int altWins)
         {
             foreach (int pref in PREFIXES)
             {
-                var res = TryParse(pl, HeaderEnd(pl, pref));
-                if (res != null) return res;
+                var res = TryParse(pl, HeaderEnd(pl, pref), partialBits);
+                if (res != null) { altWins = 0; return res; }
+            }
+            int alt = partialBits == PartialBitsUe54 ? PartialBitsUe55 : PartialBitsUe54;
+            foreach (int pref in PREFIXES)
+            {
+                var res = TryParse(pl, HeaderEnd(pl, pref), alt);
+                if (res != null)
+                {
+                    if (++altWins >= 3) { partialBits = alt; altWins = 0; }
+                    return res;
+                }
             }
             return new List<Rec>();
         }
@@ -360,8 +389,7 @@ namespace ACRLiveTiming.Decode
                 {
                     var s = ReadFStringAt(d, i);
                     if (s == null || !Names.IsPlayerName(s)) continue;
-                    if (Nations.Contains(s) || TyreRe.IsMatch(s)
-                        || (s.Length >= 10 && CarRe.IsMatch(s))) continue;
+                    if (Nations.Contains(s) || TyreRe.IsMatch(s) || IsCarId(s)) continue;
                     int pos = i * 8 + sh;
                     if (pos < bestPos) { bestPos = pos; best = s; }
                 }
@@ -434,6 +462,8 @@ namespace ACRLiveTiming.Decode
             }
 
             readonly Dictionary<int, Pending> _pending = new();
+            int _partialBits = PartialBitsUe54;                       // bunch-header layout in use
+            int _altWins;                                             // consecutive packets tiling only under the other layout
             readonly Dictionary<long, string> _fresh = new();         // this packet's exports
             readonly Dictionary<long, long> _freshOuter = new();      // this packet's outer links
             readonly Dictionary<int, long> _chActor = new();          // channel -> actor guid (from open bunches)
@@ -483,20 +513,38 @@ namespace ACRLiveTiming.Decode
                 _outerCapture = _freshOuter;
                 try
                 {
-                    foreach (var rec in ParsePacket(pl))
+                    foreach (var rec in ParsePacket(pl, ref _partialBits, ref _altWins))
                     {
                         int ch = rec.ch;
-                        if (rec.partial == 0)
+                        List<byte>? bits = PullBits(pl, rec.pstart, rec.nbits);
+                        if (rec.exports != 0)
                         {
-                            foreach (var blk in Handle(rec, PullBits(pl, rec.pstart, rec.nbits)))
+                            // NetGUID exports are consumed per RAW bunch (UNetConnection::
+                            // ReceivedRawBunch), before any partial reassembly: a partial
+                            // bunch flagged with exports carries exports only and adds no
+                            // content, while a whole bunch continues with its content
+                            // right after them. UE 5.5+ may spread the exports of one
+                            // reassembled bunch over several partial bunches, each with
+                            // its own export header — parsing them one bunch at a time
+                            // handles both engines.
+                            var ebr = new BR(PackBits(bits));
+                            bool ok = RecvNetguidBunch(ebr);
+                            if (rec.partial != 0) bits = new List<byte>();
+                            else if (ok && ebr.pos <= bits.Count) bits = bits.GetRange(ebr.pos, bits.Count - ebr.pos);
+                            else bits = null;    // NetFieldExports or a malformed export list: no content to read
+                        }
+                        if (bits == null) { /* skip content */ }
+                        else if (rec.partial == 0)
+                        {
+                            foreach (var blk in Handle(rec, bits))
                                 outl.Add(blk);
                         }
                         else
                         {
                             if (rec.pinit != 0)
-                                _pending[ch] = new Pending { First = rec, Bits = PullBits(pl, rec.pstart, rec.nbits) };
+                                _pending[ch] = new Pending { First = rec, Bits = bits };
                             else if (_pending.TryGetValue(ch, out var p))
-                                p.Bits.AddRange(PullBits(pl, rec.pstart, rec.nbits));
+                                p.Bits.AddRange(bits);
                             if (rec.pfin != 0 && _pending.TryGetValue(ch, out var fin))
                             {
                                 _pending.Remove(ch);
@@ -529,8 +577,8 @@ namespace ACRLiveTiming.Decode
                 int total = bits.Count;
                 var br = new BR(merged);
                 bool bail = false;
-                if (first.exports != 0 && !RecvNetguidBunch(br)) bail = true;
-                if (!bail && first.mustmap != 0)
+                // exports were already consumed per raw bunch in Feed
+                if (first.mustmap != 0)
                 {
                     long nmm = br.Bits(16);
                     if (nmm > 4096) bail = true;
@@ -640,13 +688,14 @@ namespace ACRLiveTiming.Decode
         /// result is available must exclude them explicitly.</summary>
         public static bool IsNation(string value) => Nations.Contains(value);
 
-        // car model token: a multi-word CamelCase name (a first Capitalised word, then at
-        // least one more Upper/digit-led chunk) — SkodaFabiaRSRally2, CitroenXsaraWRC,
-        // Peugeot306IIMaxiKitCar, LanciaDeltaIntegraleEvo, Fiat131Abarth. No brand/suffix
-        // list: the CarId is simply the FIRST such token after the time, read raw from the
-        // wire. A len>=10 guard rejects short CamelCase bit-shift noise / name tokens.
+        // car model token: a multi-word CamelCase name (a first Capitalised word — or a
+        // short all-caps make such as "VW" — then at least one more Upper/digit-led
+        // chunk): SkodaFabiaRSRally2, CitroenXsaraWRC, Peugeot306IIMaxiKitCar,
+        // VWPoloGTIR5. The embedded content catalog recognises every shipped CarId
+        // outright; this shape is the fallback for a car added after the catalog was
+        // generated. A len>=10 guard rejects short CamelCase bit-shift noise / name tokens.
         static readonly Regex CarRe = new(
-            @"^[A-Z][a-z]+(?:[A-Z0-9][A-Za-z0-9]*)+$", RegexOptions.Compiled);
+            @"^[A-Z]{1,3}[a-z]+(?:[A-Z0-9][A-Za-z0-9]*)+$", RegexOptions.Compiled);
 
         // tyre compound FNames (GravelSoft, TarmacHard, …) are CamelCase too and sit in
         // the SAME participant component (TiresAllocation) as the CarId — and tyre
@@ -659,7 +708,31 @@ namespace ACRLiveTiming.Decode
         /// so structural result parsing and the byte-level nation/car join apply the
         /// same classifier and tyre exclusion.</summary>
         public static bool IsCarId(string value)
-            => value.Length >= 10 && CarRe.IsMatch(value) && !TyreRe.IsMatch(value);
+            => ContentCatalog.IsKnownCar(value)
+               || (value.Length >= 10 && CarRe.IsMatch(value) && !TyreRe.IsMatch(value));
+
+        /// <summary>
+        /// Replicated-property handle in front of an FName token found by
+        /// <see cref="MarksIn"/>. An FName property replicates as
+        /// <c>&lt;packed handle&gt; &lt;bit 0: not hardcoded&gt; &lt;int32 len&gt; &lt;chars&gt; NUL
+        /// &lt;int32 number&gt;</c>; read in the alignment where the string is byte-aligned,
+        /// that single bit shifts the packed handle (handle*2) back to the plain handle
+        /// value, so the byte before the length prefix IS the handle. The trailing
+        /// number (zero for these names) tells an FName apart from an FString property
+        /// (no hardcoded bit, no number: "Other" under PlayerCountryId would otherwise
+        /// read as handle 6 as well). -1 when the bytes around the token do not have
+        /// this shape.
+        /// </summary>
+        public static int HandleBefore(byte[] seg, int bitPos, string token)
+        {
+            int sh = bitPos & 7, i = bitPos >> 3, end = i + token.Length;
+            if (i < 5 || end + 5 > seg.Length) return -1;
+            var d = sh == 0 ? seg : Primitives.Shr(seg, sh);
+            int len = d[i - 4] | (d[i - 3] << 8) | (d[i - 2] << 16) | (d[i - 1] << 24);
+            if (len != token.Length + 1) return -1;
+            for (int k = 0; k < 5; k++) if (d[end + k] != 0) return -1;   // NUL + number 0
+            return d[i - 5];
+        }
 
         static IEnumerable<(int start, string text)> Tokens(byte[] d)
         {
@@ -727,6 +800,7 @@ namespace ACRLiveTiming.Decode
             byte[] seg,
             List<(int a, string t)> cmarks, List<(int a, string t)> nmarks,
             Dictionary<uint, string> pats,
+            HashSet<string> driverNames,
             Dictionary<string, Dictionary<string, int>> joinNat,
             Dictionary<string, Dictionary<string, int>> joinCar)
         {
@@ -739,10 +813,19 @@ namespace ACRLiveTiming.Decode
                     if (!pats.TryGetValue(key, out var nm)) continue;
                     int pos = i * 8 + shn;
 
+                    // the first CarId token after the time — a catalog-listed car wins
+                    // over a merely car-shaped token anywhere in the window, and a token
+                    // that is a driver's pseudonym (a CamelCase name such as
+                    // "FlorentDChamps" passes the shape test) is never a car
                     int carpos = pos;
                     string? car = null;
                     foreach (var (a, t) in cmarks)
-                        if (-40 <= a - pos && a - pos < 800) { car = t; carpos = a; break; }
+                    {
+                        if (a - pos < -40 || a - pos >= 800 || driverNames.Contains(t)) continue;
+                        bool known = ContentCatalog.IsKnownCar(t);
+                        if (car == null || known) { car = t; carpos = a; }
+                        if (known) break;
+                    }
 
                     // Nation is bound ONLY through the driver's OWN participant element,
                     // anchored by the car token next to their time float. Without a car

@@ -6,9 +6,13 @@ namespace ACRLiveTiming.Decode
     /// Fail-closed structural reader for bDNF in replicated rally-result arrays.
     /// A result is returned only when one element contains an unambiguous participant
     /// name, CarId, bDNF and in-range next handle. Final results use the global
-    /// B=1+index*10 handles; partial results select one element with an odd outer
-    /// handle, then restart the element's handles at CarId=4/bDNF=5. RallyTimes is
-    /// deliberately not decoded: CarId is the bounded resynchronisation point.
+    /// B=1+index*stride handles: on ACR 0.5 captures the element stride is 10 with
+    /// CarId at B+3 and bDNF at B+4 (Driver/CoDriver data in the element); on ACR 0.6
+    /// captures it is 7 with CarId at B+4 and bDNF at B+5 (that data removed) — both
+    /// layouts observed on the wire and accepted. Partial results select one element
+    /// with an odd outer handle, then restart the element's handles at CarId=4/bDNF=5
+    /// (unchanged). RallyTimes is deliberately not decoded: CarId is the bounded
+    /// resynchronisation point.
     /// </summary>
     public static class ResultDnfScanner
     {
@@ -140,6 +144,14 @@ namespace ACRLiveTiming.Decode
             }
         }
 
+        const int StrideAcr05 = 10;   // element with Driver/CoDriver data (CarId at B+3)
+        const int StrideAcr06 = 7;    // element without it (CarId at B+4)
+
+        /// <summary>A handle that can start an element under either known stride.</summary>
+        static bool IsElementBase(int handle, int count)
+            => ((handle - 1) % StrideAcr05 == 0 && (handle - 1) / StrideAcr05 < count)
+               || ((handle - 1) % StrideAcr06 == 0 && (handle - 1) / StrideAcr06 < count);
+
         static bool TryNameProperty(
             BitReader bounds,
             int start,
@@ -226,8 +238,7 @@ namespace ACRLiveTiming.Decode
                 {
                     if (!TryNameProperty(bounds, start, out var property)
                         || property.Handle < 1
-                        || (property.Handle - 1) % 10 != 0
-                        || (property.Handle - 1) / 10 >= count
+                        || !IsElementBase(property.Handle, count)
                         || !Names.IsPlayerName(property.Value)
                         || LobbyDecoder.IsNation(property.Value)
                         || LobbyDecoder.IsCarId(property.Value))
@@ -249,18 +260,24 @@ namespace ACRLiveTiming.Decode
                     for (int start = participant.End; start <= elementEnd - 49; start++)
                     {
                         if (!TryNameProperty(bounds, start, out var car)
-                            || car.Handle != participant.Handle + 3
                             || !LobbyDecoder.IsCarId(car.Value))
                             continue;
+                        int carOffset = car.Handle - participant.Handle;
+                        int stride = carOffset switch { 3 => StrideAcr05, 4 => StrideAcr06, _ => 0 };
+                        if (stride == 0 || (participant.Handle - 1) % stride != 0)
+                            continue;
 
+                        // bDNF follows CarId; the next handle is bDQ or a later field of
+                        // the same element, the next element's ParticipantId, or the
+                        // array terminator.
                         var tail = bounds.At(car.End);
                         if (!tail.IntPacked(out int dnfHandle)
-                            || dnfHandle != participant.Handle + 4
+                            || dnfHandle != car.Handle + 1
                             || !tail.Bit(out int dnf)
                             || !tail.IntPacked(out int nextHandle)
                             || (nextHandle != 0
-                                && (nextHandle < participant.Handle + 5
-                                    || nextHandle > participant.Handle + 9)))
+                                && (nextHandle <= dnfHandle
+                                    || nextHandle > participant.Handle + stride)))
                             continue;
                         matches.Add(new ResultFlag(
                             participant.Value,

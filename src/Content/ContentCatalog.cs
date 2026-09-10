@@ -55,6 +55,9 @@ namespace ACRLiveTiming.Content
         public static string CarName(string id)
             => Data.Value.Cars.GetValueOrDefault(id, id);
 
+        /// <summary>True for a CarId the catalog lists (DT_Cars row name).</summary>
+        public static bool IsKnownCar(string id) => Data.Value.Cars.ContainsKey(id);
+
         /// <summary>True for a route the catalog lists (catalog id or wire spelling).</summary>
         public static bool IsKnownRoute(string s) => Data.Value.Routes.Contains(s);
 
