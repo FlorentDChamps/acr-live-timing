@@ -10,8 +10,11 @@ namespace ACRLiveTiming.Model
     ///   Sniffing  : feed every inbound packet to the detector until a server locks.
     ///   Connected : decode only that server's packets; on ConnectTimeout with no
     ///               packet, drop back to Sniffing (the web view is KEPT).
-    /// A newly-locked server whose IP differs from the last one resets the session
-    /// (new lobby); reconnecting to the same IP keeps the accumulated history.
+    /// Locking a different server never clears the classification (a host migration
+    /// or relay change mid-rally must not lose the standings) — only the operator's
+    /// Reset button does; it only restarts the decoder, whose NetGUIDs and channels
+    /// belong to the previous connection. Reconnecting to the same server keeps the
+    /// decoder too: a packet gap is not a new connection and nothing is re-exported.
     /// </summary>
     public sealed class Engine
     {
@@ -64,6 +67,7 @@ namespace ACRLiveTiming.Model
         // bindings. The first real run-start event supersedes it.
         bool _provisional;
         string? _lastServerIp;
+        int _lastServerPort;
         DateTime _lastPacketUtc = DateTime.UtcNow;
 
         public event Action<string>? Log;
@@ -102,11 +106,14 @@ namespace ACRLiveTiming.Model
 
         void Connect(string ip, int port)
         {
-            if (ip != _lastServerIp)
+            if (ip != _lastServerIp || port != _lastServerPort)
             {
-                Matrix.Reset();
-                ResetRunState();
-                Log?.Invoke($"New server {ip}:{port} — classification reset.");
+                // A different server (host migration, relay change, next lobby): the
+                // standings are KEPT; the new server re-exports every object at join, so
+                // the decoder restarts on its NetGUID space while identities, nations and
+                // cars already in the matrix stay bound to their account ids.
+                RestartDecoder();
+                Log?.Invoke($"New server {ip}:{port} — history kept, decoder restarted.");
             }
             else
             {
@@ -115,6 +122,7 @@ namespace ACRLiveTiming.Model
             ServerIp = ip;
             ServerPort = port;
             _lastServerIp = ip;
+            _lastServerPort = port;
             _lastPacketUtc = DateTime.UtcNow;
             Matrix.ServerLabel = $"{ip}:{port}";
             SetState(SnifferState.Connected);
@@ -520,12 +528,19 @@ namespace ACRLiveTiming.Model
                 _currentStage = null;
                 _currentBase = null;
                 _routeVariant = null;
-                _rep.Reset();
-                _carFinish.Clear();
-                _carNamed.Clear();
-                _identified.Clear();
-                _currentRaceId = -1;
+                RestartDecoder();
             }
+        }
+
+        /// <summary>Drop the decoder's per-connection state (NetGUID map, channels,
+        /// decoded actors and components, finish/naming scratch). The matrix is untouched.</summary>
+        void RestartDecoder()
+        {
+            _rep.Reset();
+            _carFinish.Clear();
+            _carNamed.Clear();
+            _identified.Clear();
+            _currentRaceId = -1;
         }
 
         /// <summary>Clear the session. <paramref name="keepIdentity"/> keeps the

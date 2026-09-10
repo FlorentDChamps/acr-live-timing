@@ -306,6 +306,8 @@ publish.bat         # exe Release monofichier dans .\publish\
    et les points de championnat. Utilisez **Reset session** pour vider le tableau
    entre deux événements (il conserve les nations, voitures décodées et le nom de la
    spéciale en cours pour qu'un redémarrage de la même spéciale ne reste pas sans nom).
+   Le tableau ne se vide jamais seul : une migration d'hôte ou un changement de serveur
+   en cours de rallye conserve le classement.
 
 ## Capture avec OBS
 
