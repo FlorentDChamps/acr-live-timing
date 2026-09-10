@@ -122,10 +122,11 @@ en un clic.
   jeu** de la spéciale (heure du jour) et sa **prévision météo**, le tout décodé
   depuis la timeline météo répliquée et la machine à états du lobby.
 - **Vue web partageable** — serveur web embarqué pour le LAN, plus un lien public
-  `https://….trycloudflare.com` optionnel. Le binaire `cloudflared` est épinglé à une
-  version précise, téléchargé une seule fois et **vérifié SHA-256** contre le
-  checksum publié par Cloudflare avant toute exécution. Les boutons Start / Publish
-  servent aussi de boutons d'arrêt, et le lien public a un bouton de copie en un clic.
+  `https://….trycloudflare.com` optionnel. Le binaire `cloudflared` est téléchargé
+  depuis les releases officielles de Cloudflare (rafraîchi au plus une fois par mois)
+  et sa **signature de code Cloudflare est vérifiée** avant chaque exécution. Les
+  boutons Start / Publish servent aussi de boutons d'arrêt, et le lien public a un
+  bouton de copie en un clic.
 - **Réglages d'affichage par spectateur** — un bouton roue crantée sur la page web
   ouvre un panneau qui reprend **localement** les réglages de classement/affichage de
   l'hôte : exclure des spéciales du total, changer le plafond de pénalité %, régler la
@@ -199,10 +200,11 @@ tableau complet, sans détour :
   aucun envoi. Seules connexions sortantes : (1) une vérification légère au démarrage,
   auprès de GitHub, d'une éventuelle nouvelle release d'ACR Live Timing — aucun
   téléchargement sans confirmation de votre part dans sa fenêtre ; (2) le
-  téléchargement unique du binaire `cloudflared` épinglé et vérifié par checksum,
-  depuis les releases GitHub officielles de Cloudflare — effectué automatiquement en
-  arrière-plan au premier lancement, même si vous ne publiez jamais ; (3) le tunnel
-  Cloudflare lui-même, *uniquement si vous cliquez Publish* — à partir de là, la page
+  téléchargement du binaire `cloudflared`, signature vérifiée, depuis les releases
+  GitHub officielles de Cloudflare — effectué automatiquement en arrière-plan au
+  premier lancement puis rafraîchi au plus une fois par mois, même si vous ne publiez
+  jamais ; (3) le tunnel Cloudflare lui-même, *uniquement si vous cliquez Publish* — à
+  partir de là, la page
   de classement est accessible à quiconque a le lien, jusqu'à fermeture de
   l'application. Si l'application meurt sans fermeture normale (crash, arrêt via le
   Gestionnaire des tâches), le process du tunnel peut lui survivre — vérifiez
@@ -438,7 +440,7 @@ src/
   Net/       sniffer raw socket, auto-détection serveur, enregistrement & replay pcap
   Model/     engine (machine à états) + matrice de session thread-safe
   Web/       serveur HTTP embarqué (/, /state) + interface single-page
-  Tunnel/    lanceur cloudflared (version épinglée, checksum vérifié)
+  Tunnel/    lanceur cloudflared (dernière release, signature Authenticode vérifiée)
   Discord/   éditeur webhook (messages d'alerte + résultats)
   Updates/   vérification de release au démarrage (API GitHub)
   UI/        panneau de contrôle WPF + fenêtres overlay OBS transparentes + réglages

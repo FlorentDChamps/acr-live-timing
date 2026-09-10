@@ -284,6 +284,19 @@ namespace ACRLiveTiming.UI
             });
             _tunnel.Ready += () => Dispatcher.BeginInvoke(() =>
                 AppendLog("Tunnel connected — link is now live: " + PublicUrlBox.Text));
+            _tunnel.ExitedUnexpectedly += exitCode => Dispatcher.BeginInvoke(() =>
+            {
+                // A new Publish may already be in progress by the time this queued
+                // notification reaches the UI; never erase that new tunnel's URL.
+                if (_shuttingDown || _tunnel.Running) return;
+                PublicUrlBox.Text = "";
+                PublishBtn.Content = "Publish";
+                RefreshDiscordControls();
+                AppendLog($"Tunnel ended unexpectedly (exit code {exitCode}) — publish again to create a new link.");
+                // A failing cloudflared is the one case where waiting for the 30-day
+                // re-check is wrong: look for a newer release right away.
+                if (exitCode != 0) EnsureCloudflared(force: true);
+            });
 
             _web.Log += msg => Dispatcher.BeginInvoke(() => AppendLog(msg));
 
@@ -310,13 +323,8 @@ namespace ACRLiveTiming.UI
 
             UpdateState();
 
-            // pre-download cloudflared in the background
-            _ = CloudflaredRunner.EnsureExeAsync(msg => Dispatcher.BeginInvoke(() => AppendLog(msg)))
-                .ContinueWith(t =>
-                {
-                    if (t.Exception != null)
-                        Dispatcher.BeginInvoke(() => AppendLog("cloudflared not downloaded: " + t.Exception.GetBaseException().Message));
-                });
+            // pre-download (or refresh) cloudflared in the background
+            EnsureCloudflared(force: false);
 
             _ = CheckForUpdateAsync();
 
@@ -455,6 +463,17 @@ namespace ACRLiveTiming.UI
             AppendLog("Web server stopped.");
         }
 
+        /// <summary>Download or refresh cloudflared in the background, logging progress.</summary>
+        void EnsureCloudflared(bool force)
+        {
+            _ = CloudflaredRunner.EnsureExeAsync(msg => Dispatcher.BeginInvoke(() => AppendLog(msg)), force)
+                .ContinueWith(t =>
+                {
+                    if (t.Exception != null)
+                        Dispatcher.BeginInvoke(() => AppendLog("cloudflared not downloaded: " + t.Exception.GetBaseException().Message));
+                });
+        }
+
         void PublishBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_tunnel.Running) { StopTunnel(); return; }   // button doubles as Unpublish
@@ -474,6 +493,11 @@ namespace ACRLiveTiming.UI
                 "Publish a public link?",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (confirm != MessageBoxResult.Yes) return;
+            // A previous quick-tunnel hostname becomes NXDOMAIN as soon as its
+            // cloudflared process exits. Do not leave that stale URL visible while a
+            // replacement is being requested.
+            PublicUrlBox.Text = "";
+            RefreshDiscordControls();
             try { _tunnel.Start(_web.Port); PublishBtn.Content = "Unpublish"; }
             catch (Exception ex) { AppendLog("Tunnel error: " + ex.Message); }
         }

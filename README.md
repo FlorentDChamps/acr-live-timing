@@ -111,8 +111,9 @@ Cloudflare tunnel link.
   and its **weather forecast**, all decoded from the replicated weather timeline and
   the lobby state machine.
 - **Shareable web view** — embedded web server for the LAN, plus an optional public
-  `https://….trycloudflare.com` link. The pinned `cloudflared` binary is downloaded
-  once and **SHA-256-verified** against Cloudflare's published checksum before use.
+  `https://….trycloudflare.com` link. The `cloudflared` binary is downloaded from
+  Cloudflare's official releases (refreshed at most once a month) and its
+  **Cloudflare code signature is verified** before every use.
   The Start / Publish buttons double as stop controls, and the public link has a
   one-click copy button.
 - **Per-viewer display settings** — a gear button on the web page opens a panel that
@@ -179,11 +180,11 @@ picture, plainly:
 - **What leaves your machine?** Nothing, by default. The app has no telemetry and
   uploads nothing. Its only outbound connections are: (1) a lightweight startup check
   to GitHub for a newer ACR Live Timing release — no download occurs unless you confirm
-  its popup; (2) a one-time download of the pinned, checksum-verified `cloudflared`
-  binary from Cloudflare's official GitHub releases — fetched automatically in the
-  background at first launch, even if you never publish; (3) the Cloudflare tunnel itself,
-  *only if you click Publish* — from that
-  moment the leaderboard page is reachable by anyone who has the link, until you
+  its popup; (2) the download of the signature-verified `cloudflared` binary from
+  Cloudflare's official GitHub releases — fetched automatically in the background at
+  first launch and refreshed at most once a month, even if you never publish; (3) the
+  Cloudflare tunnel itself, *only if you click Publish* — from that moment the
+  leaderboard page is reachable by anyone who has the link, until you
   close the app. If the app dies without closing normally (crash, Task Manager kill),
   the tunnel process can outlive it — check for `cloudflared.exe` in Task Manager;
   (4) a message to Discord, *only if* you paste a webhook URL in the Discord panel
@@ -403,7 +404,7 @@ src/
   Net/       raw-socket sniffer, server auto-detection, pcap record & replay
   Model/     engine (state machine) + thread-safe session matrix
   Web/       embedded HTTP server (/, /state) + single-page UI
-  Tunnel/    cloudflared runner (pinned version, checksum-verified)
+  Tunnel/    cloudflared runner (latest release, Authenticode-verified)
   Discord/   webhook publisher (alert + results messages)
   Updates/   startup release check (GitHub API)
   UI/        WPF control panel + transparent OBS overlay windows + settings
