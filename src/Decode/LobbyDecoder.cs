@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 namespace ACRLiveTiming.Decode
 {
     /// <summary>
-    /// UE 5.4.3 replication decoder — nation + car per driver. Ported 1:1 from
+    /// UE replication decoder (written against UE 5.4.3, unchanged on 5.6.1 / ACR 0.6) —
+    /// nation + car per driver. Ported 1:1 from
     /// the original protocol-RE prototype. The results-manager replicates, per
     /// driver, an element
     /// FRaceParticipantRallyResultEntry whose last cumulative sector Time equals the
