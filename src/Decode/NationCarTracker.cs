@@ -44,6 +44,11 @@ namespace ACRLiveTiming.Decode
         // name, and its RaceParticipantData component block carries Driver/CoDriver
         // Nationality + CarId. Everything on the actor's own channel — deterministic
         // per-player isolation, so it takes PRECEDENCE over the time-join vote.
+        // Participant actors are recognised by their RaceParticipantData component:
+        // the component's export names the guid, its outer chain names the actor. The
+        // archetype path that used to tag BC_RaceParticipant actors stopped being
+        // exported in mid-2026 builds, so this is the binding that actually fires.
+        readonly HashSet<long> _partActors = new();
         readonly Dictionary<long, string> _partName = new();                   // actor -> pseudo
         readonly Dictionary<long, Dictionary<string, int>> _partNat = new();   // actor -> nation votes
         readonly Dictionary<long, string> _partCar = new();                    // actor -> CarId, LAST wins
@@ -148,6 +153,7 @@ namespace ACRLiveTiming.Decode
                 _marked.Clear();
                 _alias.Clear();
                 _ambiguous.Clear();
+                _partActors.Clear();
                 _partName.Clear();
                 _partNat.Clear();
                 _partCar.Clear();
@@ -223,6 +229,8 @@ namespace ACRLiveTiming.Decode
                     {
                         _resultGuids.Remove(guid);
                         _resultGuidVotes.Remove(guid);
+                        if (path == "RaceParticipantData" && _stream.Outers.TryGetValue(guid, out var owner))
+                            _partActors.Add(owner);
                     }
                 }
                 foreach (var block in blocks)
@@ -239,10 +247,14 @@ namespace ACRLiveTiming.Decode
                     else if (guid != 0 && !_stream.Guids.ContainsKey(guid))
                     {
                         // A capture may begin after the one-off class export. Infer an
-                        // orphan results guid only from repeated, complete FINAL-array
-                        // elements; a partial-array lookalike can never self-promote.
+                        // orphan results guid only from repeated, complete elements
+                        // (name + CarId + bDNF + in-range next handle) seen in at least
+                        // two blocks. ACR 0.6 serialises the per-participant session
+                        // array and the final array in ONE block, so the scanner only
+                        // ever sees the session array's leading element there — its
+                        // votes count too.
                         var candidates = ResultDnfScanner.Scan(block);
-                        int votes = candidates.Count(result => result.ArrayHandle == 8);
+                        int votes = candidates.Count;
                         if (votes > 0)
                         {
                             int total = _resultGuidVotes.GetValueOrDefault(guid) + votes;
@@ -296,7 +308,7 @@ namespace ACRLiveTiming.Decode
                     // participant ACTOR block: its only string property is the
                     // participant ID FName = the player's display name
                     if (guid == 0 && actor != 0 && !_partName.ContainsKey(actor)
-                        && _stream.ParticipantActors.Contains(actor))
+                        && (_partActors.Contains(actor) || _stream.ParticipantActors.Contains(actor)))
                     {
                         var nm = LobbyDecoder.FirstPlayerNameIn(seg);
                         if (nm != null)
@@ -307,19 +319,37 @@ namespace ACRLiveTiming.Decode
                     if (cmarks.Count == 0 && nmarks.Count == 0) continue;
 
                     // participant COMPONENT block (RaceParticipantData, outer = the
-                    // participant actor): nation + car bound to THAT player. Field
-                    // order Driver before CoDriver => the block's first non-"Other"
-                    // nation is the driver's; first car token = CarId. Voted across
-                    // re-replications; consumed here, not by the time-join pool.
+                    // participant actor): nation + car bound to THAT player. Since ACR
+                    // 0.6 this component is the ONLY carrier of nationality (result
+                    // entries lost their Driver/CoDriver data), replicated at join and
+                    // on change. Its replicated properties are, in handle order:
+                    // PlayerCountryId (3), DriverData Name/Surname/Nationality (4-6),
+                    // CoDriverData Name/Surname/Nationality (7-9), RaceNumber (10),
+                    // CarId (11) — handle numbers identical in 0.5 and 0.6 (same class
+                    // layout). The driver's nation is the token under handle 6; when the
+                    // handle byte is not readable (odd alignment) fall back to position:
+                    // the co-driver's nation is the LAST one, the driver's the one before
+                    // it (PlayerCountryId, when present, comes first). "Other" is the
+                    // game's unset value — no flag. Consumed here, not by the time-join pool.
                     long owner = guid != 0 && _stream.Outers.TryGetValue(guid, out var og) ? og : 0;
-                    if (owner != 0 && _stream.ParticipantActors.Contains(owner))
+                    if (owner != 0 && (_partActors.Contains(owner) || _stream.ParticipantActors.Contains(owner)))
                     {
+                        string? car = null;
+                        foreach (var (a, t) in cmarks)
+                            if (LobbyDecoder.HandleBefore(seg, a, t) == 11) { car = t; break; }
+                        car ??= cmarks.FirstOrDefault(m => Content.ContentCatalog.IsKnownCar(m.t)).t
+                                ?? (cmarks.Count > 0 ? cmarks[0].t : null);
+
+                        string? driverNat = null;
+                        foreach (var (a, t) in nmarks)
+                            if (LobbyDecoder.HandleBefore(seg, a, t) == 6) { driverNat = t; break; }
+                        if (driverNat == null && nmarks.Count > 0)
+                            driverNat = nmarks.Count >= 2 ? nmarks[^2].t : nmarks[0].t;
+                        if (driverNat == "Other") driverNat = null;
+
                         lock (_lock)
                         {
-                            if (cmarks.Count > 0) _partCar[owner] = cmarks[0].t;
-                            string? driverNat = null;
-                            foreach (var (_, t) in nmarks)
-                                if (t != "Other") { driverNat = t; break; }
+                            if (car != null) _partCar[owner] = car;
                             if (driverNat != null)
                             {
                                 if (!_partNat.TryGetValue(owner, out var nv)) _partNat[owner] = nv = new();
@@ -399,8 +429,9 @@ namespace ACRLiveTiming.Decode
         {
             var joinNat = new Dictionary<string, Dictionary<string, int>>();
             var joinCar = new Dictionary<string, Dictionary<string, int>>();
+            var driverNames = new HashSet<string>(pats.Values, StringComparer.Ordinal);
             foreach (var (seg, cmarks, nmarks) in blocks)
-                LobbyDecoder.JoinBlock(seg, cmarks, nmarks, pats, joinNat, joinCar);
+                LobbyDecoder.JoinBlock(seg, cmarks, nmarks, pats, driverNames, joinNat, joinCar);
             return LobbyDecoder.ResolveVotes(pats.Values.Distinct(), joinNat, joinCar);
         }
     }

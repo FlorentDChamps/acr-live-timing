@@ -134,7 +134,10 @@ namespace ACRLiveTiming.Model
         bool _hasRaceState;
         // ---- live progression (RaceStateData h9, one entry per car NetGUID) ----
         // guid -> live state for the CURRENT run (cleared on every run start)
-        sealed class CarState { public double Dist; public int Phase = -1; public int Pos = -1; public double Raised; public DateTime LastSeen; public bool Retired; }
+        // Ended is STICKY: since ACR 0.6 a car that crossed the line and went back to
+        // the lobby drops from Post to None within seconds while the run is still on,
+        // so "reached an end phase" must be remembered rather than read off Phase.
+        sealed class CarState { public double Dist; public int Phase = -1; public int Pos = -1; public double Raised; public DateTime LastSeen; public bool Retired; public bool Ended; }
         readonly Dictionary<long, CarState> _carsLive = new();
         // guid -> driver name, learned when one of the car's times (sector split or
         // finish, both penalty-free) matches a result row's raw uniquely. Splits give
@@ -583,6 +586,11 @@ namespace ACRLiveTiming.Model
                     }
                     if (!_carSeq.ContainsKey(id)) _carSeq[id] = _carSeq.Count + 1;
                     if (phase != car.Phase) { car.Phase = phase; changed = true; }
+                    if (phase >= RaceStateWire.PhaseEnded && phase <= RaceStateWire.PhasePost && !car.Ended)
+                    {
+                        car.Ended = true;
+                        changed = true;
+                    }
                     // STICKY retired flag: after Retire/Disqualify the phase moves on
                     // (None/Inited/Resetting once the player is back in the lobby) while
                     // the actor keeps replicating — recomputing "out" from the current
@@ -775,17 +783,16 @@ namespace ACRLiveTiming.Model
                 // reached the finish phases is a DNF for that column — including cars
                 // whose actor vanished mid-run (rage quit / disconnect emits no
                 // Retire phase, the entry just stops updating). Snapshot it before
-                // the live states are dropped; a car that FINISHED and then went back
-                // to the lobby is already in Ended..Post here (the phase only regresses
-                // once the next run's respawn replaces the actor, which is after this).
+                // the live states are dropped. A car that FINISHED and then went back
+                // to the lobby keeps its sticky Ended flag even though its phase has
+                // regressed to None by now (ACR 0.6 does that within seconds).
                 if (_carsLive.Count > 0 && _columnOrder.Count > 0)
                 {
                     var column = _columnOrder[^1];
                     if (!_dnfByColumn.TryGetValue(column, out var dnf))
                         _dnfByColumn[column] = dnf = new HashSet<string>();
                     foreach (var kv in _carsLive)
-                        if (!(kv.Value.Phase >= RaceStateWire.PhaseEnded && kv.Value.Phase <= RaceStateWire.PhasePost)
-                            && _carNames.TryGetValue(kv.Key, out var drv))
+                        if (!kv.Value.Ended && _carNames.TryGetValue(kv.Key, out var drv))
                             dnf.Add(drv);
                 }
                 _carsLive.Clear();
@@ -1138,8 +1145,7 @@ namespace ACRLiveTiming.Model
                     // an as-yet-unidentified car shows the dot only, no name label —
                     // "Car N" is kept as a stable key/tooltip, not a shown label.
                     bool named = _carNames.TryGetValue(kv.Key, out var driverKey);
-                    int ph = kv.Value.Phase;
-                    bool fin = ph >= RaceStateWire.PhaseEnded && ph <= RaceStateWire.PhasePost;
+                    bool fin = kv.Value.Ended;   // sticky: survives the post-finish drop to None
                     if (!fin && kv.Value.LastSeen < cutoff) continue;
                     progress.Add(new CarProgressView
                     {
