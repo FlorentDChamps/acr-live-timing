@@ -1,0 +1,1270 @@
+{
+  "schemaVersion": 1,
+  "source": "UE4SS_ObjectDump_0.6/UE4SS_ObjectDump.txt",
+  "classes": {
+    "RaceStateData": {
+      "class": "/Script/acr.RaceStateData",
+      "super": [
+        "Object",
+        "ActorComponent",
+        "AcrDataComponent"
+      ],
+      "baseHandles": 2,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RaceId",
+          "type": "int32"
+        },
+        {
+          "name": "RaceTime",
+          "type": "float"
+        },
+        {
+          "name": "RaceStartTime",
+          "type": "float"
+        },
+        {
+          "name": "Phase",
+          "type": "enum",
+          "enum": "ERacePhase",
+          "bits": 4
+        },
+        {
+          "name": "Position",
+          "type": "int32"
+        },
+        {
+          "name": "DiffTime",
+          "type": "float"
+        },
+        {
+          "name": "DistanceOnMainSpline",
+          "type": "float"
+        },
+        {
+          "name": "NumLaps",
+          "type": "int32"
+        },
+        {
+          "name": "bRaceTimeValid",
+          "type": "bool"
+        }
+      ],
+      "wireNames": [
+        "RaceStateData"
+      ]
+    },
+    "RaceSectorsPlayerData": {
+      "class": "/Script/acr.RaceSectorsPlayerData",
+      "super": [
+        "Object",
+        "ActorComponent",
+        "AcrDataComponent"
+      ],
+      "baseHandles": 2,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "SectorsRecords",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "SectorRecord"
+          }
+        }
+      ],
+      "wireNames": [
+        "RaceSectorsPlayerData"
+      ]
+    },
+    "PlayerRaceSectorsTracker": {
+      "class": "/Script/acr.PlayerRaceSectorsTracker",
+      "super": [
+        "Object",
+        "ActorComponent",
+        "AcrComponent",
+        "PlayerComponent",
+        "PlayerRaceComponent"
+      ],
+      "baseHandles": 4,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "WantsClientInit",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "State",
+          "type": "enum",
+          "enum": "EPlayerComponentState",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "Sectors",
+          "type": "array",
+          "element": {
+            "type": "object"
+          }
+        },
+        {
+          "name": "SplineSortedSectors",
+          "type": "array",
+          "element": {
+            "type": "object"
+          }
+        },
+        {
+          "name": "CarAvatar",
+          "type": "object"
+        },
+        {
+          "name": "RaceStateData",
+          "type": "object"
+        },
+        {
+          "name": "NextSector",
+          "type": "object"
+        }
+      ],
+      "wireNames": [
+        "PlayerRaceSectorsTracker"
+      ]
+    },
+    "RaceParticipantDataComponent": {
+      "class": "/Script/acr.RaceParticipantDataComponent",
+      "super": [
+        "Object",
+        "ActorComponent",
+        "RaceParticipantComponent"
+      ],
+      "baseHandles": 2,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "PlayerCountryId",
+          "type": "str"
+        },
+        {
+          "name": "DriverData",
+          "type": "struct",
+          "struct": "RaceEventParticipantCharacterData"
+        },
+        {
+          "name": "CoDriverData",
+          "type": "struct",
+          "struct": "RaceEventParticipantCharacterData"
+        },
+        {
+          "name": "RaceNumber",
+          "type": "int32"
+        },
+        {
+          "name": "CarId",
+          "type": "name"
+        },
+        {
+          "name": "DrivingAids",
+          "type": "struct",
+          "struct": "DrivingAidsOptions"
+        },
+        {
+          "name": "RunningOrder",
+          "type": "int32"
+        },
+        {
+          "name": "RPCTiresAllocation",
+          "type": "struct",
+          "struct": "RPCTiresAllocation"
+        },
+        {
+          "name": "TiresAllocation",
+          "type": "struct",
+          "struct": "TiresAllocation"
+        }
+      ],
+      "wireNames": [
+        "RaceParticipantData"
+      ]
+    },
+    "RaceEventRallyResultsComponent": {
+      "class": "/Script/acr.RaceEventRallyResultsComponent",
+      "super": [
+        "Object",
+        "ActorComponent",
+        "RaceEventComponent",
+        "RaceEventResultsComponent"
+      ],
+      "baseHandles": 2,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "ParticipantsResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallySessionResultsEntry"
+          }
+        },
+        {
+          "name": "ParticipantsPartialResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallyPartialResult"
+          }
+        },
+        {
+          "name": "BestParticipantsResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallyResultEntry"
+          }
+        },
+        {
+          "name": "MaxResults",
+          "type": "int32"
+        }
+      ],
+      "wireNames": [
+        "RaceEventRallyResults"
+      ]
+    },
+    "RaceEventDataComponent": {
+      "class": "/Script/acr.RaceEventDataComponent",
+      "super": [
+        "Object",
+        "ActorComponent",
+        "RaceEventComponent"
+      ],
+      "baseHandles": 2,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "GameModeClass",
+          "type": "softobject"
+        },
+        {
+          "name": "RaceEventType",
+          "type": "name"
+        },
+        {
+          "name": "RaceEventConfigurationId",
+          "type": "name"
+        },
+        {
+          "name": "TrackId",
+          "type": "name"
+        },
+        {
+          "name": "DisciplineId",
+          "type": "name"
+        },
+        {
+          "name": "ForcedCarId",
+          "type": "name"
+        },
+        {
+          "name": "EligibleCars",
+          "type": "struct",
+          "struct": "RaceEventEligibleCars"
+        },
+        {
+          "name": "RPCTiresAllocation",
+          "type": "struct",
+          "struct": "RPCTiresAllocation"
+        }
+      ],
+      "wireNames": [
+        "RaceEventData"
+      ]
+    },
+    "RaceLobbyDataComponent": {
+      "class": "/Script/acr.RaceLobbyDataComponent",
+      "super": [
+        "Object",
+        "ActorComponent"
+      ],
+      "baseHandles": 2,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "PendingTrackId",
+          "type": "name"
+        }
+      ],
+      "wireNames": [
+        "RaceLobbyData"
+      ]
+    },
+    "AcrGameState": {
+      "class": "/Script/acr.AcrGameState",
+      "super": [
+        "Object",
+        "Actor",
+        "Info",
+        "GameStateBase",
+        "DMGameState"
+      ],
+      "baseHandles": 18,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicateMovement",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bHidden",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bTearOff",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bCanBeDamaged",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RemoteRole",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "AttachmentReplication",
+          "type": "struct",
+          "struct": "RepAttachment",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedMovement",
+          "type": "netserialize",
+          "struct": "RepMovement",
+          "inherited": true
+        },
+        {
+          "name": "Owner",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "Role",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "Instigator",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "GameModeClass",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "SpectatorClass",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "bReplicatedHasBegunPlay",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedWorldTimeSeconds",
+          "type": "float",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedWorldTimeSecondsDouble",
+          "type": "double",
+          "inherited": true
+        },
+        {
+          "name": "ServerWorldTimeSecondsDelta",
+          "type": "float",
+          "inherited": true
+        },
+        {
+          "name": "bSimulatePhysicsOnServer",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bRecordReplayOnServer",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "TravelTrackId",
+          "type": "name"
+        }
+      ],
+      "wireNames": [
+        "AcrGameState"
+      ]
+    },
+    "BC_RaceGameState_C": {
+      "class": "/Game/Data/Gameplay/GameStates/BC_RaceGameState.BC_RaceGameState_C",
+      "super": [
+        "Object",
+        "Actor",
+        "Info",
+        "GameStateBase",
+        "DMGameState",
+        "AcrGameState",
+        "RaceGameState"
+      ],
+      "baseHandles": 23,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicateMovement",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bHidden",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bTearOff",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bCanBeDamaged",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RemoteRole",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "AttachmentReplication",
+          "type": "struct",
+          "struct": "RepAttachment",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedMovement",
+          "type": "netserialize",
+          "struct": "RepMovement",
+          "inherited": true
+        },
+        {
+          "name": "Owner",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "Role",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "Instigator",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "GameModeClass",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "SpectatorClass",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "bReplicatedHasBegunPlay",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedWorldTimeSeconds",
+          "type": "float",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedWorldTimeSecondsDouble",
+          "type": "double",
+          "inherited": true
+        },
+        {
+          "name": "ServerWorldTimeSecondsDelta",
+          "type": "float",
+          "inherited": true
+        },
+        {
+          "name": "bSimulatePhysicsOnServer",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bRecordReplayOnServer",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "TravelTrackId",
+          "type": "name",
+          "inherited": true
+        },
+        {
+          "name": "RaceEventManagerComponent",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "LobbyOwnerId",
+          "type": "str",
+          "inherited": true
+        },
+        {
+          "name": "LobbyType",
+          "type": "enum",
+          "enum": "EDeosLobbyType",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "LobbyService",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "RaceSnapshot",
+          "type": "object"
+        },
+        {
+          "name": "GameReadyFlags",
+          "type": "object"
+        },
+        {
+          "name": "GameRallySessionManager",
+          "type": "object"
+        },
+        {
+          "name": "Timers",
+          "type": "object"
+        },
+        {
+          "name": "DefaultSceneRoot",
+          "type": "object"
+        }
+      ],
+      "wireNames": [
+        "Default__BC_RaceGameState_C"
+      ]
+    },
+    "BC_RaceParticipant_C": {
+      "class": "/Game/Data/Gameplay/RaceEvents/BC_RaceParticipant.BC_RaceParticipant_C",
+      "super": [
+        "Object",
+        "Actor",
+        "Info",
+        "RaceParticipant"
+      ],
+      "baseHandles": 13,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicateMovement",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bHidden",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bTearOff",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bCanBeDamaged",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RemoteRole",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "AttachmentReplication",
+          "type": "struct",
+          "struct": "RepAttachment",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedMovement",
+          "type": "netserialize",
+          "struct": "RepMovement",
+          "inherited": true
+        },
+        {
+          "name": "Owner",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "Role",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "Instigator",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "ID",
+          "type": "name",
+          "inherited": true
+        },
+        {
+          "name": "Type",
+          "type": "enum",
+          "enum": "ERaceParticipantType",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "Status",
+          "type": "enum",
+          "enum": "EParticipantStatus",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "RaceParticipantData",
+          "type": "object"
+        }
+      ],
+      "wireNames": [
+        "Default__BC_RaceParticipant_C"
+      ]
+    },
+    "BC_RacePlayerState_C": {
+      "class": "/Game/Data/Gameplay/PlayerStates/BC_RacePlayerState.BC_RacePlayerState_C",
+      "super": [
+        "Object",
+        "Actor",
+        "Info",
+        "PlayerState",
+        "AcrPlayerState",
+        "RacePlayerState"
+      ],
+      "baseHandles": 25,
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicateMovement",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bHidden",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bTearOff",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bCanBeDamaged",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RemoteRole",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "AttachmentReplication",
+          "type": "struct",
+          "struct": "RepAttachment",
+          "inherited": true
+        },
+        {
+          "name": "ReplicatedMovement",
+          "type": "netserialize",
+          "struct": "RepMovement",
+          "inherited": true
+        },
+        {
+          "name": "Owner",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "Role",
+          "type": "enum",
+          "enum": "ENetRole",
+          "bits": 3,
+          "inherited": true
+        },
+        {
+          "name": "Instigator",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "Score",
+          "type": "float",
+          "inherited": true
+        },
+        {
+          "name": "PlayerId",
+          "type": "int32",
+          "inherited": true
+        },
+        {
+          "name": "CompressedPing",
+          "type": "uint8",
+          "inherited": true
+        },
+        {
+          "name": "bIsSpectator",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bOnlySpectator",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsABot",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsInactive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bFromPreviousLevel",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "StartTime",
+          "type": "int32",
+          "inherited": true
+        },
+        {
+          "name": "UniqueID",
+          "type": "netserialize",
+          "struct": "UniqueNetIdRepl",
+          "inherited": true
+        },
+        {
+          "name": "PlayerNamePrivate",
+          "type": "str",
+          "inherited": true
+        },
+        {
+          "name": "ParticipantId",
+          "type": "name",
+          "inherited": true
+        },
+        {
+          "name": "CountryId",
+          "type": "str",
+          "inherited": true
+        },
+        {
+          "name": "CarPawn",
+          "type": "object",
+          "inherited": true
+        },
+        {
+          "name": "AuthProfileId",
+          "type": "int32",
+          "inherited": true
+        },
+        {
+          "name": "RaceRepairsPlayerData",
+          "type": "object"
+        },
+        {
+          "name": "RacePenaltyPlayerData",
+          "type": "object"
+        },
+        {
+          "name": "RaceNotesPlayerData",
+          "type": "object"
+        },
+        {
+          "name": "RaceSectorsPlayerData",
+          "type": "object"
+        },
+        {
+          "name": "RaceStateData",
+          "type": "object"
+        },
+        {
+          "name": "DefaultSceneRoot",
+          "type": "object"
+        }
+      ],
+      "wireNames": [
+        "Default__BC_RacePlayerState_C"
+      ]
+    }
+  },
+  "structs": {
+    "SectorRecord": [
+      {
+        "name": "ID",
+        "type": "int32"
+      },
+      {
+        "name": "Time",
+        "type": "float"
+      },
+      {
+        "name": "RelativeTime",
+        "type": "float"
+      }
+    ],
+    "RaceEventParticipantCharacterData": [
+      {
+        "name": "Name",
+        "type": "text"
+      },
+      {
+        "name": "Surname",
+        "type": "text"
+      },
+      {
+        "name": "Nationality",
+        "type": "name"
+      }
+    ],
+    "DrivingAidsOptions": [
+      {
+        "name": "Transmission",
+        "type": "enum",
+        "enum": "ETransmission",
+        "bits": 2
+      },
+      {
+        "name": "bABSEnabled",
+        "type": "bool"
+      },
+      {
+        "name": "bTCSEnabled",
+        "type": "bool"
+      },
+      {
+        "name": "bHandbrakeStartingHelp",
+        "type": "bool"
+      },
+      {
+        "name": "bAutomaticClutch",
+        "type": "bool"
+      },
+      {
+        "name": "CarIgnition",
+        "type": "enum",
+        "enum": "ECarIgnition",
+        "bits": 2
+      },
+      {
+        "name": "StartSequenceOptions",
+        "type": "struct",
+        "struct": "StartSequenceOptions"
+      },
+      {
+        "name": "bGearDownProtection",
+        "type": "bool"
+      },
+      {
+        "name": "GearDownProtectionThresholdKmh",
+        "type": "float"
+      }
+    ],
+    "StartSequenceOptions": [
+      {
+        "name": "StartSequenceType",
+        "type": "enum",
+        "enum": "EStartSequenceTypeOption",
+        "bits": 2
+      }
+    ],
+    "RPCTiresAllocation": [
+      {
+        "name": "Compounds",
+        "type": "array",
+        "element": {
+          "type": "struct",
+          "struct": "RPCAllocatedCompound"
+        }
+      },
+      {
+        "name": "Count",
+        "type": "int32"
+      },
+      {
+        "name": "bLocked",
+        "type": "bool"
+      }
+    ],
+    "RPCAllocatedCompound": [
+      {
+        "name": "Compound",
+        "type": "name"
+      },
+      {
+        "name": "Count",
+        "type": "int32"
+      }
+    ],
+    "TiresAllocation": [
+      {
+        "name": "Count",
+        "type": "int32"
+      },
+      {
+        "name": "bLocked",
+        "type": "bool"
+      },
+      {
+        "name": "AllocatedCount",
+        "type": "int32"
+      }
+    ],
+    "RaceParticipantRallySessionResultsEntry": [
+      {
+        "name": "ParticipantId",
+        "type": "name"
+      },
+      {
+        "name": "Results",
+        "type": "struct",
+        "struct": "RaceParticipantRallySessionResults"
+      }
+    ],
+    "RaceParticipantRallySessionResults": [
+      {
+        "name": "Results",
+        "type": "array",
+        "element": {
+          "type": "struct",
+          "struct": "RaceParticipantRallyResult"
+        }
+      }
+    ],
+    "RaceParticipantRallyResult": [
+      {
+        "name": "RaceId",
+        "type": "int32"
+      },
+      {
+        "name": "RallyTimes",
+        "type": "struct",
+        "struct": "RallyTimes"
+      },
+      {
+        "name": "CarId",
+        "type": "name"
+      },
+      {
+        "name": "bDNF",
+        "type": "bool"
+      },
+      {
+        "name": "bDQ",
+        "type": "bool"
+      }
+    ],
+    "RallyTimes": [
+      {
+        "name": "Sectors",
+        "type": "array",
+        "element": {
+          "type": "struct",
+          "struct": "SectorRecord"
+        }
+      },
+      {
+        "name": "PenaltyTotalTime",
+        "type": "float"
+      }
+    ],
+    "RaceParticipantRallyPartialResult": [
+      {
+        "name": "ParticipantId",
+        "type": "name"
+      },
+      {
+        "name": "RallyTimes",
+        "type": "struct",
+        "struct": "RallyTimes"
+      },
+      {
+        "name": "CarId",
+        "type": "name"
+      }
+    ],
+    "RaceParticipantRallyResultEntry": [
+      {
+        "name": "ParticipantId",
+        "type": "name"
+      },
+      {
+        "name": "Result",
+        "type": "struct",
+        "struct": "RaceParticipantRallyResult"
+      }
+    ],
+    "RaceEventEligibleCars": [
+      {
+        "name": "CarClasses",
+        "type": "array",
+        "element": {
+          "type": "struct",
+          "struct": "RaceEventEligibleCarClass"
+        }
+      }
+    ],
+    "RaceEventEligibleCarClass": [
+      {
+        "name": "ID",
+        "type": "name"
+      },
+      {
+        "name": "Cars",
+        "type": "array",
+        "element": {
+          "type": "name"
+        }
+      }
+    ],
+    "RepAttachment": [
+      {
+        "name": "AttachParent",
+        "type": "object"
+      },
+      {
+        "name": "LocationOffset",
+        "type": "netserialize",
+        "struct": "Vector_NetQuantize100"
+      },
+      {
+        "name": "RelativeScale3D",
+        "type": "netserialize",
+        "struct": "Vector_NetQuantize100"
+      },
+      {
+        "name": "RotationOffset",
+        "type": "netserialize",
+        "struct": "Rotator"
+      },
+      {
+        "name": "AttachSocket",
+        "type": "name"
+      },
+      {
+        "name": "AttachComponent",
+        "type": "object"
+      }
+    ]
+  },
+  "enums": {
+    "ERacePhase": {
+      "values": {
+        "None": 0,
+        "Inited": 1,
+        "Pre": 2,
+        "StartSequence": 3,
+        "PreSemaphore": 4,
+        "Semaphore": 5,
+        "Running": 6,
+        "Ended": 7,
+        "EndSequence": 8,
+        "Post": 9,
+        "Resetting": 10,
+        "Retire": 11,
+        "Disqualify": 12,
+        "ERacePhase_MAX": 13
+      }
+    },
+    "EPlayerComponentState": {
+      "values": {
+        "None": 0,
+        "Initing": 1,
+        "ClientIniting": 2,
+        "Inited": 3,
+        "ClientUniniting": 4,
+        "Uniniting": 5,
+        "Uninited": 6,
+        "EPlayerComponentState_MAX": 7
+      }
+    },
+    "ETransmission": {
+      "values": {
+        "Manual": 0,
+        "Auto": 1,
+        "ETransmission_MAX": 2
+      }
+    },
+    "ECarIgnition": {
+      "values": {
+        "Manual": 0,
+        "Auto": 1,
+        "ECarIgnition_MAX": 2
+      }
+    },
+    "EStartSequenceTypeOption": {
+      "values": {
+        "Quick": 0,
+        "Complete": 1,
+        "EStartSequenceTypeOption_MAX": 2
+      }
+    },
+    "ENetRole": {
+      "values": {
+        "ROLE_None": 0,
+        "ROLE_SimulatedProxy": 1,
+        "ROLE_AutonomousProxy": 2,
+        "ROLE_Authority": 3,
+        "ROLE_MAX": 4
+      }
+    },
+    "EDeosLobbyType": {
+      "values": {
+        "Invalid": 0,
+        "Player": 1,
+        "Server": 2,
+        "Event": 3,
+        "EDeosLobbyType_MAX": 4
+      }
+    },
+    "ERaceParticipantType": {
+      "values": {
+        "None": 0,
+        "Player": 1,
+        "AI": 2,
+        "SimulatedAI": 3,
+        "ERaceParticipantType_MAX": 4
+      }
+    },
+    "EParticipantStatus": {
+      "values": {
+        "Invalid": 0,
+        "WaitingForSession": 1,
+        "Active": 2,
+        "Disconnected": 3,
+        "EParticipantStatus_MAX": 4
+      }
+    }
+  }
+}

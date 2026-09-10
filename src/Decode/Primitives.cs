@@ -5,7 +5,7 @@ namespace ACRLiveTiming.Decode
     /// <summary>
     /// Byte-level primitives ported 1:1 from the original protocol-RE prototype:
     /// little-endian float32
-    /// reads, bit-shifting for the multi-shift result scan, and FString extraction
+    /// reads, bit-shifting for the multi-shift token scans, and FString extraction
     /// (UE serializes FStrings byte-aligned: &lt;u32 len incl null LE&gt;&lt;utf8&gt;&lt;00&gt;).
     /// </summary>
     public static class Primitives
@@ -38,7 +38,7 @@ namespace ACRLiveTiming.Decode
 
         /// <summary>
         /// The 8 bit-shifted views of a payload with their FStrings, computed ONCE and
-        /// shared by every per-packet consumer (result scan, stage-name scan, run-start
+        /// shared by every per-packet consumer (stage-name scan, FSM tokens, run-start
         /// detection) — net bunches start mid-byte, so all consumers need all shifts.
         /// </summary>
         public static (byte[][] data, List<FStr>[] fstrs) ShiftScan(byte[] payload)

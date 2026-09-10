@@ -47,6 +47,8 @@ namespace ACRLiveTiming.Model
         public string Id { get; set; } = "";      // stable column key (UI checkboxes)
         public string Name { get; set; } = "";    // display label, e.g. "SS1 AlsaceS4Saverne"
         public string RouteId { get; set; } = ""; // ACR level/route identifier (catalog id when known, wire string otherwise)
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? LengthKm { get; set; }     // route length from the content catalog (null: unknown route)
         public bool Discarded { get; set; }
         public int Group { get; set; }             // 0 = ungrouped; positive values are host group ids
         public string GroupName { get; set; } = ""; // host-set rally name (empty = default "Rally N")
@@ -72,6 +74,8 @@ namespace ACRLiveTiming.Model
         public string Phase { get; set; } = "";        // lobby FSM phase ("Racing", "Results", …)
         public string CurrentStage { get; set; } = ""; // last known current-stage label
         public string CurrentStageName { get; set; } = ""; // display label from the content catalog
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? CurrentStageLengthKm { get; set; }   // route length (km) from the content catalog
         public string Title { get; set; } = "";         // operator-set page title (empty = hidden)
         public string Description { get; set; } = "";    // operator-set page description (empty = hidden)
         public string StageStart { get; set; } = "";   // IN-GAME time of day of the stage start (HH:mm)
@@ -98,7 +102,7 @@ namespace ACRLiveTiming.Model
     {
         /// <summary>Float32 tolerance (seconds) for binding a car marker (NetGUID) to a
         /// driver by matching one of its split/finish times to a result row's raw.
-        /// Deliberately tighter than <see cref="RaceStateTracker.FinishMatchTolerance"/>:
+        /// Deliberately tighter than <see cref="RaceStateWire.FinishMatchTolerance"/>:
         /// a false match here prints the wrong driver's name on a car, so it must be
         /// near-exact. Two drivers within this tolerance are left unbound (anonymous)
         /// rather than guessed — see the ambiguity guard in TryNameCar.</summary>
@@ -331,13 +335,22 @@ namespace ACRLiveTiming.Model
         /// current race column only while racing; service-park changes are retained
         /// for the next column instead of rewriting the stage just completed.</summary>
         public void SetDriverInfo(string? columnId, string driver, string? nation, string? car)
+            => SetDriverInfo(columnId, driver, nation, car, setNation: true);
+
+        /// <summary>Record only the car a driver races (nation left untouched): the
+        /// rally result entries name the CarId for every participant, including those
+        /// whose participant data was never received.</summary>
+        public void SetDriverCar(string? columnId, string driver, string car)
+            => SetDriverInfo(columnId, driver, null, car, setNation: false);
+
+        void SetDriverInfo(string? columnId, string driver, string? nation, string? car, bool setNation)
         {
             bool changed = false;
             lock (_lock)
             {
                 var key = ResolveDriverKey(driver);
                 _nations.TryGetValue(key, out var currentNation);
-                if (currentNation != nation)
+                if (setNation && currentNation != nation)
                 {
                     _nations[key] = nation;
                     changed = true;
@@ -551,7 +564,7 @@ namespace ACRLiveTiming.Model
                 var column = _columnOrder.Count > 0 ? _columnOrder[^1] : null;
                 foreach (var t in times)
                     if (!_finishTimes.Exists(f => f.column == column
-                        && Math.Abs(f.time - t) < RaceStateTracker.FinishMatchTolerance))
+                        && Math.Abs(f.time - t) < RaceStateWire.FinishMatchTolerance))
                     {
                         _finishTimes.Add((t, column));
                         changed = true;
@@ -564,7 +577,7 @@ namespace ACRLiveTiming.Model
         // within tolerance (null-tagged peaks predate any column and match anywhere)
         bool IsFinished(string columnId, double raw) => _finishTimes.Exists(f =>
             (f.column == null || f.column == columnId)
-            && Math.Abs(f.time - raw) < RaceStateTracker.FinishMatchTolerance);
+            && Math.Abs(f.time - raw) < RaceStateWire.FinishMatchTolerance);
 
         /// <summary>
         /// Push this packet's live per-car updates (spline distance + race phase).
@@ -1055,6 +1068,7 @@ namespace ACRLiveTiming.Model
                             Id = id,
                             Name = ContentCatalog.StageLabelName(rawLabel),
                             RouteId = ContentCatalog.CanonicalRouteId(ContentCatalog.RouteIdFromLabel(rawLabel)),
+                            LengthKm = ContentCatalog.StageLengthKm(ContentCatalog.RouteIdFromLabel(rawLabel)),
                             Discarded = _discarded.Contains(id),
                             Group = _groups.TryGetValue(id, out var group) ? group : 0,
                             GroupName = _groups.TryGetValue(id, out group)
@@ -1169,6 +1183,7 @@ namespace ACRLiveTiming.Model
                     Phase = _lobbyPhase,
                     CurrentStage = _currentStage,
                     CurrentStageName = ContentCatalog.StageLabelName(_currentStage),
+                    CurrentStageLengthKm = ContentCatalog.StageLengthKm(ContentCatalog.RouteIdFromLabel(_currentStage)),
                     StageStart = _stageStart,
                     StageWeather = _stageWeather,
                     Title = _pageTitle,

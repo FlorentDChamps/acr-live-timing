@@ -66,6 +66,7 @@
     <EmbeddedResource Include="src\Web\index.html" />
     <!-- Generated ACR content labels; raw wire ids stay in the published state. -->
     <EmbeddedResource Include="src\Content\acr-content.json" />
+    <EmbeddedResource Include="src\Content\acr-replayout.json" />
     <!-- Used as a PNG attachment in Discord embeds at runtime. -->
     <Resource Include="assets\icon.ico" />
     <!-- Expose the project property to runtime consumers (Discord embeds, About links). -->

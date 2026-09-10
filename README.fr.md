@@ -39,8 +39,9 @@ en un clic.
   (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la spéciale,
   drapeau de nationalité et modèle de voiture. Les noms de spéciales et de voitures
   sont ceux affichés par le jeu (ex. *Vallée de Munster Montée*, *Alfa Romeo GTA 1300
-  Junior*), résolus depuis un catalogue embarqué des tables de contenu d'ACR ; ce qui
-  n'y figure pas garde son identifiant brut. La liste de voitures affichée suit les
+  Junior*) et la spéciale en cours affiche sa longueur, le tout résolu depuis un
+  catalogue embarqué des tables de contenu d'ACR ; ce qui n'y figure pas garde son
+  identifiant brut. La liste de voitures affichée suit les
   spéciales sélectionnées : un changement de voiture entre spéciales est conservé et
   les doublons sont retirés. Pendant qu'une spéciale se court (phases Course à
   Spectateur, retour à l'historique aux résultats), avec **Hide split times**
@@ -413,8 +414,8 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Trafic serveur→client | en clair (non chiffré), décodé |
 | Temps splits + final par pilote | ✅ exact au ms vs écran en jeu, pénalités incluses |
 | Nom de la spéciale | ✅ niveau + route courue (Full/Short/Cut, Forward/Reverse), affichée avec le nom de route du jeu via le catalogue de contenu embarqué (identifiant brut conservé dans l'état JSON). La route est répliquée à l'entrée dans le lobby, au chargement du parc d'assistance et quand l'hôte choisit la spéciale suivante — pas au chargement de la spéciale elle-même — donc lancer l'outil **avant de rejoindre** pour avoir la route de la première spéciale |
-| Nationalité + voiture par pilote/spéciale | ✅ lus dès l'entrée au lobby depuis l'acteur participant du joueur (déterministe, aucun temps nécessaire) ; voiture conservée par spéciale et listée sans doublon sur la sélection ; liaison par le temps conservée en repli pour la voiture — validé sur captures d'écran. Depuis ACR 0.6 la nationalité n'est répliquée **que** là (les entrées de résultats ne la portent plus) : un pilote déjà présent dans le lobby au lancement de l'outil n'a pas de drapeau tant qu'il ne rejoint pas à nouveau — une raison de plus de lancer l'outil **avant de rejoindre** |
-| Liste complète des arrivants | ✅ scan multi-décalage de bits |
+| Nationalité + voiture par pilote/spéciale | ✅ lues dans les données de participant répliquées (nationalité du pilote, voiture, équipage) liées à l'identifiant de participant, et dans le CarId de chaque entrée de résultat ; voiture conservée par spéciale et listée sans doublon sur la sélection. Les données de participant ne sont répliquées qu'à l'entrée au lobby et au changement : un pilote déjà présent au lancement de l'outil n'a pas de drapeau tant qu'il ne rejoint pas à nouveau — une raison de plus de lancer l'outil **avant de rejoindre** |
+| Liste complète des arrivants | ✅ depuis les tableaux de résultats répliqués (entrées live par participant, puis entrées de session par course) |
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
 | Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; le drapeau d'abandon des résultats répliqués est décodé aussi, donc même un abandon à zéro split est listé DNF |
 | Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
@@ -434,9 +435,12 @@ simplement.
 
 ```
 src/
-  Decode/    décodage protocole : parseur de réplication UE, FStrings, scanner de
-             résultats, détecteur d'arrivée/progression streamé, liaison
-             nation & voiture, météo
+  Decode/    décodage protocole : parseur paquets/bunches UE, lecteur FRepLayout
+             piloté par les layouts de propriétés embarqués, décodeur structurel de
+             réplication (participants, player states, états de course, secteurs,
+             résultats, game state), classification des tokens spéciale/FSM, météo
+  Content/   données embarquées : catalogue de contenu (noms de spéciales/voitures)
+             et layouts de propriétés répliquées des classes du jeu, générés par tools/
   Net/       sniffer raw socket, auto-détection serveur, enregistrement & replay pcap
   Model/     engine (machine à états) + matrice de session thread-safe
   Web/       serveur HTTP embarqué (/, /state) + interface single-page
@@ -444,6 +448,9 @@ src/
   Discord/   éditeur webhook (messages d'alerte + résultats)
   Updates/   vérification de release au démarrage (API GitHub)
   UI/        panneau de contrôle WPF + fenêtres overlay OBS transparentes + réglages
+tools/
+  extract-acr-content.py    catalogue de contenu depuis les exports des data tables du jeu
+  extract-acr-replayout.py  layouts de propriétés depuis un dump d'objets UE4SS
 ```
 
 ## Soutenir le projet

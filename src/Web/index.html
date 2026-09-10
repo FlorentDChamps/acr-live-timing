@@ -1543,8 +1543,10 @@ function render(v) {
       (v.phase === "Racing" ? " racing" :
        v.phase === "Results" || v.phase === "Finishing" ? " results" : "");
     document.getElementById("curstage").textContent = v.currentStageName || v.currentStage || "";
-    // in-game start time (weather timeline) + stage weather forecast
+    // route length (content catalog) + in-game start time (weather timeline) +
+    // stage weather forecast
     const meta = [];
+    if (v.currentStageLengthKm) meta.push(v.currentStageLengthKm.toFixed(1).replace(/\.0$/, "") + " km");
     if (v.stageStart) meta.push("Start " + v.stageStart);
     if (v.stageWeather) meta.push(v.stageWeather);
     document.getElementById("stagemeta").textContent = meta.join(" · ");

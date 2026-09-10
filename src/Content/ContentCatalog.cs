@@ -25,6 +25,8 @@ namespace ACRLiveTiming.Content
             [JsonPropertyName("wireId")]
             public string WireId { get; set; } = "";
             public string Name { get; set; } = "";
+            [JsonPropertyName("lengthKm")]
+            public double? LengthKm { get; set; }
             public bool Known { get; set; }
         }
 
@@ -35,6 +37,7 @@ namespace ACRLiveTiming.Content
             public HashSet<string> Routes = new(StringComparer.Ordinal);              // every known id + wireId
             public Dictionary<string, string> Levels = new(StringComparer.Ordinal);   // wire level -> id level
             public Dictionary<string, string> RouteIds = new(StringComparer.Ordinal); // wireId -> id
+            public Dictionary<string, double> Lengths = new(StringComparer.Ordinal);  // id or wireId -> km
         }
 
         sealed class Car
@@ -55,8 +58,10 @@ namespace ACRLiveTiming.Content
         public static string CarName(string id)
             => Data.Value.Cars.GetValueOrDefault(id, id);
 
-        /// <summary>True for a CarId the catalog lists (DT_Cars row name).</summary>
-        public static bool IsKnownCar(string id) => Data.Value.Cars.ContainsKey(id);
+        /// <summary>Route length in km (catalog id or wire spelling), null when unknown
+        /// or when only the level is known.</summary>
+        public static double? StageLengthKm(string routeId)
+            => Data.Value.Lengths.TryGetValue(routeId, out var km) ? km : null;
 
         /// <summary>True for a route the catalog lists (catalog id or wire spelling).</summary>
         public static bool IsKnownRoute(string s) => Data.Value.Routes.Contains(s);
@@ -105,9 +110,11 @@ namespace ACRLiveTiming.Content
                     if (!stage.Known || string.IsNullOrWhiteSpace(stage.Name)) continue;
                     tables.Stages[stage.Id] = stage.Name;
                     tables.Routes.Add(stage.Id);
+                    if (stage.LengthKm is double km && km > 0) tables.Lengths[stage.Id] = km;
                     if (string.IsNullOrEmpty(stage.WireId) || stage.WireId == stage.Id) continue;
                     tables.Stages[stage.WireId] = stage.Name;
                     tables.Routes.Add(stage.WireId);
+                    if (stage.LengthKm is double wireKm && wireKm > 0) tables.Lengths[stage.WireId] = wireKm;
                     tables.RouteIds[stage.WireId] = stage.Id;
                     // the route's level under both spellings: "WelesS3HafrenNorth" is the
                     // level "WalesS3HafrenNorth" (the persistent level keeps the id spelling)

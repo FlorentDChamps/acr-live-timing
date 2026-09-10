@@ -37,19 +37,17 @@ namespace ACRLiveTiming.Model
         // Dictionary/HashSet state and must never be mutated concurrently.
         readonly object _sync = new();
         readonly Queue<(string ip, int port, byte[] payload)> _preBuffer = new();
-        volatile bool _infoRunning;
-        // bumped on every session reset: an enrichment snapshot started before a reset
-        // must not write the OLD lobby's nations/cars into the freshly reset matrix
-        volatile int _resetGen;
-        int _tickCounter;
-        // streaming finish detector: fed every packet inline, so finishes are revealed
-        // as the data flows (pace-independent) instead of on a wall-clock refresh.
-        readonly RaceStateTracker _tracker = new();
-        // streaming nation/car extractor: decodes each packet once (results scan +
-        // content blocks) and retains only the marked blocks + the time->pseudo map —
-        // no rolling payload buffer, no periodic full re-decode. It also produces the
-        // per-packet driver results for the matrix (single scan).
-        readonly NationCarTracker _natCar = new();
+        // layout-driven replication decoder: participants (nation, car), player
+        // states (identity, display name, their car components), race states (timer,
+        // phase, position, distance), sector records, the rally result arrays and the
+        // game state's travel track — every value read from the replicated properties.
+        readonly ReplicationDecoder _rep = new();
+        // finish detection over the decoded race states (see OnCarUpdate)
+        sealed class CarFinishState { public float Rt = float.NaN; public int Phase = -1; public List<double> Peaks = new(); }
+        readonly Dictionary<long, CarFinishState> _carFinish = new();
+        readonly Dictionary<long, string> _carNamed = new();   // RaceStateData guid -> driver pushed to the matrix
+        readonly HashSet<string> _identified = new();          // display names whose account ids were pushed
+        int _currentRaceId = -1;                               // RaceId of the run in progress (from the cars' race states)
         string? _currentBase;                            // byte-aligned base level (authoritative)
         string? _pendingBase;                            // base level pre-loaded for the NEXT run
         string? _routeVariant;                           // route variant of the CURRENT run (null = plain base)
@@ -106,7 +104,6 @@ namespace ACRLiveTiming.Model
         {
             if (ip != _lastServerIp)
             {
-                _resetGen++;
                 Matrix.Reset();
                 ResetRunState();
                 Log?.Invoke($"New server {ip}:{port} — classification reset.");
@@ -143,91 +140,23 @@ namespace ACRLiveTiming.Model
                     SetState(SnifferState.Sniffing);
                 }
             }
-
-            // periodic nation/car refresh (background, ~every 6s when new data)
-            if (++_tickCounter % 6 == 0) RefreshInfoAsync();
-        }
-
-        /// <summary>
-        /// Resolve each driver's nation + car from the tracker's accumulated state on
-        /// a background thread (the join is a vote over a few hundred retained blocks,
-        /// not a re-decode), then push into the matrix. No-op if already running or
-        /// nothing new since the last pass.
-        /// </summary>
-        public void RefreshInfoAsync()
-        {
-            // check + claim: Tick (UI thread) is the only caller, but keep the guard
-            // so a slow snapshot can't overlap the next tick's.
-            int gen;
-            string? carColumn;
-            lock (_sync)
-            {
-                if (_infoRunning || !_natCar.Dirty) return;
-                _infoRunning = true;
-                gen = _resetGen;
-                // A garage change during Results belongs to the NEXT stage, not to the
-                // just-completed column. During a race, tie the CarId to this exact run;
-                // capture the key before the background join starts so a later run start
-                // cannot retag it.
-                carColumn = !_provisional && (_lobbyPhase is "Racing" or "Finishing")
-                    ? _runKey : null;
-            }
-            Task.Run(() =>
-            {
-                try
-                {
-                    var info = _natCar.Snapshot();
-                    if (gen != _resetGen) return;   // session was reset mid-snapshot
-                    foreach (var kv in info)
-                        Matrix.SetDriverInfo(carColumn, kv.Key, kv.Value.nation, kv.Value.car);
-                    // NB: finish detection is NOT here — it's streamed per packet in Feed
-                    // via _tracker. This background pass is nation/car only.
-                }
-                catch { /* best-effort enrichment */ }
-                finally { _infoRunning = false; }
-            });
         }
 
         void Feed(byte[] payload)
         {
-            // finish detection, streamed per packet: the tracker keeps its own decode
-            // state, so it reports finishes the moment they occur, glued to the data
-            // stream and independent of replay pacing (no wall-clock refresh). Cheap —
-            // one packet parsed once, not the whole buffer re-decoded. Guarded: this runs
-            // on the packet thread (sniffer callback), so a throw on a malformed packet
-            // must not kill the feed — best-effort, skip finish update for this packet.
+            // Structural decode of this packet's replicated properties. Guarded: this
+            // runs on the packet thread (sniffer callback), so a throw on a malformed
+            // packet must not kill the feed — the packet is simply skipped.
             try
             {
-                var (newFinish, present) = _tracker.Feed(payload);   // this packet's only
-                Matrix.SetFinishTimes(newFinish, present);
-                // car-tagged times (sector splits + finishes) bind NetGUID -> driver
-                // name by exact raw match; live spline distances feed the progression
-                // bar. Splits name the marker at the first sector of each run.
-                // spawn-time identity: the car's owner PlayerState replicates
-                // steamid+pseudo in its spawn bunch each stage, so markers are named
-                // at spawn — before the start. The full EOS display name also teaches
-                // the persona alias (results carry the short form). Time-match naming
-                // below stays as the fallback (e.g. lock-on mid-stage, spawn missed).
-                foreach (var (carId, driver, steamId, eosPuid) in _tracker.NewCarNames)
-                {
-                    _natCar.LearnAlias(driver);
-                    Matrix.SetDriverIdentity(driver, steamId, eosPuid);
-                    Matrix.NameCarFromIdent(carId, driver);
-                }
-                // Apply progress first: AddCarSplit uses the current phase/distance
-                // to reject the previous stage's sectors re-broadcast at spawn.
-                if (_tracker.Progress.Count > 0)
-                    Matrix.UpdateCarProgress(_tracker.Progress);
-                foreach (var (carId, time) in _tracker.NewSplitPairs)
-                    Matrix.AddCarSplit(carId, time);
-                foreach (var (carId, time) in _tracker.NewFinishPairs)
-                    Matrix.AddCarTime(carId, time);
+                _rep.Feed(payload);
+                ApplyReplication();
             }
-            catch { /* best-effort finish detection */ }
+            catch { /* best-effort: a malformed packet loses its own updates only */ }
 
             // the 8 bit-shifted views + FStrings are computed ONCE per packet and
-            // shared by every consumer below (run-start detection, stage-name scan,
-            // result scan) — they all need the same shifts.
+            // shared by every consumer below (run-start detection, stage-name and FSM
+            // token scans, weather anchor) — they all need the same shifts.
             var (shifted, fstrs) = Primitives.ShiftScan(payload);
             var strings = new List<string>();
             foreach (var view in fstrs)
@@ -285,20 +214,13 @@ namespace ACRLiveTiming.Model
                     _currentBase = anchor;
             }
             if (_stageScanBudget > 0) _stageScanBudget--;
-            // one pass over every shifted view serves both the route-variant scan and
-            // the lobby FSM phase scan (the tokens appear at any shift).
+            // the lobby FSM phase tokens appear at any shift
             string? fsm = null;
             for (int sh = 0; sh < 8; sh++)
             {
                 foreach (var f in fstrs[sh])
                 {
-                    var s = f.Text;
-                    if (Names.IsVariant(s))
-                    {
-                        if (_stageScanBudget > 0) _routeVariant = s;
-                        else _pendingVariant = s;
-                    }
-                    var phase = PhaseLabel(s);
+                    var phase = PhaseLabel(f.Text);
                     if (phase != null) fsm = phase;
                 }
             }
@@ -352,29 +274,133 @@ namespace ACRLiveTiming.Model
                 Matrix.SetLabel(runKey, RunLabel(_runIndex, label));
             }
 
-            // one scan serves both: per-driver results for the matrix AND the nation/car
-            // tracker's accumulators (time->pseudo map + marked content blocks). On a
-            // provisional (mid-stage) run we still run the scan for its accumulators and
-            // the naming scratch below, but publish NO results (the stage is uncounted).
-            foreach (var (name, total, raw, sectors) in _natCar.Feed(payload, shifted, fstrs))
-                if (!_provisional)
-                    Matrix.AddResult(runKey, name, total, raw, sectors, _natCar.ResultSplitsFor(name));
-            // naming scratch: every (name, raw) incl. 1-sector partials — binds a car
-            // marker to its driver at the FIRST split. The table receives S1 only from
-            // the separately validated results-component scan.
-            // Kept even when provisional: recording pseudo↔car bindings early is the point.
-            foreach (var (name, raw) in _natCar.NameRaws)
-                Matrix.AddSeenRaw(name, raw);
-            // A one-sector partial is enough to prove the driver started, but is not a
-            // final time: add only the row/name here. AddResult remains sector/finish
-            // gated and fills the cell later. Provisional mid-stage captures stay out
-            // of the counted standings, as before.
-            if (!_provisional)
+            ApplyResults(runKey);
+        }
+
+        /// <summary>
+        /// Push what the decoder learned from this packet into the matrix, except the
+        /// results (which need the run key, see <see cref="ApplyResults"/>): identities
+        /// and display names, nation + car, car markers named at spawn, live progression,
+        /// sector splits, finishes and the travel track.
+        /// </summary>
+        void ApplyReplication()
+        {
+            // PlayerState: account ids + EOS display name. The results arrays key on
+            // the participant id (the persona), the board shows the display name:
+            // registering both against the same account folds them into one row.
+            foreach (var pl in _rep.PlayerUpdates)
             {
-                foreach (var name in _natCar.StartedNames)
-                    Matrix.MarkDriverStarted(name);
-                foreach (var name in _natCar.DnfNames)
-                    Matrix.MarkDriverDnf(runKey, name);
+                if (pl.Name == null || pl.Account is not var (steamId, eosPuid)) continue;
+                if (!_identified.Add(pl.Name + "\u0001" + pl.ParticipantId)) continue;
+                if (pl.ParticipantId != null && pl.ParticipantId != pl.Name)
+                    Matrix.SetDriverIdentity(pl.ParticipantId, steamId, eosPuid);
+                Matrix.SetDriverIdentity(pl.Name, steamId, eosPuid);
+            }
+
+            // RaceParticipantData: nation + car, bound to the participant id. A garage
+            // change during Results belongs to the NEXT stage; during a race the CarId
+            // is tied to this exact run.
+            string? carColumn = !_provisional && (_lobbyPhase is "Racing" or "Finishing") ? _runKey : null;
+            foreach (var p in _rep.ParticipantUpdates)
+                if (p.Id != null && (p.Nation != null || p.CarId != null))
+                    Matrix.SetDriverInfo(carColumn, p.Id, p.Nation, p.CarId);
+
+            // RaceStateData: the car marker is named through its PlayerState (deterministic,
+            // at spawn); its timer + phase drive finish detection; distance/phase/position
+            // feed the live progression bar.
+            var progress = new List<(long id, float dist, int phase, int pos)>();
+            var finishes = new List<double>();
+            foreach (var car in _rep.CarUpdates)
+            {
+                // The race in progress: the cars carry its RaceId while racing (-1 when
+                // idle). Last-wins, not max — the id restarts from 0 with every event the
+                // host picks, so a rally can run 0,1,2 then 0 again.
+                if (car.RaceId >= 0) _currentRaceId = car.RaceId;
+                var driver = _rep.DriverOfCar(car.Guid);
+                if (driver != null && (!_carNamed.TryGetValue(car.Guid, out var named) || named != driver))
+                {
+                    _carNamed[car.Guid] = driver;
+                    Matrix.NameCarFromIdent(car.Guid, driver);
+                }
+                OnCarUpdate(car, finishes);
+                if (!float.IsNaN(car.Distance) || car.Phase >= 0 || car.Position > 0)
+                    progress.Add((car.Guid, float.IsNaN(car.Distance) ? 0f : car.Distance, car.Phase, car.Position));
+            }
+            if (progress.Count > 0) Matrix.UpdateCarProgress(progress);
+            Matrix.SetFinishTimes(finishes, _rep.Cars.Count > 0);
+            foreach (var (rsd, time) in _rep.NewSectorTimes)
+                Matrix.AddCarSplit(rsd, time);
+
+            // GameState.TravelTrackId: the route of the stage in progress when it arrives
+            // inside the post-run-start window (join burst), otherwise the NEXT stage's
+            // (host pick in the results hub, service-park load).
+            if (_rep.TrackChanged && _rep.TravelTrackId is string travel && Names.IsVariant(travel))
+            {
+                if (_stageScanBudget > 0) _routeVariant = travel;
+                else _pendingVariant = travel;
+            }
+        }
+
+        /// <summary>
+        /// Finish detection from a car's decoded race state. Two signals, in priority
+        /// order: PHASE — the car enters Ended/EndSequence/Post: its current RaceTime IS
+        /// the finish (exact, event-driven); RESET — the RaceTime drops to ~0 (next stage
+        /// begins): the previous sample was that stage's finish, a safety net for a car
+        /// that finishes and leaves before its end phase replicates. Deduplicated per car.
+        /// </summary>
+        void OnCarUpdate(ReplicationDecoder.CarState car, List<double> finishes)
+        {
+            if (!_carFinish.TryGetValue(car.Guid, out var st)) _carFinish[car.Guid] = st = new CarFinishState();
+            float rt = car.RaceTime;
+            bool rtValid = !float.IsNaN(rt) && rt >= 0f && rt < RaceStateWire.FinishMax;
+            void Peak(double v)
+            {
+                if (st.Peaks.Exists(f => Math.Abs(f - v) < RaceStateWire.FinishMatchTolerance)) return;
+                st.Peaks.Add(v);
+                finishes.Add(v);
+                Matrix.AddCarTime(car.Guid, v);
+            }
+            if (rtValid)
+            {
+                if (!float.IsNaN(st.Rt) && rt < st.Rt * 0.5f && st.Rt > RaceStateWire.FinishMin) Peak(st.Rt);
+                st.Rt = rt;
+            }
+            if (car.Phase >= 0 && car.Phase != st.Phase)
+            {
+                bool wasEnd = st.Phase >= RaceStateWire.PhaseEnded && st.Phase <= RaceStateWire.PhasePost;
+                bool isEnd = car.Phase >= RaceStateWire.PhaseEnded && car.Phase <= RaceStateWire.PhasePost;
+                if (isEnd && !wasEnd && !float.IsNaN(st.Rt) && st.Rt > RaceStateWire.FinishMin) Peak(st.Rt);
+                st.Phase = car.Phase;
+            }
+        }
+
+        /// <summary>
+        /// Rally results for the run in progress. The live array (one element per
+        /// participant: cumulative sector times, penalty, car) fills the column as
+        /// sectors are passed; the per-race session array carries the FINAL entry with
+        /// its DNF/DQ flags. On a provisional (mid-stage) run nothing is published:
+        /// the stage is uncounted, but the raws still feed the car-naming scratch.
+        /// </summary>
+        void ApplyResults(string runKey)
+        {
+            foreach (var (source, r) in _rep.ResultUpdates)
+            {
+                // no car race state decoded yet (joined mid-stage): the entries themselves
+                // are the only hint, the highest id seen being the race in progress
+                if (_currentRaceId < 0 && r.RaceId > _currentRaceId) _currentRaceId = r.RaceId;
+                if (source == ReplicationDecoder.ResultSource.Best) continue;
+                if (source == ReplicationDecoder.ResultSource.Session && r.RaceId != _currentRaceId) continue;
+                var splits = r.Splits.Select(v => (double)v).ToList();
+                foreach (var v in splits) Matrix.AddSeenRaw(r.ParticipantId, v);
+                if (_provisional) continue;
+                // the entry names the car for this exact race, even for a participant
+                // whose RaceParticipantData was never received (joined before the capture)
+                if (r.CarId != null) Matrix.SetDriverCar(runKey, r.ParticipantId, r.CarId);
+                if (r.Sectors.Count > 0) Matrix.MarkDriverStarted(r.ParticipantId);
+                if (r.Raw is float raw)
+                    Matrix.AddResult(runKey, r.ParticipantId, raw + r.Penalty, raw, r.Sectors.Count, splits);
+                if (source == ReplicationDecoder.ResultSource.Session && r.Dnf)
+                    Matrix.MarkDriverDnf(runKey, r.ParticipantId);
             }
         }
 
@@ -481,21 +507,24 @@ namespace ACRLiveTiming.Model
             _runIndex = 0;
             _runKey = null;
             _provisional = false;
-            // keepIdentity: leave BOTH trackers running. _natCar keeps its nation/car
-            // votes and name aliases; _tracker keeps the RaceStateData NetGUID map, so
-            // the cars currently driving stay decoded (their channels opened before this
-            // reset and will NOT re-export until they respawn next stage). Resetting them
-            // here would strand nations and live progression exactly as a late capture
-            // start does. It ALSO keeps the current stage identity: a restart of the same
-            // stage re-broadcasts no name, so clearing it would strand the reset column as
-            // a bare "SSn" until the lobby happens to travel to a different map.
+            // keepIdentity: leave the decoder running. It keeps the NetGUID map, the
+            // participants and player states, so the cars currently driving stay decoded
+            // (their channels opened before this reset and will NOT re-export until they
+            // respawn next stage). Resetting it here would strand nations and live
+            // progression exactly as a late capture start does. It ALSO keeps the current
+            // stage identity: a restart of the same stage re-broadcasts no name, so
+            // clearing it would strand the reset column as a bare "SSn" until the lobby
+            // happens to travel to a different map.
             if (!keepIdentity)
             {
                 _currentStage = null;
                 _currentBase = null;
                 _routeVariant = null;
-                _tracker.Reset();
-                _natCar.Reset();
+                _rep.Reset();
+                _carFinish.Clear();
+                _carNamed.Clear();
+                _identified.Clear();
+                _currentRaceId = -1;
             }
         }
 
@@ -508,7 +537,6 @@ namespace ACRLiveTiming.Model
         {
             lock (_sync)
             {
-                _resetGen++;
                 if (keepIdentity) Matrix.ResetKeepIdentity();
                 else Matrix.Reset();
                 ResetRunState(keepIdentity);

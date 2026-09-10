@@ -753,7 +753,6 @@ namespace ACRLiveTiming.UI
                     return c;
                 });
                 AppendLog(stopped ? $"Replay stopped ({count} UDP packets)." : $"Replay done ({count} UDP packets).");
-                _engine.RefreshInfoAsync();   // decode nation/car from the replayed data
             }
             catch (Exception ex) { AppendLog("Replay error: " + ex.Message); }
             finally { _replaying = false; _stopReplay = false; ReplayBtn.Content = "Replay a .pcap…"; }

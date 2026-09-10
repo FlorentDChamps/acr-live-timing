@@ -1,35 +1,28 @@
 using System.Text;
-using System.Text.RegularExpressions;
-using ACRLiveTiming.Content;
 
 namespace ACRLiveTiming.Decode
 {
     /// <summary>
-    /// UE replication decoder (written against UE 5.4.3; UE 5.6.1 / ACR 0.6 adds one
-    /// partial-bunch header flag, auto-detected per stream) — nation + car per driver.
-    /// Ported 1:1 from the original protocol-RE prototype. We reassemble the (possibly
-    /// partial) net bunches into content blocks. The results-manager replicates, per
-    /// driver, an element FRaceParticipantRallyResultEntry whose last cumulative sector
-    /// Time equals the driver's raw total (an exact float32, unique per driver, that
-    /// ResultScanner already extracts with the pseudo): locating that float's byte
-    /// pattern and reading the first CarId token forward binds the car to the exact
-    /// driver by time, no channel/guid/proximity guess. Up to ACR 0.5 the element also
-    /// carried the driver's Nationality (read right after the car); since 0.6 that
-    /// data lives only in the player's RaceParticipantData component, which
-    /// NationCarTracker binds through the component's owner actor. Validated ms-exact
-    /// vs in-game screenshots.
+    /// Unreal Engine net-packet parser (written against UE 5.4.3; UE 5.6.1 / ACR 0.6
+    /// adds one partial-bunch header flag, auto-detected per stream): packet header,
+    /// bunch headers, NetGUID exports, partial-bunch reassembly and the content blocks
+    /// of each bunch, tagged with the object (subobject NetGUID or actor) they belong
+    /// to. <see cref="BlockStream"/> is the streaming form; the property payload of a
+    /// block is read by <see cref="RepLayout"/>.
     /// </summary>
     public static class LobbyDecoder
     {
-        /// <summary>Stable account identifiers and the mutable display name carried
-        /// by a PlayerState identity block.</summary>
-        public readonly record struct PlayerIdentity(string SteamId, string EosPuid, string Name);
-
         const int MAX_CHSEQUENCE = 1024;
         const int MAX_CLOSE_REASON = 15;
         const int MAXPKT_BITS = 1024 * 8;
-        const int JITTER_BITS = 12;
-        static readonly int[] PREFIXES = { 5, 6, 4, 7, 3, 8 };
+        // Packet header: 6 prefix bits (handshake flag + session/client ids), then the
+        // FNetPacketNotify header (4-bit history word count, two 14-bit sequences, the
+        // ack history words), then the packet-info flag followed, when set, by 11 bits
+        // of packet info (jitter clock). Prefix 6 is the layout of every ACR build so
+        // far; the other prefixes are tried only when it does not tile (5 differs from 6
+        // only on packets carrying packet info, and used to be tried first).
+        const int JITTER_BITS = 11;
+        static readonly int[] PREFIXES = { 6, 5, 4, 7, 3, 8 };
 
         // ---- bit reader ------------------------------------------------------
 
@@ -94,7 +87,7 @@ namespace ACRLiveTiming.Decode
             long wc = br.Bits(4) + 1;
             br.Bits(14); br.Bits(14);          // AckedSeq, Seq
             br.Bits(32 * (int)wc);             // ack history
-            if (br.Bit() != 0) br.Bits(JITTER_BITS);
+            if (br.Bit() != 0) br.Bits(JITTER_BITS);   // bHasPacketInfoPayload + packet info
             return br.pos;
         }
 
@@ -185,6 +178,7 @@ namespace ACRLiveTiming.Decode
         sealed class Rec
         {
             public int ch, open, close, exports, mustmap, partial, pinit, pfin, pstart, nbits;
+            public int seq = -1;          // ChSequence of a reliable bunch (-1: unreliable)
             public string? chname;
         }
 
@@ -215,7 +209,7 @@ namespace ACRLiveTiming.Decode
                 int bHasExports = br.Bit();
                 int bHasMustMapped = br.Bit();
                 int bPartial = br.Bit();
-                if (bReliable != 0) br.ReadInt(MAX_CHSEQUENCE);
+                int seq = bReliable != 0 ? (int)br.ReadInt(MAX_CHSEQUENCE) : -1;
                 int pInit = 0, pFin = 0;
                 if (bPartial != 0)
                 {
@@ -232,7 +226,7 @@ namespace ACRLiveTiming.Decode
                 {
                     ch = (int)chindex, open = bOpen, close = bClose, exports = bHasExports,
                     mustmap = bHasMustMapped, partial = bPartial, pinit = pInit,
-                    pfin = pFin, chname = chname, pstart = pstart, nbits = (int)nbits
+                    pfin = pFin, seq = seq, chname = chname, pstart = pstart, nbits = (int)nbits
                 });
                 br.pos = pstart + (int)nbits;
             }
@@ -320,117 +314,6 @@ namespace ACRLiveTiming.Decode
             return r;
         }
 
-        // ---- player identity (steamid+pseudo) in a PlayerState bunch -----------
-
-        // The identity block replicates as two consecutive FStrings:
-        // "<steamid64>_+_|<32-hex EOS puid>" then the EOS display name. The marker
-        // "_+_|" preceded by >=6 digits and followed by exactly 32 hex + NUL + a sane
-        // FString length prefix cannot occur by chance, so a hit is a certain bind.
-        // Scanned at all 8 bit shifts (the block usually lands mid-bitstream). The
-        // display-name FString is parsed properly (ANSI or UTF-16), so exotic
-        // pseudonyms (accents, CJK) come out intact — unlike an ASCII token scan.
-        static PlayerIdentity? IdentIn(byte[] seg)
-        {
-            for (int sh = 0; sh < 8; sh++)
-            {
-                var d = sh == 0 ? seg : Primitives.Shr(seg, sh);
-                for (int i = 6; i + 40 < d.Length; i++)
-                {
-                    if (d[i] != (byte)'_' || d[i + 1] != (byte)'+' || d[i + 2] != (byte)'_' || d[i + 3] != (byte)'|')
-                        continue;
-                    int j = i;                               // backtrack the steamid digits
-                    while (j > 0 && d[j - 1] >= (byte)'0' && d[j - 1] <= (byte)'9') j--;
-                    if (i - j < 6) continue;
-                    int h = i + 4;                           // 32 hex chars then NUL
-                    if (h + 33 > d.Length) continue;
-                    bool okHex = true;
-                    for (int k = 0; k < 32 && okHex; k++)
-                    {
-                        byte c = d[h + k];
-                        okHex = (c >= (byte)'0' && c <= (byte)'9') || (c >= (byte)'a' && c <= (byte)'f');
-                    }
-                    if (!okHex || d[h + 32] != 0) continue;
-                    // the display-name FString follows the id, separated by a small
-                    // tag (1 byte observed) — probe a short window rather than assume
-                    // byte-adjacency; ReadFStringAt is strict enough to reject junk
-                    for (int o = 0; o <= 8; o++)
-                    {
-                        var name = ReadFStringAt(d, h + 33 + o);
-                        if (name != null)
-                            return new PlayerIdentity(
-                                Encoding.ASCII.GetString(d, j, i - j),
-                                Encoding.ASCII.GetString(d, h, 32),
-                                name);
-                    }
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Earliest valid player-name FString in a content block, across the 8 bit
-        /// shifts (ANSI or UTF-16). Used on the ACTOR-level block of a
-        /// BC_RaceParticipant channel, whose only string property is the participant
-        /// ID FName — which IS the player's display name. Guards: blocks bigger than
-        /// ~96 bytes are NOT the participant actor block (a stale channel→actor
-        /// binding can mis-route a big roster/GameState block here), and nation /
-        /// car / tyre vocabulary tokens are never IDs (they'd bind a crew default
-        /// like "Lebertre" or a nation as a driver).
-        /// </summary>
-        public static string? FirstPlayerNameIn(byte[] seg)
-        {
-            if (seg.Length > 96) return null;
-            string? best = null;
-            int bestPos = int.MaxValue;
-            for (int sh = 0; sh < 8; sh++)
-            {
-                var d = sh == 0 ? seg : Primitives.Shr(seg, sh);
-                for (int i = 0; i + 6 < d.Length && i * 8 + sh < bestPos; i++)
-                {
-                    var s = ReadFStringAt(d, i);
-                    if (s == null || !Names.IsPlayerName(s)) continue;
-                    if (Nations.Contains(s) || TyreRe.IsMatch(s) || IsCarId(s)) continue;
-                    int pos = i * 8 + sh;
-                    if (pos < bestPos) { bestPos = pos; best = s; }
-                }
-            }
-            return best;
-        }
-
-        // Read one wire FString at a byte offset: int32 len; len>0 = ANSI (len bytes
-        // incl NUL), len<0 = UTF-16LE (-len chars incl NUL). Null on any malformation.
-        static string? ReadFStringAt(byte[] d, int off)
-        {
-            if (off + 4 > d.Length) return null;
-            int len = d[off] | (d[off + 1] << 8) | (d[off + 2] << 16) | (d[off + 3] << 24);
-            int p = off + 4;
-            if (len > 1 && len <= 64)
-            {
-                if (p + len > d.Length || d[p + len - 1] != 0) return null;
-                var sb = new StringBuilder(len - 1);
-                for (int k = 0; k < len - 1; k++)
-                {
-                    if (d[p + k] < 0x20 || d[p + k] >= 0x7f) return null;
-                    sb.Append((char)d[p + k]);
-                }
-                return sb.Length >= 2 ? sb.ToString() : null;
-            }
-            if (len < -1 && len >= -64)
-            {
-                int n = -len;
-                if (p + 2 * n > d.Length || d[p + 2 * n - 2] != 0 || d[p + 2 * n - 1] != 0) return null;
-                var sb = new StringBuilder(n - 1);
-                for (int k = 0; k < n - 1; k++)
-                {
-                    int c = d[p + 2 * k] | (d[p + 2 * k + 1] << 8);
-                    if (c < 0x20) return null;
-                    sb.Append((char)c);
-                }
-                return sb.Length >= 2 ? sb.ToString() : null;
-            }
-            return null;
-        }
-
         sealed class Pending { public required Rec First; public required List<byte> Bits; }
 
         /// <summary>
@@ -462,30 +345,25 @@ namespace ACRLiveTiming.Decode
             }
 
             readonly Dictionary<int, Pending> _pending = new();
+            readonly Dictionary<int, int> _lastSeq = new();           // channel -> last reliable ChSequence seen
             int _partialBits = PartialBitsUe54;                       // bunch-header layout in use
             int _altWins;                                             // consecutive packets tiling only under the other layout
             readonly Dictionary<long, string> _fresh = new();         // this packet's exports
             readonly Dictionary<long, long> _freshOuter = new();      // this packet's outer links
             readonly Dictionary<int, long> _chActor = new();          // channel -> actor guid (from open bunches)
-            readonly HashSet<long> _psActors = new();                 // actors archetyped BC_RacePlayerState
-            readonly Dictionary<long, PlayerIdentity> _identities = new(); // last identity seen per ps actor
             public Dictionary<long, string> Guids { get; } = new();   // NetGUID -> path
 
-            /// <summary>Actors archetyped BC_RaceParticipant — ONE per player, created
-            /// at join and PERSISTENT across stages (unlike the per-stage PlayerState).
-            /// Its actor-level block carries the participant ID (= the player's display
-            /// name, an FName string) and its RaceParticipantData component carries
-            /// nation / car / crew — flag+car at JOIN, no lap time needed.</summary>
-            public HashSet<long> ParticipantActors { get; } = new();
+            /// <summary>Actor NetGUID -> archetype path exported with its spawn
+            /// ("Default__BC_RaceGameState_C"): names the actor's class, so its
+            /// actor-level property blocks can be decoded against a layout.</summary>
+            public Dictionary<long, string> ActorArchetypes { get; } = new();
 
-            /// <summary>Player identities resolved by the LAST <see cref="Feed"/> call:
-            /// (PlayerState actor guid, stable account identifiers and EOS display name), from the steamid+pseudo
-            /// identity block on the actor's own channel. The PlayerState actor is the
-            /// OUTER of the per-player data components (RaceStateData etc, see
-            /// <see cref="Outers"/>), and it is respawned per stage with the identity
-            /// re-replicated in its open bunch — so every stage's fresh actors are
-            /// re-identified at spawn, BEFORE the start. Consume before the next Feed.</summary>
-            public List<(long actor, PlayerIdentity identity)> NewIdents { get; } = new();
+            /// <summary>Actors whose channel opened in the LAST Feed: (actor guid,
+            /// archetype guid, archetype path if known). Consume before the next Feed.</summary>
+            public List<(long actor, long archetype, string? path)> OpenedActors { get; } = new();
+
+            /// <summary>Diagnostic hook: one line per reassembly decision (null = off).</summary>
+            public Action<string>? Trace { get; set; }
 
             /// <summary>NetGUID -> outer NetGUID, from the export chain. Two subobjects
             /// with the same outer belong to the same actor (e.g. a player's
@@ -502,7 +380,7 @@ namespace ACRLiveTiming.Decode
             public List<ContentBlock> Feed(byte[] pl)
             {
                 NewGuids.Clear();
-                NewIdents.Clear();
+                OpenedActors.Clear();
                 var outl = new List<ContentBlock>();
                 if (pl.Length < 12) return outl;
                 _fresh.Clear();
@@ -516,6 +394,19 @@ namespace ACRLiveTiming.Decode
                     foreach (var rec in ParsePacket(pl, ref _partialBits, ref _altWins))
                     {
                         int ch = rec.ch;
+                        // A reliable bunch the server retransmitted (its ack was lost) is
+                        // seen twice by a passive capture; the receiver keeps one copy by
+                        // ChSequence — so must the reassembly, or the content doubles up.
+                        if (rec.seq >= 0)
+                        {
+                            if (_lastSeq.TryGetValue(ch, out var last) && rec.seq == last)
+                            {
+                                Trace?.Invoke($"ch{ch} seq{rec.seq} duplicate dropped");
+                                continue;
+                            }
+                            _lastSeq[ch] = rec.seq;
+                        }
+                        Trace?.Invoke($"ch{ch} seq{rec.seq} open={rec.open} close={rec.close} exp={rec.exports} part={rec.partial}/{rec.pinit}{rec.pfin} nbits={rec.nbits}");
                         List<byte>? bits = PullBits(pl, rec.pstart, rec.nbits);
                         if (rec.exports != 0)
                         {
@@ -541,7 +432,17 @@ namespace ACRLiveTiming.Decode
                         }
                         else
                         {
-                            if (rec.pinit != 0)
+                            // UE 5.5+ splits a big bunch into an exports-only partial run and a
+                            // content run that starts with its OWN bPartialInitial: a second
+                            // initial on a channel whose pending run holds no content yet
+                            // continues that run (keeping the open/must-map flags of the first).
+                            if (rec.pinit != 0 && _pending.TryGetValue(ch, out var run) && run.Bits.Count == 0)
+                            {
+                                run.First.open |= rec.open;
+                                run.First.mustmap |= rec.mustmap;
+                                run.Bits.AddRange(bits);
+                            }
+                            else if (rec.pinit != 0)
                                 _pending[ch] = new Pending { First = rec, Bits = bits };
                             else if (_pending.TryGetValue(ch, out var p))
                                 p.Bits.AddRange(bits);
@@ -554,7 +455,7 @@ namespace ACRLiveTiming.Decode
                         }
                         // a closed channel index is reused for a different actor later —
                         // drop the binding so a stale actor can't claim the next tenant
-                        if (rec.close != 0) { _chActor.Remove(ch); _pending.Remove(ch); }
+                        if (rec.close != 0) { _chActor.Remove(ch); _pending.Remove(ch); _lastSeq.Remove(ch); }
                     }
                 }
                 finally { _guidCapture = prev; _outerCapture = prevOuter; }
@@ -596,12 +497,13 @@ namespace ACRLiveTiming.Decode
                         // or in an earlier packet (Guids); it names the actor's class
                         string? ap = _fresh.TryGetValue(arch, out var p0) ? p0
                                    : Guids.TryGetValue(arch, out var p1) ? p1 : null;
-                        if (ap != null && ap.Contains("RacePlayerState")) _psActors.Add(a);
-                        else if (ap != null && ap.Contains("BC_RaceParticipant")) ParticipantActors.Add(a);
+                        if (ap != null) ActorArchetypes[a] = ap;
+                        OpenedActors.Add((a, arch, ap));
                         if (!ReadSpawnTransform(br)) bail = true;
                     }
-                    else if (a != 0) _chActor[first.ch] = a;
+                    else if (a != 0) { _chActor[first.ch] = a; OpenedActors.Add((a, 0, null)); }
                 }
+                Trace?.Invoke($"handle ch{first.ch} open={first.open} bits={total} err={br.err} bail={bail} actor={_chActor.GetValueOrDefault(first.ch)}");
                 if (!br.err && !bail)
                 {
                     long bunchActor = _chActor.GetValueOrDefault(first.ch);
@@ -614,270 +516,7 @@ namespace ACRLiveTiming.Decode
                             npb,
                             hasRepLayout);
                 }
-
-                // identity scan on an actor's channel — the identity block replicates in
-                // the actor's OPEN bunch (respawned each stage), so this usually hits
-                // exactly once per actor, at spawn. NOT gated on the BC_RacePlayerState
-                // archetype tag: a game update can stop exporting that archetype path
-                // (seen 2026-07-11: the class GUID no longer resolves, _psActors stays
-                // empty) while the identity block itself is unchanged in the stream — so
-                // gate on the OPEN bunch (cheap, once per actor) OR the archetype tag when
-                // it IS available. Once an actor is identified, scan its later bunches
-                // too: a changed pseudo replicates there with the same account IDs.
-                // IdentIn's marker is a certain bind (near-zero false positives), and a
-                // hit on a non-player actor never binds downstream (only RaceStateData
-                // outers are named), so scanning every open is safe.
-                if (_chActor.TryGetValue(first.ch, out var owner)
-                    && (first.open != 0 || _psActors.Contains(owner) || _identities.ContainsKey(owner)))
-                {
-                    var identity = IdentIn(merged);
-                    if (identity != null
-                        && (!_identities.TryGetValue(owner, out var current) || current != identity.Value))
-                    {
-                        _identities[owner] = identity.Value;
-                        NewIdents.Add((owner, identity.Value));
-                    }
-                }
             }
-        }
-
-        // ---- nation + car extraction -----------------------------------------
-
-        // The COMPLETE game nationality vocabulary, extracted from the ACR asset names
-        // `/Game/Data/UITextures/NationalityFlags/T_<Country>` in the UE4SS object dump —
-        // the game's own list, so no country is missed and spellings match the wire
-        // (including the game's own typos: "Irleand", "Zimbawe", "Kazakhastan", "Camerun").
-        // "Other" is the game's unknown-nationality value. This is a CLASSIFIER (tells a
-        // nationality FName apart from a name/place token in the byte stream), not a label
-        // map. Regenerate with: grep -oE 'NationalityFlags/T_[A-Za-z]+' dump | sed 's|.*T_||'
-        static readonly HashSet<string> Nations = new()
-        {
-            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "AntiguaAndBarbuda",
-            "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
-            "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bolivia",
-            "BosniaHerzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "BurkinaFaso",
-            "Burundi", "Cambodia", "Camerun", "Canada", "CapoVerde", "CentralAfricanRepublic",
-            "Chad", "Chile", "China", "Colombia", "Comoros", "CostaRica", "Croatia", "Cuba",
-            "Cyprus", "CzechRepublic", "DemocraticRepublicOfCongo", "Denmark", "Djibouti",
-            "Dominica", "DominicanRepublic", "Ecuador", "Egypt", "ElSalvador", "EquatorialGuinea",
-            "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon",
-            "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea",
-            "GuineaBissau", "Guyana", "Haiti", "Honduras", "HongKong", "Hungary", "Iceland",
-            "India", "Indonesia", "Iran", "Iraq", "Irleand", "Israel", "Italy", "Jamaica", "Japan",
-            "Jordan", "Kazakhastan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia",
-            "Lebanon", "Lesotho", "Liberia", "Libya", "Lichtenstein", "Lithuania", "Luxembourg",
-            "Macau", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania",
-            "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro",
-            "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands",
-            "NewZealand", "Nicaragua", "Niger", "Nigeria", "NorthKorea", "NorthMacedonia", "Norway",
-            "Oman", "Other", "Pakistan", "Palau", "Panama", "PapaNewGuinea", "Paraguay", "Peru",
-            "Philippines", "Poland", "Portugal", "Qatar", "RepublicOfCongo", "Romania", "Russia",
-            "Rwanda", "SaintKittsAndNevis", "SaintLucia", "SaintVincentAndGrenadines", "Samoa",
-            "SanMarino", "SaoTomeAndPrincipe", "SaudiArabia", "Senegal", "Serbia", "Seychelles",
-            "SierraLeone", "Singapore", "Slovakia", "Slovenia", "SolomonIslands", "Somalia",
-            "SouthAfrica", "SouthKorea", "SouthSudan", "Spain", "SriLanka", "Sudan", "Suriname",
-            "Sweden", "Switzerland", "Syria", "TaipeiChina", "Tajikistan", "Tanzania", "Thailand",
-            "TimorLeste", "Togo", "Tonga", "TrinidadAndTobago", "Tunisia", "Turkey", "Turkmenistan",
-            "Tuvalu", "Uganda", "Ukraine", "UnitedArabEmirates", "UnitedKingdom", "UnitedStates",
-            "Uruguay", "Uzbekistan", "Vanuatu", "Vatican", "Venezuela", "Vietnam", "Wales", "Yemen",
-            "Zambia", "Zimbawe",
-        };
-
-        /// <summary>True for one of the game's nationality FNames. Result blocks also
-        /// contain these strings; callers which expose a name before the complete
-        /// result is available must exclude them explicitly.</summary>
-        public static bool IsNation(string value) => Nations.Contains(value);
-
-        // car model token: a multi-word CamelCase name (a first Capitalised word — or a
-        // short all-caps make such as "VW" — then at least one more Upper/digit-led
-        // chunk): SkodaFabiaRSRally2, CitroenXsaraWRC, Peugeot306IIMaxiKitCar,
-        // VWPoloGTIR5. The embedded content catalog recognises every shipped CarId
-        // outright; this shape is the fallback for a car added after the catalog was
-        // generated. A len>=10 guard rejects short CamelCase bit-shift noise / name tokens.
-        static readonly Regex CarRe = new(
-            @"^[A-Z]{1,3}[a-z]+(?:[A-Z0-9][A-Za-z0-9]*)+$", RegexOptions.Compiled);
-
-        // tyre compound FNames (GravelSoft, TarmacHard, …) are CamelCase too and sit in
-        // the SAME participant component (TiresAllocation) as the CarId — and tyre
-        // changes re-replicate often, so without this guard they'd out-vote the car.
-        // No car brand starts with a surface word.
-        static readonly Regex TyreRe = new(
-            @"^(Gravel|Tarmac|Snow|Wet|Ice|Asphalt|Mud)", RegexOptions.Compiled);
-
-        /// <summary>True for a wire CarId token. Kept alongside <see cref="MarksIn"/>
-        /// so structural result parsing and the byte-level nation/car join apply the
-        /// same classifier and tyre exclusion.</summary>
-        public static bool IsCarId(string value)
-            => ContentCatalog.IsKnownCar(value)
-               || (value.Length >= 10 && CarRe.IsMatch(value) && !TyreRe.IsMatch(value));
-
-        /// <summary>
-        /// Replicated-property handle in front of an FName token found by
-        /// <see cref="MarksIn"/>. An FName property replicates as
-        /// <c>&lt;packed handle&gt; &lt;bit 0: not hardcoded&gt; &lt;int32 len&gt; &lt;chars&gt; NUL
-        /// &lt;int32 number&gt;</c>; read in the alignment where the string is byte-aligned,
-        /// that single bit shifts the packed handle (handle*2) back to the plain handle
-        /// value, so the byte before the length prefix IS the handle. The trailing
-        /// number (zero for these names) tells an FName apart from an FString property
-        /// (no hardcoded bit, no number: "Other" under PlayerCountryId would otherwise
-        /// read as handle 6 as well). -1 when the bytes around the token do not have
-        /// this shape.
-        /// </summary>
-        public static int HandleBefore(byte[] seg, int bitPos, string token)
-        {
-            int sh = bitPos & 7, i = bitPos >> 3, end = i + token.Length;
-            if (i < 5 || end + 5 > seg.Length) return -1;
-            var d = sh == 0 ? seg : Primitives.Shr(seg, sh);
-            int len = d[i - 4] | (d[i - 3] << 8) | (d[i - 2] << 16) | (d[i - 1] << 24);
-            if (len != token.Length + 1) return -1;
-            for (int k = 0; k < 5; k++) if (d[end + k] != 0) return -1;   // NUL + number 0
-            return d[i - 5];
-        }
-
-        static IEnumerable<(int start, string text)> Tokens(byte[] d)
-        {
-            int i = 0, n = d.Length;
-            while (i < n)
-            {
-                if (d[i] >= 0x20 && d[i] < 0x7f)
-                {
-                    int j = i;
-                    while (j < n && d[j] >= 0x20 && d[j] < 0x7f) j++;
-                    if (j - i >= 2)
-                    {
-                        var sb = new StringBuilder(j - i);
-                        for (int k = i; k < j; k++) sb.Append((char)d[k]);
-                        yield return (i, sb.ToString());
-                    }
-                    i = j;
-                }
-                else i++;
-            }
-        }
-
-        static void Bump(Dictionary<string, int> c, string k)
-            => c[k] = c.TryGetValue(k, out var v) ? v + 1 : 1;
-
-        static string? Top(Dictionary<string, int> c)
-            => c.Count == 0 ? null : c.OrderByDescending(kv => kv.Value).First().Key;
-
-        /// <summary>
-        /// Car / nation token marks in a content block, across all 8 bit-shifts,
-        /// positions in absolute BITS, sorted ascending. A block with no marks is
-        /// uninteresting for the nation/car join.
-        /// </summary>
-        public static (List<(int a, string t)> cars, List<(int a, string t)> nations) MarksIn(byte[] seg)
-        {
-            var cmarks = new List<(int a, string t)>();
-            var nmarks = new List<(int a, string t)>();
-            for (int shn = 0; shn < 8; shn++)
-            {
-                var d = shn == 0 ? seg : Primitives.Shr(seg, shn);
-                foreach (var (st, t) in Tokens(d))
-                {
-                    int ab = st * 8 + shn;
-                    if (Nations.Contains(t)) nmarks.Add((ab, t));
-                    else if (IsCarId(t))
-                    {
-                        // strip a trailing Set* suffix; a token STARTING with "Set"
-                        // (e.g. SetupGravelDefault) would leave "" — an empty mark
-                        // positioned early would win the join vote, skip it
-                        var car = t.Split("Set")[0];
-                        if (car.Length >= 2) cmarks.Add((ab, car));
-                    }
-                }
-            }
-            cmarks.Sort((x, y) => x.a.CompareTo(y.a));
-            nmarks.Sort((x, y) => x.a.CompareTo(y.a));
-            return (cmarks, nmarks);
-        }
-
-        /// <summary>
-        /// Match a block's marks against the time->pseudo map and vote. Shared by the
-        /// batch extractor and the streaming tracker so the join logic can't drift.
-        /// </summary>
-        public static void JoinBlock(
-            byte[] seg,
-            List<(int a, string t)> cmarks, List<(int a, string t)> nmarks,
-            Dictionary<uint, string> pats,
-            HashSet<string> driverNames,
-            Dictionary<string, Dictionary<string, int>> joinNat,
-            Dictionary<string, Dictionary<string, int>> joinCar)
-        {
-            for (int shn = 0; shn < 8; shn++)
-            {
-                var d = shn == 0 ? seg : Primitives.Shr(seg, shn);
-                for (int i = 0; i < d.Length - 3; i++)
-                {
-                    uint key = (uint)(d[i] | (d[i + 1] << 8) | (d[i + 2] << 16) | (d[i + 3] << 24));
-                    if (!pats.TryGetValue(key, out var nm)) continue;
-                    int pos = i * 8 + shn;
-
-                    // the first CarId token after the time — a catalog-listed car wins
-                    // over a merely car-shaped token anywhere in the window, and a token
-                    // that is a driver's pseudonym (a CamelCase name such as
-                    // "FlorentDChamps" passes the shape test) is never a car
-                    int carpos = pos;
-                    string? car = null;
-                    foreach (var (a, t) in cmarks)
-                    {
-                        if (a - pos < -40 || a - pos >= 800 || driverNames.Contains(t)) continue;
-                        bool known = ContentCatalog.IsKnownCar(t);
-                        if (car == null || known) { car = t; carpos = a; }
-                        if (known) break;
-                    }
-
-                    // Nation is bound ONLY through the driver's OWN participant element,
-                    // anchored by the car token next to their time float. Without a car
-                    // anchor the float is a bare coincidence inside a results-summary
-                    // block (every driver's cumulative times land there) — searching for
-                    // a nation from that position bleeds in a NEIGHBOUR's flag. So no
-                    // car => no nation vote (a driver whose nationality never replicated
-                    // stays unknown rather than being painted with someone else's flag).
-                    if (car == null) continue;
-
-                    if (!joinCar.TryGetValue(nm, out var cc)) joinCar[nm] = cc = new();
-                    Bump(cc, car);
-
-                    // Driver.Nationality is the FIRST nation after the car — but the
-                    // Name/Surname fields sit between them, and for exotic (UTF-16)
-                    // pseudonyms those are twice as long, pushing the nation far out.
-                    // So bound the search by the NEXT car token (= next driver's
-                    // element) instead of a fixed width: adapts to element length,
-                    // still can't bleed into the next driver. Capped at 1800 bits.
-                    int nextCar = carpos + 1800;
-                    foreach (var (a, _) in cmarks)
-                        if (a > carpos + 20) { nextCar = a; break; }   // cmarks sorted asc
-                    int bound = Math.Min(nextCar, carpos + 1800);
-                    string? nat = null;
-                    foreach (var (a, t) in nmarks)
-                        if (carpos - 20 <= a && a < bound) { nat = t; break; }
-
-                    if (nat != null)
-                    {
-                        if (!joinNat.TryGetValue(nm, out var nc)) joinNat[nm] = nc = new();
-                        Bump(nc, nat);
-                    }
-                }
-            }
-        }
-
-        /// <summary>Majority vote per driver -> (nation, car); drivers with no votes omitted.</summary>
-        public static Dictionary<string, (string? nation, string? car)> ResolveVotes(
-            IEnumerable<string> drivers,
-            Dictionary<string, Dictionary<string, int>> joinNat,
-            Dictionary<string, Dictionary<string, int>> joinCar)
-        {
-            var result = new Dictionary<string, (string?, string?)>();
-            foreach (var nm in drivers)
-            {
-                joinNat.TryGetValue(nm, out var nc);
-                joinCar.TryGetValue(nm, out var cc);
-                string? nation = nc != null ? Top(nc) : null;
-                string? car = cc != null ? Top(cc) : null;
-                if (nation != null || car != null) result[nm] = (nation, car);
-            }
-            return result;
         }
     }
 }
