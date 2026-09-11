@@ -80,6 +80,1461 @@
       ]
     }
   ],
+  "countries": [
+    {
+      "id": "Afghanistan",
+      "name": "Afghanistan",
+      "iso": "af",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Albania",
+      "name": "Albania",
+      "iso": "al",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Algeria",
+      "name": "Algeria",
+      "iso": "dz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Andorra",
+      "name": "Andorra",
+      "iso": "ad",
+      "aliases": [
+        "AndOrra"
+      ],
+      "available": true
+    },
+    {
+      "id": "Angola",
+      "name": "Angola",
+      "iso": "ao",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "AntiguaAndBarbuda",
+      "name": "Antigua and Barbuda",
+      "iso": "ag",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Argentina",
+      "name": "Argentina",
+      "iso": "ar",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Armenia",
+      "name": "Armenia",
+      "iso": "am",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Australia",
+      "name": "Australia",
+      "iso": "au",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Austria",
+      "name": "Austria",
+      "iso": "at",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Azerbaijan",
+      "name": "Azerbaijan",
+      "iso": "az",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Bahamas",
+      "name": "The Bahamas",
+      "iso": "bs",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Bahrain",
+      "name": "Bahrain",
+      "iso": "bh",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Bangladesh",
+      "name": "Bangladesh",
+      "iso": "bd",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Barbados",
+      "name": "Barbados",
+      "iso": "bb",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Belarus",
+      "name": "Belarus",
+      "iso": "by",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Belgium",
+      "name": "Belgium",
+      "iso": "be",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Belize",
+      "name": "Belize",
+      "iso": "bz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Benin",
+      "name": "Benin",
+      "iso": "bj",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Bolivia",
+      "name": "Bolivia",
+      "iso": "bo",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "BosniaAndHerzegovina",
+      "name": "Bosnia and Herzegovina",
+      "iso": "ba",
+      "aliases": [
+        "BosniaHerzegovina"
+      ],
+      "available": true
+    },
+    {
+      "id": "Botswana",
+      "name": "Botswana",
+      "iso": "bw",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Brazil",
+      "name": "Brazil",
+      "iso": "br",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Brunei",
+      "name": "Brunei",
+      "iso": "bn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Bulgaria",
+      "name": "Bulgaria",
+      "iso": "bg",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Burkinafaso",
+      "name": "Burkina Faso",
+      "iso": "bf",
+      "aliases": [
+        "BurkinaFaso"
+      ],
+      "available": true
+    },
+    {
+      "id": "Burundi",
+      "name": "Burundi",
+      "iso": "bi",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "CaboVerde",
+      "name": "Cabo Verde",
+      "iso": "cv",
+      "aliases": [
+        "CapoVerde"
+      ],
+      "available": true
+    },
+    {
+      "id": "Cambodia",
+      "name": "Cambodia",
+      "iso": "kh",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Cameroon",
+      "name": "Cameroon",
+      "iso": "cm",
+      "aliases": [
+        "Camerun"
+      ],
+      "available": true
+    },
+    {
+      "id": "Canada",
+      "name": "Canada",
+      "iso": "ca",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "CentralAfricanRepublic",
+      "name": "Central African Republic",
+      "iso": "cf",
+      "aliases": [
+        "CentralafricanRepublic"
+      ],
+      "available": true
+    },
+    {
+      "id": "Chad",
+      "name": "Chad",
+      "iso": "td",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Chile",
+      "name": "Chile",
+      "iso": "cl",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "China",
+      "name": "China",
+      "iso": "cn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Colombia",
+      "name": "Colombia",
+      "iso": "co",
+      "aliases": [
+        "colombia"
+      ],
+      "available": true
+    },
+    {
+      "id": "Comoros",
+      "name": "Comoros",
+      "iso": "km",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Costarica",
+      "name": "Costa Rica",
+      "iso": "cr",
+      "aliases": [
+        "CostaRica"
+      ],
+      "available": true
+    },
+    {
+      "id": "CoteDivoire",
+      "name": "Côte d’Ivoire",
+      "iso": "ci",
+      "aliases": [
+        "CôteIvoire"
+      ],
+      "available": true
+    },
+    {
+      "id": "Croatia",
+      "name": "Croatia",
+      "iso": "hr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Cuba",
+      "name": "Cuba",
+      "iso": "cu",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Cyprus",
+      "name": "Cyprus",
+      "iso": "cy",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "CzechRepublic",
+      "name": "Czech Republic",
+      "iso": "cz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "DemocraticRepublicOfTheCongo",
+      "name": "Democratic Republic of the Congo",
+      "iso": "cd",
+      "aliases": [
+        "DemocraticRepublicOfCongo"
+      ],
+      "available": true
+    },
+    {
+      "id": "Denmark",
+      "name": "Denmark",
+      "iso": "dk",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Djibouti",
+      "name": "Djibouti",
+      "iso": "dj",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Dominica",
+      "name": "Dominica",
+      "iso": "dm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "DominicanRepublic",
+      "name": "Dominican Republic",
+      "iso": "do",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "EastTimor",
+      "name": "East Timor (Timor-Leste)",
+      "iso": "tl",
+      "aliases": [
+        "TimorLeste"
+      ],
+      "available": true
+    },
+    {
+      "id": "Ecuador",
+      "name": "Ecuador",
+      "iso": "ec",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Egypt",
+      "name": "Egypt",
+      "iso": "eg",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Elsalvador",
+      "name": "El Salvador",
+      "iso": "sv",
+      "aliases": [
+        "ElSalvador"
+      ],
+      "available": true
+    },
+    {
+      "id": "EquatorialGuinea",
+      "name": "Equatorial Guinea",
+      "iso": "gq",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Eritrea",
+      "name": "Eritrea",
+      "iso": "er",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Estonia",
+      "name": "Estonia",
+      "iso": "ee",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Eswatini",
+      "name": "Eswatini",
+      "iso": "sz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Ethiopia",
+      "name": "Ethiopia",
+      "iso": "et",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Fiji",
+      "name": "Fiji",
+      "iso": "fj",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "FinlAnd",
+      "name": "Finland",
+      "iso": "fi",
+      "aliases": [
+        "Finland"
+      ],
+      "available": true
+    },
+    {
+      "id": "France",
+      "name": "France",
+      "iso": "fr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Gabon",
+      "name": "Gabon",
+      "iso": "ga",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Gambia",
+      "name": "Gambia",
+      "iso": "gm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Georgia",
+      "name": "Georgia",
+      "iso": "ge",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Germany",
+      "name": "Germany",
+      "iso": "de",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Ghana",
+      "name": "Ghana",
+      "iso": "gh",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Greece",
+      "name": "Greece",
+      "iso": "gr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Grenada",
+      "name": "Grenada",
+      "iso": "gd",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Guatemala",
+      "name": "Guatemala",
+      "iso": "gt",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Guinea",
+      "name": "Guinea",
+      "iso": "gn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "GuineaBissau",
+      "name": "Guinea-Bissau",
+      "iso": "gw",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Guyana",
+      "name": "Guyana",
+      "iso": "gy",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Haiti",
+      "name": "Haiti",
+      "iso": "ht",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Honduras",
+      "name": "Honduras",
+      "iso": "hn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "HongKong",
+      "name": "Hong Kong, China",
+      "iso": "hk",
+      "aliases": [
+        "Hongkong"
+      ],
+      "available": true
+    },
+    {
+      "id": "Hungary",
+      "name": "Hungary",
+      "iso": "hu",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "IcelAnd",
+      "name": "Iceland",
+      "iso": "is",
+      "aliases": [
+        "Iceland"
+      ],
+      "available": true
+    },
+    {
+      "id": "India",
+      "name": "India",
+      "iso": "in",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Indonesia",
+      "name": "Indonesia",
+      "iso": "id",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Iran",
+      "name": "Iran",
+      "iso": "ir",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Iraq",
+      "name": "Iraq",
+      "iso": "iq",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "IrelAnd",
+      "name": "Ireland",
+      "iso": "ie",
+      "aliases": [
+        "Irleand"
+      ],
+      "available": true
+    },
+    {
+      "id": "Israel",
+      "name": "Israel",
+      "iso": "il",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Italy",
+      "name": "Italy",
+      "iso": "it",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Jamaica",
+      "name": "Jamaica",
+      "iso": "jm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Japan",
+      "name": "Japan",
+      "iso": "jp",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Jordan",
+      "name": "Jordan",
+      "iso": "jo",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Kazakhstan",
+      "name": "Kazakhstan",
+      "iso": "kz",
+      "aliases": [
+        "Kazakhastan"
+      ],
+      "available": true
+    },
+    {
+      "id": "Kenya",
+      "name": "Kenya",
+      "iso": "ke",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Kiribati",
+      "name": "Kiribati",
+      "iso": "ki",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Kuwait",
+      "name": "Kuwait",
+      "iso": "kw",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Kyrgyzstan",
+      "name": "Kyrgyzstan",
+      "iso": "kg",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Laos",
+      "name": "Laos",
+      "iso": "la",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Latvia",
+      "name": "Latvia",
+      "iso": "lv",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Lebanon",
+      "name": "Lebanon",
+      "iso": "lb",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Lesotho",
+      "name": "Lesotho",
+      "iso": "ls",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Liberia",
+      "name": "Liberia",
+      "iso": "lr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Libya",
+      "name": "Libya",
+      "iso": "ly",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Liechtenstein",
+      "name": "Liechtenstein",
+      "iso": "li",
+      "aliases": [
+        "Lichtenstein"
+      ],
+      "available": true
+    },
+    {
+      "id": "Lithuania",
+      "name": "Lithuania",
+      "iso": "lt",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Luxembourg",
+      "name": "Luxembourg",
+      "iso": "lu",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Macau",
+      "name": "Macau, China",
+      "iso": "mo",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Madagascar",
+      "name": "Madagascar",
+      "iso": "mg",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Malawi",
+      "name": "Malawi",
+      "iso": "mw",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Malaysia",
+      "name": "Malaysia",
+      "iso": "my",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Maldives",
+      "name": "Maldives",
+      "iso": "mv",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Mali",
+      "name": "Mali",
+      "iso": "ml",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Malta",
+      "name": "Malta",
+      "iso": "mt",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Mauritania",
+      "name": "Mauritania",
+      "iso": "mr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Mauritius",
+      "name": "Mauritius",
+      "iso": "mu",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Mexico",
+      "name": "Mexico",
+      "iso": "mx",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Micronesia",
+      "name": "Micronesia",
+      "iso": "fm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Moldova",
+      "name": "Moldova",
+      "iso": "md",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Monaco",
+      "name": "Monaco",
+      "iso": "mc",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Mongolia",
+      "name": "Mongolia",
+      "iso": "mn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Montenegro",
+      "name": "Montenegro",
+      "iso": "me",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Morocco",
+      "name": "Morocco",
+      "iso": "ma",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Mozambique",
+      "name": "Mozambique",
+      "iso": "mz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Myanmar",
+      "name": "Myanmar (Burma)",
+      "iso": "mm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Namibia",
+      "name": "Namibia",
+      "iso": "na",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Nauru",
+      "name": "Nauru",
+      "iso": "nr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Nepal",
+      "name": "Nepal",
+      "iso": "np",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Netherlands",
+      "name": "Netherlands",
+      "iso": "nl",
+      "aliases": [
+        "NetherlAndS"
+      ],
+      "available": true
+    },
+    {
+      "id": "NewZealand",
+      "name": "New Zealand",
+      "iso": "nz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Nicaragua",
+      "name": "Nicaragua",
+      "iso": "ni",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Niger",
+      "name": "Niger",
+      "iso": "ne",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Nigeria",
+      "name": "Nigeria",
+      "iso": "ng",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "NorthKorea",
+      "name": "Korea, North",
+      "iso": "kp",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "NorthMacedonia",
+      "name": "North Macedonia",
+      "iso": "mk",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Norway",
+      "name": "Norway",
+      "iso": "no",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Oman",
+      "name": "Oman",
+      "iso": "om",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Other",
+      "name": "Other",
+      "iso": null,
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Pakistan",
+      "name": "Pakistan",
+      "iso": "pk",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Palau",
+      "name": "Palau",
+      "iso": "pw",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Panama",
+      "name": "Panama",
+      "iso": "pa",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "PapuaNewGuinea",
+      "name": "Papua New Guinea",
+      "iso": "pg",
+      "aliases": [
+        "PapaNewGuinea"
+      ],
+      "available": true
+    },
+    {
+      "id": "Paraguay",
+      "name": "Paraguay",
+      "iso": "py",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Peru",
+      "name": "Peru",
+      "iso": "pe",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Philippines",
+      "name": "Philippines",
+      "iso": "ph",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "PolAnd",
+      "name": "Poland",
+      "iso": "pl",
+      "aliases": [
+        "Poland"
+      ],
+      "available": true
+    },
+    {
+      "id": "Portugal",
+      "name": "Portugal",
+      "iso": "pt",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Qatar",
+      "name": "Qatar",
+      "iso": "qa",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "RepublicOfTheCongo",
+      "name": "Republic of the Congo",
+      "iso": "cg",
+      "aliases": [
+        "RepublicOfCongo"
+      ],
+      "available": true
+    },
+    {
+      "id": "Romania",
+      "name": "Romania",
+      "iso": "ro",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Russia",
+      "name": "Russia",
+      "iso": "ru",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Rwanda",
+      "name": "Rwanda",
+      "iso": "rw",
+      "aliases": [
+        "RwAndA"
+      ],
+      "available": true
+    },
+    {
+      "id": "SaintKittsAndNevis",
+      "name": "Saint Kitts and Nevis",
+      "iso": "kn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SaintLucia",
+      "name": "Saint Lucia",
+      "iso": "lc",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SaintVincentAndThegrenadines",
+      "name": "Saint Vincent and the Grenadines",
+      "iso": "vc",
+      "aliases": [
+        "SaintVincentAndGrenadines"
+      ],
+      "available": true
+    },
+    {
+      "id": "Samoa",
+      "name": "Samoa",
+      "iso": "ws",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Sanmarino",
+      "name": "San Marino",
+      "iso": "sm",
+      "aliases": [
+        "SanMarino"
+      ],
+      "available": true
+    },
+    {
+      "id": "SaotomeAndPrincipe",
+      "name": "São Tomé and Príncipe",
+      "iso": "st",
+      "aliases": [
+        "SaoTomeAndPrincipe"
+      ],
+      "available": true
+    },
+    {
+      "id": "SaudiArabia",
+      "name": "Saudi Arabia",
+      "iso": "sa",
+      "aliases": [
+        "Saudiarabia"
+      ],
+      "available": true
+    },
+    {
+      "id": "Senegal",
+      "name": "Senegal",
+      "iso": "sn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Serbia",
+      "name": "Serbia",
+      "iso": "rs",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Seychelles",
+      "name": "Seychelles",
+      "iso": "sc",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SierraLeone",
+      "name": "Sierra Leone",
+      "iso": "sl",
+      "aliases": [
+        "Sierraleone"
+      ],
+      "available": true
+    },
+    {
+      "id": "Singapore",
+      "name": "Singapore",
+      "iso": "sg",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Slovakia",
+      "name": "Slovakia",
+      "iso": "sk",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Slovenia",
+      "name": "Slovenia",
+      "iso": "si",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SolomonIslands",
+      "name": "Solomon Islands",
+      "iso": "sb",
+      "aliases": [
+        "SolomonislAndS"
+      ],
+      "available": true
+    },
+    {
+      "id": "Somalia",
+      "name": "Somalia",
+      "iso": "so",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SouthAfrica",
+      "name": "South Africa",
+      "iso": "za",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SouthKorea",
+      "name": "Korea, South",
+      "iso": "kr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "SouthSudan",
+      "name": "South Sudan",
+      "iso": "ss",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Spain",
+      "name": "Spain",
+      "iso": "es",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Srilanka",
+      "name": "Sri Lanka",
+      "iso": "lk",
+      "aliases": [
+        "SriLanka"
+      ],
+      "available": true
+    },
+    {
+      "id": "Sudan",
+      "name": "Sudan",
+      "iso": "sd",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Suriname",
+      "name": "Suriname",
+      "iso": "sr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Sweden",
+      "name": "Sweden",
+      "iso": "se",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Switzerland",
+      "name": "Switzerland",
+      "iso": "ch",
+      "aliases": [
+        "SwitzerlAnd"
+      ],
+      "available": true
+    },
+    {
+      "id": "Syria",
+      "name": "Syria",
+      "iso": "sy",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Taiwan",
+      "name": "Taiwan, China",
+      "iso": "tw",
+      "aliases": [
+        "TaipeiChina"
+      ],
+      "available": true
+    },
+    {
+      "id": "Tajikistan",
+      "name": "Tajikistan",
+      "iso": "tj",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Tanzania",
+      "name": "Tanzania",
+      "iso": "tz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "ThailAnd",
+      "name": "Thailand",
+      "iso": "th",
+      "aliases": [
+        "Thailand"
+      ],
+      "available": true
+    },
+    {
+      "id": "Togo",
+      "name": "Togo",
+      "iso": "tg",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Tonga",
+      "name": "Tonga",
+      "iso": "to",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "TrinidadAndTobago",
+      "name": "Trinidad and Tobago",
+      "iso": "tt",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Tunisia",
+      "name": "Tunisia",
+      "iso": "tn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Turkey",
+      "name": "Türkiye",
+      "iso": "tr",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Turkmenistan",
+      "name": "Turkmenistan",
+      "iso": "tm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Tuvalu",
+      "name": "Tuvalu",
+      "iso": "tv",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Uganda",
+      "name": "Uganda",
+      "iso": "ug",
+      "aliases": [
+        "UgAndA"
+      ],
+      "available": true
+    },
+    {
+      "id": "Ukraine",
+      "name": "Ukraine",
+      "iso": "ua",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "UnitedArabemirates",
+      "name": "United Arab Emirates",
+      "iso": "ae",
+      "aliases": [
+        "UnitedArabEmirates"
+      ],
+      "available": true
+    },
+    {
+      "id": "UnitedKingdom",
+      "name": "United Kingdom",
+      "iso": "gb",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "UnitedStates",
+      "name": "United States",
+      "iso": "us",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Uruguay",
+      "name": "Uruguay",
+      "iso": "uy",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Uzbekistan",
+      "name": "Uzbekistan",
+      "iso": "uz",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Vanuatu",
+      "name": "Vanuatu",
+      "iso": "vu",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Vaticancity",
+      "name": "Vatican City",
+      "iso": "va",
+      "aliases": [
+        "Vatican"
+      ],
+      "available": true
+    },
+    {
+      "id": "Venezuela",
+      "name": "Venezuela",
+      "iso": "ve",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Vietnam",
+      "name": "Vietnam",
+      "iso": "vn",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Wales",
+      "name": "Wales",
+      "iso": "gb-wls",
+      "aliases": [],
+      "available": false
+    },
+    {
+      "id": "Yemen",
+      "name": "Yemen",
+      "iso": "ye",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Zambia",
+      "name": "Zambia",
+      "iso": "zm",
+      "aliases": [],
+      "available": true
+    },
+    {
+      "id": "Zimbabwe",
+      "name": "Zimbabwe",
+      "iso": "zw",
+      "aliases": [
+        "Zimbawe"
+      ],
+      "available": true
+    }
+  ],
   "stages": [
     {
       "id": "AlsaceS2MunsterFullForward",

@@ -13,6 +13,64 @@ from typing import Any
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 
+# ISO 3166-1 alpha-2 code (or gb-* subdivision) of every DT_Countries row, keyed by
+# the row id exactly as the game spells it (its "lAnd" rows included); None for a row
+# that has no flag. The board loads flag images by this code, which the game data does
+# not carry (it only names its flag textures). Every row must be listed: the generator
+# fails otherwise, so a game update that adds or renames a country is caught when the
+# catalog is regenerated.
+COUNTRY_ISO: dict[str, str | None] = {
+    "Afghanistan": "af", "Albania": "al", "Algeria": "dz", "Andorra": "ad",
+    "Angola": "ao", "AntiguaAndBarbuda": "ag", "Argentina": "ar", "Armenia": "am",
+    "Australia": "au", "Austria": "at", "Azerbaijan": "az", "Bahamas": "bs",
+    "Bahrain": "bh", "Bangladesh": "bd", "Barbados": "bb", "Belarus": "by",
+    "Belgium": "be", "Belize": "bz", "Benin": "bj", "Bolivia": "bo",
+    "BosniaAndHerzegovina": "ba", "Botswana": "bw", "Brazil": "br", "Brunei": "bn",
+    "Bulgaria": "bg", "Burkinafaso": "bf", "Burundi": "bi", "CaboVerde": "cv",
+    "Cambodia": "kh", "Cameroon": "cm", "Canada": "ca", "CentralAfricanRepublic": "cf",
+    "Chad": "td", "Chile": "cl", "China": "cn", "Colombia": "co",
+    "Comoros": "km", "Costarica": "cr", "CoteDivoire": "ci", "Croatia": "hr",
+    "Cuba": "cu", "Cyprus": "cy", "CzechRepublic": "cz", "DemocraticRepublicOfTheCongo": "cd",
+    "Denmark": "dk", "Djibouti": "dj", "Dominica": "dm", "DominicanRepublic": "do",
+    "EastTimor": "tl", "Ecuador": "ec", "Egypt": "eg", "Elsalvador": "sv",
+    "EquatorialGuinea": "gq", "Eritrea": "er", "Estonia": "ee", "Eswatini": "sz",
+    "Ethiopia": "et", "Fiji": "fj", "FinlAnd": "fi", "France": "fr",
+    "Gabon": "ga", "Gambia": "gm", "Georgia": "ge", "Germany": "de",
+    "Ghana": "gh", "Greece": "gr", "Grenada": "gd", "Guatemala": "gt",
+    "Guinea": "gn", "GuineaBissau": "gw", "Guyana": "gy", "Haiti": "ht",
+    "Honduras": "hn", "HongKong": "hk", "Hungary": "hu", "IcelAnd": "is",
+    "India": "in", "Indonesia": "id", "Iran": "ir", "Iraq": "iq",
+    "IrelAnd": "ie", "Israel": "il", "Italy": "it", "Jamaica": "jm",
+    "Japan": "jp", "Jordan": "jo", "Kazakhstan": "kz", "Kenya": "ke",
+    "Kiribati": "ki", "Kuwait": "kw", "Kyrgyzstan": "kg", "Laos": "la",
+    "Latvia": "lv", "Lebanon": "lb", "Lesotho": "ls", "Liberia": "lr",
+    "Libya": "ly", "Liechtenstein": "li", "Lithuania": "lt", "Luxembourg": "lu",
+    "Macau": "mo", "Madagascar": "mg", "Malawi": "mw", "Malaysia": "my",
+    "Maldives": "mv", "Mali": "ml", "Malta": "mt", "Mauritania": "mr",
+    "Mauritius": "mu", "Mexico": "mx", "Micronesia": "fm", "Moldova": "md",
+    "Monaco": "mc", "Mongolia": "mn", "Montenegro": "me", "Morocco": "ma",
+    "Mozambique": "mz", "Myanmar": "mm", "Namibia": "na", "Nauru": "nr",
+    "Nepal": "np", "Netherlands": "nl", "NewZealand": "nz", "Nicaragua": "ni",
+    "Niger": "ne", "Nigeria": "ng", "NorthKorea": "kp", "NorthMacedonia": "mk",
+    "Norway": "no", "Oman": "om", "Other": None, "Pakistan": "pk", "Palau": "pw",
+    "Panama": "pa", "PapuaNewGuinea": "pg", "Paraguay": "py", "Peru": "pe",
+    "Philippines": "ph", "PolAnd": "pl", "Portugal": "pt", "Qatar": "qa",
+    "RepublicOfTheCongo": "cg", "Romania": "ro", "Russia": "ru", "Rwanda": "rw",
+    "SaintKittsAndNevis": "kn", "SaintLucia": "lc", "SaintVincentAndThegrenadines": "vc", "Samoa": "ws",
+    "Sanmarino": "sm", "SaotomeAndPrincipe": "st", "SaudiArabia": "sa", "Senegal": "sn",
+    "Serbia": "rs", "Seychelles": "sc", "SierraLeone": "sl", "Singapore": "sg",
+    "Slovakia": "sk", "Slovenia": "si", "SolomonIslands": "sb", "Somalia": "so",
+    "SouthAfrica": "za", "SouthKorea": "kr", "SouthSudan": "ss", "Spain": "es",
+    "Srilanka": "lk", "Sudan": "sd", "Suriname": "sr", "Sweden": "se",
+    "Switzerland": "ch", "Syria": "sy", "Taiwan": "tw", "Tajikistan": "tj",
+    "Tanzania": "tz", "ThailAnd": "th", "Togo": "tg", "Tonga": "to",
+    "TrinidadAndTobago": "tt", "Tunisia": "tn", "Turkey": "tr", "Turkmenistan": "tm",
+    "Tuvalu": "tv", "Uganda": "ug", "Ukraine": "ua", "UnitedArabemirates": "ae",
+    "UnitedKingdom": "gb", "UnitedStates": "us", "Uruguay": "uy", "Uzbekistan": "uz",
+    "Vanuatu": "vu", "Vaticancity": "va", "Venezuela": "ve", "Vietnam": "vn",
+    "Wales": "gb-wls", "Yemen": "ye", "Zambia": "zm", "Zimbabwe": "zw",
+}
+
 
 class CatalogError(ValueError):
     """Raised when the generated catalog would contain inconsistent data."""
@@ -82,8 +140,24 @@ class CatalogGenerator:
     @classmethod
     def validate_catalog(cls, catalog: dict[str, Any]) -> None:
         cls.assert_unique_ids(catalog["locations"], "location")
+        cls.assert_unique_ids(catalog["countries"], "country")
         cls.assert_unique_ids(catalog["stages"], "stage")
         cls.assert_unique_ids(catalog["cars"], "car")
+
+        # every spelling must resolve to exactly one country, case-insensitively
+        spellings: dict[str, str] = {}
+        for country in catalog["countries"]:
+            if not country["name"] or not country["name"].strip():
+                raise CatalogError(
+                    f"Catalog validation failed: country '{country['id']}' has no display name."
+                )
+            for spelling in [country["id"], *country["aliases"]]:
+                owner = spellings.setdefault(spelling.casefold(), country["id"])
+                if owner != country["id"]:
+                    raise CatalogError(
+                        f"Catalog validation failed: country spelling '{spelling}' belongs to both "
+                        f"'{owner}' and '{country['id']}'."
+                    )
 
         location_ids: set[str] = set()
         for location in catalog["locations"]:
@@ -139,6 +213,7 @@ class CatalogGenerator:
         groups = self.read_data_table("DT_CarsGroups.json")
         manufacturers = self.read_data_table("DT_Manufacturers.json")
         countries = self.read_data_table("DT_Countries.json")
+        country_flags = self.read_data_table("DT_CountryFlags.json")
         tracks = self.read_data_table("DT_Tracks.json")
         locations = self.read_data_table("DT_TracksLocations.json")
         variants = self.read_data_table("DT_TracksVariants.json")
@@ -165,6 +240,31 @@ class CatalogGenerator:
                 }
             )
 
+        catalog_countries: list[dict[str, Any]] = []
+        for identifier, country in sorted(countries.items()):
+            icon_row = str(country["Icon"]["Row"])
+            texture = str(country_flags[icon_row]["Value"]["AssetPathName"])
+            texture_name = texture.rsplit("/", 1)[-1].split(".")[0]
+            if texture_name.startswith("T_"):
+                texture_name = texture_name[2:]
+            # every spelling a client may replicate for this row: the row id, the flag
+            # row id (differs in casing for some rows) and the flag texture name (the
+            # pre-rename spelling of several rows)
+            aliases = {icon_row, texture_name}
+            aliases.discard(identifier)
+            if identifier not in COUNTRY_ISO:
+                raise CatalogError(
+                    f"Catalog validation failed: country '{identifier}' has no ISO code in COUNTRY_ISO."
+                )
+            catalog_countries.append(
+                {
+                    "id": identifier,
+                    "name": self.localized_name(country.get("Name"), f"country '{identifier}'"),
+                    "iso": COUNTRY_ISO[identifier],
+                    "aliases": sorted(aliases, key=str.casefold),
+                    "available": bool(country.get("bAvailableToPlayer", True)),
+                }
+            )
         catalog_stages: list[dict[str, Any]] = []
         for wire_id, variant in sorted(variants.items()):
             canonical_id = str(variant["CarsData"]["Row"])
@@ -234,6 +334,7 @@ class CatalogGenerator:
                 "generatedBy": "tools/extract-acr-content.py",
             },
             "locations": catalog_locations,
+            "countries": catalog_countries,
             "stages": catalog_stages,
             "cars": catalog_cars,
         }

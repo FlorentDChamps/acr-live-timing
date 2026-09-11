@@ -253,7 +253,7 @@ namespace ACRLiveTiming.UI
             // privacy: drop nationality before it ever reaches the shared page (the
             // Rows list is freshly built per call, so mutating it here is safe).
             if (_hideNations)
-                foreach (var row in view.Rows) row.Nation = null;
+                foreach (var row in view.Rows) row.Nation = row.NationFlag = row.NationName = null;
             var json = JsonSerializer.Serialize(view, JsonOpts);
             if (_engine.Matrix.Version == version)
             {

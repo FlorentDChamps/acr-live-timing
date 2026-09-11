@@ -62,8 +62,13 @@ const finalSplits = total => Array.from({ length: 6 }, (_, i) =>
 // pre-computed board here would mean reimplementing those rules in this fixture and
 // keeping them in sync by hand — which is how the screenshots silently lost their
 // totals once the page grew a field the fixture did not know about.
+// Mirrors RowView.NationFlag: the host resolves the nationality token to its flag
+// code through the content catalog; the page only renders the code it receives.
+const FLAGS = { France: "fr", Norway: "no", Finland: "fi", Belgium: "be", UnitedKingdom: "gb",
+                Spain: "es", Germany: "de", Italy: "it", Poland: "pl" };
+
 const rows = D.map(([driver, nation, car, times]) => ({
-  driver, nation,
+  driver, nation, nationFlag: FLAGS[nation], nationName: nation,
   // "dnf" on the RUNNING stage means the car sits in Retire/Disqualify right now —
   // the only signal that lets the page mark the current column. On a past stage the
   // abandon is inferred from the closed column instead, so no flag would be needed.

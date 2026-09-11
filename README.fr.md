@@ -441,8 +441,9 @@ src/
              piloté par les layouts de propriétés embarqués, décodeur structurel de
              réplication (participants, player states, états de course, secteurs,
              résultats, game state), classification des tokens spéciale/FSM, météo
-  Content/   données embarquées : catalogue de contenu (noms de spéciales/voitures)
-             et layouts de propriétés répliquées des classes du jeu, générés par tools/
+  Content/   données embarquées : catalogue de contenu (noms de spéciales/voitures,
+             drapeaux) et layouts de propriétés répliquées des classes du jeu,
+             générés par tools/
   Net/       sniffer raw socket, auto-détection serveur, enregistrement & replay pcap
   Model/     engine (machine à états) + matrice de session thread-safe
   Web/       serveur HTTP embarqué (/, /state) + interface single-page
