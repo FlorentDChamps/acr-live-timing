@@ -15,6 +15,15 @@ namespace ACRLiveTiming.Content
         {
             public List<Stage> Stages { get; set; } = new();
             public List<Car> Cars { get; set; } = new();
+            public List<Country> Countries { get; set; } = new();
+        }
+
+        sealed class Country
+        {
+            public string Id { get; set; } = "";
+            public string Name { get; set; } = "";
+            public string? Iso { get; set; }                       // flag code; null: no flag (Other)
+            public List<string> Aliases { get; set; } = new();     // other spellings a client replicates
         }
 
         sealed class Stage
@@ -38,6 +47,9 @@ namespace ACRLiveTiming.Content
             public Dictionary<string, string> Levels = new(StringComparer.Ordinal);   // wire level -> id level
             public Dictionary<string, string> RouteIds = new(StringComparer.Ordinal); // wireId -> id
             public Dictionary<string, double> Lengths = new(StringComparer.Ordinal);  // id or wireId -> km
+            // nationality token (any listed spelling, any casing) -> flag code / display name
+            public Dictionary<string, string> CountryFlags = new(StringComparer.OrdinalIgnoreCase);
+            public Dictionary<string, string> CountryNames = new(StringComparer.OrdinalIgnoreCase);
         }
 
         sealed class Car
@@ -57,6 +69,18 @@ namespace ACRLiveTiming.Content
 
         public static string CarName(string id)
             => Data.Value.Cars.GetValueOrDefault(id, id);
+
+        /// <summary>Flag code (ISO 3166-1 alpha-2, or a gb-* subdivision) of a nationality
+        /// token as a client replicates it. The token is an FName registered on the
+        /// player's own client, so its casing is theirs ("SwitzerlAnd", "FinlAnd") and an
+        /// old profile keeps a pre-rename spelling: every spelling the catalog lists is
+        /// matched without case. Null when unknown or flagless.</summary>
+        public static string? CountryFlag(string token)
+            => Data.Value.CountryFlags.TryGetValue(token, out var iso) ? iso : null;
+
+        /// <summary>Display name of a nationality token; the token unchanged when unknown.</summary>
+        public static string CountryName(string token)
+            => Data.Value.CountryNames.GetValueOrDefault(token, token);
 
         /// <summary>Route length in km (catalog id or wire spelling), null when unknown
         /// or when only the level is known.</summary>
@@ -124,6 +148,23 @@ namespace ACRLiveTiming.Content
                 }
                 foreach (var car in catalog.Cars)
                     if (!string.IsNullOrWhiteSpace(car.DisplayName)) tables.Cars[car.Id] = car.DisplayName;
+                foreach (var country in catalog.Countries)
+                {
+                    if (string.IsNullOrWhiteSpace(country.Id)) continue;
+                    var spellings = new List<string> { country.Id };
+                    spellings.AddRange(country.Aliases);
+                    if (!string.IsNullOrWhiteSpace(country.Name))
+                    {
+                        spellings.Add(country.Name);
+                        spellings.Add(country.Name.Replace(" ", ""));
+                    }
+                    foreach (var spelling in spellings)
+                    {
+                        if (string.IsNullOrWhiteSpace(spelling)) continue;
+                        tables.CountryNames.TryAdd(spelling, string.IsNullOrWhiteSpace(country.Name) ? country.Id : country.Name);
+                        if (!string.IsNullOrWhiteSpace(country.Iso)) tables.CountryFlags.TryAdd(spelling, country.Iso);
+                    }
+                }
             }
             catch (JsonException)
             {

@@ -32,7 +32,9 @@ namespace ACRLiveTiming.Model
     {
         public string Driver { get; set; } = "";
         public bool Retired { get; set; }     // car is in Retire/Disqualify on the RUNNING stage
-        public string? Nation { get; set; }   // token, e.g. "France" (null if unknown)
+        public string? Nation { get; set; }   // token as replicated, e.g. "France" (null if unknown)
+        public string? NationFlag { get; set; }  // flag code from the content catalog (null: none known)
+        public string? NationName { get; set; }  // display name from the content catalog
         public List<RawCell?> RawCells { get; set; } = new();  // ungated, aligned to AllStages
         // CarId per stage, aligned to AllStages. The page selects and de-duplicates
         // these client-side, so its list follows the viewer's selected stages.
@@ -1142,6 +1144,8 @@ namespace ACRLiveTiming.Model
                         Driver = driver,
                         Retired = retired.Contains(driverKey),
                         Nation = nation,
+                        NationFlag = nation == null ? null : ContentCatalog.CountryFlag(nation),
+                        NationName = nation == null ? null : ContentCatalog.CountryName(nation),
                         RawCells = rawCells,
                         Cars = cars,
                         CarNames = carNames
