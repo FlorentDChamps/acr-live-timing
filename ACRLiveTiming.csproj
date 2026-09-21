@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -12,6 +12,16 @@
     <!-- Multi-size .ico built from assets/icon.svg (+ icon-16.svg simplified variant). -->
     <ApplicationIcon>assets\icon.ico</ApplicationIcon>
     <LangVersion>latest</LangVersion>
+    <!-- [LibraryImport] generates its P/Invoke marshalling as unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Code-style rules raised to warning in .editorconfig (unused usings) run in the build.
+         The compiler reports unused usings only when it also produces the XML documentation
+         file: that file is generated but neither required for every member (CS1591) nor
+         published next to the exe. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PublishDocumentationFile>false</PublishDocumentationFile>
     <!-- x64 only: the overlay P/Invokes Get/SetWindowLongPtr, which 32-bit
          user32.dll does not export (they are macros over Get/SetWindowLong). -->
     <PlatformTarget>x64</PlatformTarget>

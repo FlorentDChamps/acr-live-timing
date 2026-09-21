@@ -263,7 +263,7 @@ lobby. Rien du binaire du jeu n'est lu, modifié, patché ni redistribué.
 ### Prérequis
 
 - Windows 10/11 x64
-- [Runtime .NET 8 Desktop](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Runtime .NET 10 Desktop](https://dotnet.microsoft.com/download/dotnet/10.0)
   (le SDK pour compiler depuis les sources). S'il manque, Windows affiche au
   premier lancement de l'exe une boîte de dialogue avec le lien de
   téléchargement direct — installez-le une fois, puis relancez.

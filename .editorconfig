@@ -6,27 +6,40 @@ indent_style = space
 indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
+end_of_line = lf
 
 [*.{csproj,props,targets,xaml,xml,json,yml}]
 indent_size = 2
 
+[*.bat]
+end_of_line = crlf
+
 [*.cs]
 # --- style: match the existing codebase -------------------------------------
-# block-scoped namespaces
-csharp_style_namespace_declarations = block_scoped:suggestion
-# `private` omitted when it is the default
-dotnet_style_require_accessibility_modifiers = omit_if_default:suggestion
+# file-scoped namespaces (one namespace per file)
+csharp_style_namespace_declarations = file_scoped:suggestion
+# `private` written out, never left implicit
+dotnet_style_require_accessibility_modifiers = always:suggestion
+# Allman braces: every opening brace on its own line
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
 # explicit types for built-ins (int, double, bool), var elsewhere
 csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = true:suggestion
 # System usings first
 dotnet_sort_system_directives_first = true
+# unused usings fail the build (reported only with GenerateDocumentationFile, see csproj)
+dotnet_diagnostic.IDE0005.severity = warning
 # expression-bodied members welcome where they fit on one line
 csharp_style_expression_bodied_methods = when_on_single_line:suggestion
 csharp_style_expression_bodied_properties = when_on_single_line:suggestion
 # braces may be omitted for single-line statements (existing style)
 csharp_prefer_braces = when_multiline:suggestion
+# src/ is a source root, not a namespace level
+dotnet_style_namespace_match_folder = false
 
 # fields: _camelCase
 dotnet_naming_rule.private_fields_underscore.symbols = private_fields
@@ -43,4 +56,12 @@ dotnet_naming_rule.constants_pascal.style = pascal
 dotnet_naming_rule.constants_pascal.severity = suggestion
 dotnet_naming_symbols.constants.applicable_kinds = field
 dotnet_naming_symbols.constants.required_modifiers = const
+
+# static readonly fields: PascalCase, like the constants they stand in for
+dotnet_naming_rule.static_readonly_pascal.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_pascal.style = pascal
+dotnet_naming_rule.static_readonly_pascal.severity = suggestion
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
 dotnet_naming_style.pascal.capitalization = pascal_case

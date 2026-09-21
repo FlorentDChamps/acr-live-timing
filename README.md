@@ -240,7 +240,7 @@ about the game binary is read, modified, patched or redistributed.
 ### Requirements
 
 - Windows 10/11 x64
-- [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
   (the SDK if you build from source). If it is missing, Windows shows a dialog
   with a direct download link the first time you launch the exe — install it
   once, then relaunch.
