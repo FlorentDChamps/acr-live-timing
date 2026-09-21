@@ -21,10 +21,17 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
+      # -warnaserror: the project builds with zero warnings, unused usings included
+      # (IDE0005, see the csproj), and CI keeps it that way.
       - name: Build
-        run: dotnet build ACRLiveTiming.csproj -c Release -nologo
+        run: dotnet build ACRLiveTiming.csproj -c Release -nologo -warnaserror
+
+      # Layout drift fails the build too: the sources must already be exactly what
+      # `dotnet format whitespace` produces from .editorconfig (run it locally to fix).
+      - name: Check formatting
+        run: dotnet format whitespace ACRLiveTiming.csproj --verify-no-changes
 
       # Manual runs ("Run workflow") also produce a downloadable test exe. It keeps
       # the csproj's "-dev" suffix, and the commit sha baked into the version already
@@ -66,12 +73,15 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
+      # The run: scripts read the tag and version from environment variables instead of
+      # having ${{ }} expressions pasted into their text, so a ref name is never parsed
+      # as PowerShell code.
       - name: Version from tag
         shell: pwsh
         run: |
-          $v = '${{ github.ref_name }}'.TrimStart('v')
+          $v = $env:GITHUB_REF_NAME.TrimStart('v')
           "VERSION=$v" >> $env:GITHUB_ENV
 
       # One bullet per commit since the previous tag, prepended to the release
@@ -79,31 +89,31 @@ jobs:
       - name: Commit list since previous tag
         shell: pwsh
         run: |
-          $prev = git describe --tags --abbrev=0 '${{ github.ref_name }}^' 2>$null
+          $prev = git describe --tags --abbrev=0 "$env:GITHUB_REF_NAME^" 2>$null
           if ($LASTEXITCODE -ne 0) { $prev = $null }
-          $range = if ($prev) { "$prev..${{ github.ref_name }}" } else { '${{ github.ref_name }}' }
+          $range = if ($prev) { "$prev..$env:GITHUB_REF_NAME" } else { $env:GITHUB_REF_NAME }
           "CHANGES<<__CHANGES__" | Add-Content $env:GITHUB_ENV
           git log --format='- %s' $range | Add-Content $env:GITHUB_ENV
           "__CHANGES__" | Add-Content $env:GITHUB_ENV
           exit 0
 
-      - name: Publish (framework-dependent, needs .NET 8 Desktop Runtime)
+      - name: Publish (framework-dependent, needs .NET 10 Desktop Runtime)
         run: >
           dotnet publish ACRLiveTiming.csproj -c Release -r win-x64
           --no-self-contained
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:Version=${{ env.VERSION }}
+          -p:Version=$env:VERSION
           -o publish/fd
 
       - name: Rename asset
         shell: pwsh
-        run: Copy-Item publish/fd/ACRLiveTiming.exe "ACRLiveTiming-${{ env.VERSION }}-win-x64.exe"
+        run: Copy-Item publish/fd/ACRLiveTiming.exe "ACRLiveTiming-$env:VERSION-win-x64.exe"
 
       - name: SHA-256 checksum
         shell: pwsh
         run: |
-          $file = "ACRLiveTiming-${{ env.VERSION }}-win-x64.exe"
+          $file = "ACRLiveTiming-$env:VERSION-win-x64.exe"
           $hash = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
           "$hash  $file" | Out-File "$file.sha256" -Encoding ascii -NoNewline
           "SHA256=$hash" >> $env:GITHUB_ENV
