@@ -21,10 +21,11 @@ public static class RaceStateWire
     public const double FinishMin = 20.0, FinishMax = 3000.0;  // sanity bounds (s)
 
     /// <summary>Float32 tolerance (seconds) for "same finish time". Times are
-    /// decoded as float32 from two sources — the replicated RaceStateData timer
-    /// peak and the result entry — which need not agree bit-exactly, so equality is
-    /// a near-match. Deliberately loose: too tight and one finish gets counted
-    /// twice. Distinct from name binding (see SessionMatrix.NameMatchTolerance),
-    /// which needs the opposite trade-off.</summary>
+    /// decoded as float32 from two sources — a car's replicated RaceStateData timer
+    /// peak and its driver's result entry — which need not agree bit-exactly, so
+    /// equality is a near-match. Deliberately loose: too tight and one finish gets
+    /// counted twice. Safe only because a peak is compared with its OWN driver's
+    /// result, never another car's. Distinct from name binding (see
+    /// SessionMatrix.NameMatchTolerance), which needs the opposite trade-off.</summary>
     public const double FinishMatchTolerance = 0.15;
 }

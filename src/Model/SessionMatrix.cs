@@ -11,8 +11,8 @@ namespace ACRLiveTiming.Model;
 // substitution, totals and ranking are the page's job, computed from this block
 // under whatever settings the viewer is using. Shipping a pre-rendered board too
 // would mean two implementations of the same rules kept in sync by hand.
-// T=measured time (omitted for a zero-split DNF), F=matched a real finish-timer
-// peak (IsFinished), S=sector count,
+// T=measured time (omitted for a zero-split DNF), F=matched one of the driver's
+// own finishes and not ruled out by the session result (IsFinished), S=sector count,
 // R=the driver's car never reached the finish phases on this stage (retired,
 // disqualified, or vanished mid-run) — the page must never promote their last
 // split to a final via sector-count fallback.
@@ -110,11 +110,15 @@ public sealed class SessionMatrix
     /// rather than guessed — see the ambiguity guard in TryNameCar.</summary>
     private const double NameMatchTolerance = 0.05;
 
+    /// <summary>Tolerance (seconds) for a session-result finish: it carries the very
+    /// float32 the result entry does, so only the double rounding needs room.</summary>
+    private const double ExactFinishTolerance = 0.0005;
+
     private readonly Lock _lock = new();
     private readonly List<string> _columnOrder = [];                        // run ids, in order
     private readonly Dictionary<string, string> _labels = [];               // id -> display label
     // id -> driver -> (display total, raw stage time, sector count). A driver is
-    // revealed once their raw time matches a real finish (RaceStateData timer peak),
+    // revealed once their raw time matches one of THEIR OWN finishes (_finishes),
     // or, when no finish data is available, once their sector count reaches the
     // column max (fallback gating).
     private readonly Dictionary<string, Dictionary<string, (double time, double raw, int sectors)>> _times = [];
@@ -122,16 +126,23 @@ public sealed class SessionMatrix
     // established latest-result storage and scoring rules remain unchanged.
     private readonly Dictionary<string, Dictionary<string, List<double>>> _splits = [];
     private readonly List<string> _driverOrder = [];
-    // penalty-free finish times (raw) reported by the RaceStateData timer; a result
-    // is a real FINISH iff its raw time matches one of these. Each entry is tagged
-    // with the column that was current when it was detected (null = observed before
-    // any column existed, matches anywhere): without the tag, a DNF's last split
-    // landing within tolerance of ANOTHER stage's finish would read as a finish.
+    // columnId -> penalty-free finish times (raw), each owned by ONE driver: a
+    // driver's result is a real FINISH iff its raw matches one of their own. Two
+    // sources: the RaceStateData timer of the driver's car at its end phase (live,
+    // ~0.4 s after the line; Car set, Driver resolved through the car binding, and
+    // re-resolved when the car is named later) and the session result the game
+    // writes once the driver is through (10-15 s later, Exact: the very same float
+    // as the result entry). Never matched across drivers: a car still on the stage
+    // whose latest split lands near someone else's finish must not read as finished.
     // _hasRaceState = the timer component exists at all: if true we gate
     // strictly on finishes (and reveal nothing before the first car crosses the line,
     // avoiding the pre-first-finisher flash); if false (older capture with no timer)
     // we fall back to sector-count gating.
-    private readonly List<(double time, string? column)> _finishTimes = [];
+    private sealed class Finish { public long Car; public string? Driver; public double Time; public bool Exact; }
+    private readonly Dictionary<string, List<Finish>> _finishes = [];
+    // columnId -> drivers the game's session result declared DNF or DQ. Final word:
+    // it overrides a finish (a car can cross the line and still be disqualified).
+    private readonly Dictionary<string, HashSet<string>> _sessionOut = [];
     // columnId -> drivers whose car never reached the finish phases by the time the
     // run rolled (Retire/Disqualify, or vanished mid-stage — rage quit / disconnect).
     // Snapshot taken once per column in ResetCarProgress; lets the page's fallback
@@ -254,6 +265,10 @@ public sealed class SessionMatrix
         if (_lastCars.Remove(from, out string? lastCar) && !_lastCars.ContainsKey(to)) _lastCars[to] = lastCar;
         foreach (var dnf in _dnfByColumn.Values)
             if (dnf.Remove(from)) dnf.Add(to);
+        foreach (var column in _sessionOut.Values)
+            if (column.Remove(from)) column.Add(to);
+        foreach (var finish in _finishes.Values.SelectMany(column => column))
+            if (finish.Driver == from) finish.Driver = to;
         foreach (var cars in _carsByColumn.Values)
             if (cars.Remove(from, out string? car) && !cars.ContainsKey(to)) cars[to] = car;
         MergeRaws(_seenRaws, from, to);
@@ -501,15 +516,19 @@ public sealed class SessionMatrix
         if (changed) RaiseChanged();
     }
 
-    /// <summary>Record a protocol-confirmed retirement for a stage even when the
-    /// driver produced no split. This creates the row and an R-only raw cell; no
-    /// timing value is invented.</summary>
+    /// <summary>Record a protocol-confirmed retirement or disqualification (the
+    /// game's session result) for a stage even when the driver produced no split.
+    /// This creates the row and an R-only raw cell; no timing value is invented.
+    /// It overrides any finish of the driver on that stage.</summary>
     public void MarkDriverDnf(string columnId, string driver)
     {
         bool changed = false;
         lock (_lock)
         {
             driver = ResolveDriverKey(driver);
+            if (!_sessionOut.TryGetValue(columnId, out var sessionOut))
+                _sessionOut[columnId] = sessionOut = [];
+            if (sessionOut.Add(driver)) changed = true;
             if (!_times.ContainsKey(columnId))
             {
                 _times[columnId] = [];
@@ -559,42 +578,78 @@ public sealed class SessionMatrix
     }
 
     /// <summary>
-    /// Merge newly detected raw finish times into the accumulated set. The tracker
-    /// reports each finish once, in the packet that detects it, so
-    /// <paramref name="times"/> is usually empty and the dedup scan only runs on
-    /// new entries. Once seen, a finish sticks until the session resets.
-    /// <paramref name="present"/> records whether a RaceStateData timer stream
-    /// exists at all (false => the view falls back to sector-gating).
+    /// Record the finishes detected in this packet, each with the car (RaceStateData
+    /// NetGUID) whose timer produced it and the run that timer was running in. The
+    /// tracker reports each finish once, so <paramref name="finishes"/> is usually
+    /// empty. A finish belongs to that run's column and to the driver of its car —
+    /// resolved now, or as soon as the car is named. A run with no column (mid-stage
+    /// join: never counted) has nothing to confirm. <paramref name="present"/>
+    /// records whether a RaceStateData timer stream exists at all (false =>
+    /// sector-gating fallback).
     /// </summary>
-    public void SetFinishTimes(List<double> times, bool present)
+    public void SetFinishTimes(List<(long car, double time, string? run)> finishes, bool present)
     {
         bool changed = false;
         lock (_lock)
         {
             if (present != _hasRaceState) { _hasRaceState = present; changed = true; }
-            // Tag with the current run's column (last opened: StartNewRun adds the
-            // column before any finish of that run can be detected). Dedup within
-            // the same tag only — the same raw value on two different stages is
-            // two distinct finishes.
-            string? column = _columnOrder.Count > 0 ? _columnOrder[^1] : null;
-            foreach (double t in times)
+            foreach (var (car, time, run) in finishes)
             {
-                if (!_finishTimes.Exists(f => f.column == column
-                    && Math.Abs(f.time - t) < RaceStateWire.FinishMatchTolerance))
+                if (run == null || !_times.ContainsKey(run)) continue;
+                changed |= AddFinish(run, new Finish
                 {
-                    _finishTimes.Add((t, column));
-                    changed = true;
-                }
+                    Car = car,
+                    Driver = _carNames.GetValueOrDefault(car),
+                    Time = time
+                });
             }
         }
         if (changed) RaiseChanged();
     }
 
-    // raw time matches a real finish (RaceStateData timer peak) of THIS column
-    // within tolerance (null-tagged peaks predate any column and match anywhere)
-    private bool IsFinished(string columnId, double raw) => _finishTimes.Exists(f =>
-        (f.column == null || f.column == columnId)
-        && Math.Abs(f.time - raw) < RaceStateWire.FinishMatchTolerance);
+    /// <summary>The game's session result for a driver on this stage, neither DNF
+    /// nor DQ: the definitive finish, keyed by the driver's own name. It also
+    /// confirms a finish whose car was never bound or whose end phase was lost.</summary>
+    public void MarkDriverFinished(string columnId, string driver, double raw)
+    {
+        bool changed;
+        lock (_lock)
+        {
+            driver = ResolveDriverKey(driver);
+            changed = AddFinish(columnId, new Finish { Driver = driver, Time = raw, Exact = true });
+        }
+        if (changed) RaiseChanged();
+    }
+
+    // Caller holds _lock. Deduplicated per owner: the same time from the same car
+    // (or for the same driver) is one finish.
+    private bool AddFinish(string columnId, Finish finish)
+    {
+        if (!_finishes.TryGetValue(columnId, out var column))
+            _finishes[columnId] = column = [];
+        if (column.Exists(f => f.Car == finish.Car && f.Driver == finish.Driver
+                               && Math.Abs(f.Time - finish.Time) < RaceStateWire.FinishMatchTolerance))
+        {
+            return false;
+        }
+        column.Add(finish);
+        return true;
+    }
+
+    // Caller holds _lock. A car just bound to a driver: its finishes are theirs.
+    private void BindCarFinishes(long car, string driver)
+    {
+        foreach (var finish in _finishes.Values.SelectMany(column => column))
+            if (finish.Car == car) finish.Driver = driver;
+    }
+
+    // The driver's raw matches one of their own finishes on this column — never
+    // another driver's — and the session result did not rule them out.
+    private bool IsFinished(string columnId, string driver, double raw)
+        => !(_sessionOut.TryGetValue(columnId, out var sessionOut) && sessionOut.Contains(driver))
+           && _finishes.TryGetValue(columnId, out var column)
+           && column.Exists(f => f.Driver == driver && Math.Abs(f.Time - raw)
+                                 < (f.Exact ? ExactFinishTolerance : RaceStateWire.FinishMatchTolerance));
 
     /// <summary>
     /// Push this packet's live per-car updates (spline distance + race phase).
@@ -788,6 +843,7 @@ public sealed class SessionMatrix
                 }
 
                 _carNames[id] = driver;
+                BindCarFinishes(id, driver);
                 _carPendingRaws.Remove(id);
                 if (_carLiveSplits.TryGetValue(id, out var splits))
                     changed |= PublishCarSplits(driver, splits);
@@ -875,6 +931,7 @@ public sealed class SessionMatrix
         }
 
         _carNames[id] = match;
+        BindCarFinishes(id, match);
         _carPendingRaws.Remove(id);
         if (_carLiveSplits.TryGetValue(id, out var splits))
             PublishCarSplits(match, splits);
@@ -903,7 +960,8 @@ public sealed class SessionMatrix
             _identities.Clear();
             _driverKeysByName.Clear();
             _driverLabels.Clear();
-            _finishTimes.Clear();
+            _finishes.Clear();
+            _sessionOut.Clear();
             _dnfByColumn.Clear();
             _hasRaceState = false;
             _carsLive.Clear();
@@ -951,7 +1009,8 @@ public sealed class SessionMatrix
             _groups.Clear();
             _groupNames.Clear();
             _carsByColumn.Clear();
-            _finishTimes.Clear();
+            _finishes.Clear();
+            _sessionOut.Clear();
             _dnfByColumn.Clear();
             _hasRaceState = false;
             _carsLive.Clear();   // drop pre-reset live positions (not published post-reset)
@@ -1151,7 +1210,7 @@ public sealed class SessionMatrix
                         rawCells.Add(new RawCell
                         {
                             T = re.time,
-                            F = IsFinished(id, re.raw),
+                            F = IsFinished(id, driverKey, re.raw),
                             S = re.sectors,
                             Splits = splitValues != null ? [.. splitValues] : null,
                             R = isDnf || (id == lastColumn && retired.Contains(driverKey))
