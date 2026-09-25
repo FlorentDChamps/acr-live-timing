@@ -35,9 +35,9 @@ en un clic.
 - **Zéro configuration** — rejoignez un lobby ACR ; le serveur de jeu est
   auto-détecté par signature protocole (IP et port changent à chaque lobby, rien
   n'est codé en dur).
-- **Résultats de spéciale en direct** — pseudos, temps finaux validés par les splits
-  (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la spéciale,
-  drapeau de nationalité et modèle de voiture. Les noms de spéciales et de voitures
+- **Résultats de spéciale en direct** — pseudos, temps finaux confirmés à la ligne
+  d'arrivée (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la
+  spéciale, drapeau de nationalité et modèle de voiture. Les noms de spéciales et de voitures
   sont ceux affichés par le jeu (ex. *Vallée de Munster Montée*, *Alfa Romeo GTA 1300
   Junior*) et la spéciale en cours affiche sa longueur, le tout résolu depuis un
   catalogue embarqué des tables de contenu d'ACR ; ce qui n'y figure pas garde son
@@ -46,10 +46,19 @@ en un clic.
   les doublons sont retirés. Pendant qu'une spéciale se court (phases Course à
   Spectateur, retour à l'historique aux résultats), avec **Hide split times**
   désactivé (valeur par défaut), le tableau conserve le total à gauche et remplace
-  l'historique des spéciales par les splits cumulés de chaque
-  secteur puis le temps final de la spéciale. Chaque colonne affiche l'écart au
-  meilleur temps et son top 3 ; les lignes suivent automatiquement le classement du
-  dernier split disponible. L'historique habituel réapparaît aux résultats.
+  l'historique des spéciales par un tableau de secteurs en direct : une colonne par
+  point intermédiaire, puis la colonne **Stage**. Les temps sont **cumulés** depuis
+  le départ — le temps à chaque point intermédiaire, et non le temps passé dans le
+  secteur comme dans l'onglet *Secteurs* du jeu — donc le dernier secteur n'a pas de
+  colonne à lui : il se termine à l'arrivée, et son temps cumulé est le temps de la
+  spéciale. Une spéciale que le jeu découpe en trois secteurs donne
+  `Sector 1 | Sector 2 | Stage`. Les colonnes apparaissent à mesure que la voiture
+  de tête atteint chaque point ; quand la première voiture franchit la ligne, son
+  temps s'affiche brièvement dans une colonne de secteur en plus, jusqu'à la
+  confirmation de l'arrivée, moins d'une seconde plus tard. Chaque colonne affiche
+  l'écart au meilleur temps et son top 3 ; les lignes suivent automatiquement le
+  classement du dernier split disponible. L'historique habituel réapparaît aux
+  résultats.
 - **Classement de session** — une colonne par run de spéciale, totaux et rangs.
   *Plafond de pénalité* configurable : un pilote absent d'une spéciale est compté au
   `temps finalisé le plus lent × (1 + plafond de pénalité %)` et signalé.
@@ -77,8 +86,13 @@ en un clic.
   pilote n'est validé qu'une fois la ligne d'arrivée franchie. La détection est
   événementielle et exacte : le jeu
   réplique une phase de course par voiture (`RaceStateData.Phase`) ; le passage à
-  *Ended* marque l'arrivée à l'instant précis, le chronomètre gelé correspondant au
-  résultat affiché à la milliseconde. Streamée paquet par paquet : un replay révèle
+  *Ended* marque l'arrivée à l'instant précis (moins d'une seconde après la ligne),
+  le chronomètre gelé correspondant au résultat affiché à la milliseconde. Cette
+  arrivée ne confirme que le pilote de cette voiture, jamais un autre pilote dont un
+  split en serait proche. Le résultat de session du jeu, écrit pour chaque pilote une
+  fois sa spéciale terminée (10 à 15 s plus tard), a ensuite le dernier mot : il
+  confirme une arrivée dont la phase de course a été manquée, et ses drapeaux DNF/DQ
+  l'emportent sur elle. Streamée paquet par paquet : un replay révèle
   la même progression qu'en live, quelle que soit la vitesse de lecture. Une
   accroche de l'outil en cours de session ré-identifie le flux chrono à sa forme
   réseau — aucun redémarrage de spéciale nécessaire ; seules les captures réellement
@@ -92,10 +106,12 @@ en un clic.
   voiture passe à *Retire/Disqualify* ; à la clôture d'une spéciale, le sort de
   chaque voiture est mémorisé (abandon, disqualification ou disparition en cours de
   run), donc les spéciales passées gardent un état DNF exact, avec la déduction
-  « un autre a fini, pas lui » en repli pour les trous de capture. Le drapeau
-  d'abandon des résultats répliqués par le jeu est aussi décodé directement : même
-  un pilote qui quitte **avant le premier split** est listé DNF — sans temps,
-  puisqu'il n'en a jamais posé — au lieu de disparaître silencieusement. La règle
+  « un autre a fini, pas lui » en repli pour les trous de capture. Les drapeaux
+  d'abandon et de disqualification des résultats répliqués par le jeu sont aussi
+  décodés directement : même un pilote qui quitte **avant le premier split** est
+  listé DNF — sans temps, puisqu'il n'en a jamais posé — au lieu de disparaître
+  silencieusement, et une disqualification tient même si la voiture a franchi la
+  ligne. La règle
   optionnelle **DNF – No Rejoin** rend ce premier abandon définitif pour le rallye :
   les temps des spéciales suivantes restent visibles mais ne contribuent plus à un
   total général. Tous les finishers précèdent les DNF ; ceux-ci sont départagés par
@@ -418,8 +434,8 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Nom de la spéciale | ✅ niveau + route courue (Full/Short/Cut, Forward/Reverse), affichée avec le nom de route du jeu via le catalogue de contenu embarqué (identifiant brut conservé dans l'état JSON). La route est répliquée à l'entrée dans le lobby, au chargement du parc d'assistance et quand l'hôte choisit la spéciale suivante — pas au chargement de la spéciale elle-même — donc lancer l'outil **avant de rejoindre** pour avoir la route de la première spéciale |
 | Nationalité + voiture par pilote/spéciale | ✅ lues dans les données de participant répliquées (nationalité du pilote, voiture, équipage) liées à l'identifiant de participant, et dans le CarId de chaque entrée de résultat ; voiture conservée par spéciale et listée sans doublon sur la sélection. Les données de participant ne sont répliquées qu'à l'entrée au lobby et au changement : un pilote déjà présent au lancement de l'outil n'a pas de drapeau tant qu'il ne rejoint pas à nouveau — une raison de plus de lancer l'outil **avant de rejoindre** |
 | Liste complète des arrivants | ✅ depuis les tableaux de résultats répliqués (entrées live par participant, puis entrées de session par course) |
-| Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*), exacte à la ms, streamée en direct |
-| Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; le drapeau d'abandon des résultats répliqués est décodé aussi, donc même un abandon à zéro split est listé DNF |
+| Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*) de la voiture du pilote lui-même, exacte à la ms, streamée en direct ; le résultat de session du jeu, par pilote, la confirme ensuite ou l'annule (DNF/DQ) |
+| Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; les drapeaux d'abandon et de disqualification des résultats répliqués sont décodés aussi, donc même un abandon à zéro split est listé DNF et une disqualification tient même après la ligne |
 | Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
 | Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
 | Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |

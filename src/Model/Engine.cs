@@ -46,7 +46,8 @@ public sealed class Engine
     // game state's travel track — every value read from the replicated properties.
     private readonly ReplicationDecoder _rep = new();
     // finish detection over the decoded race states (see OnCarUpdate)
-    private sealed class CarFinishState { public float Rt = float.NaN; public int Phase = -1; public List<double> Peaks = []; }
+    // RtRun: the run in which the timer last changed; Peaks: finishes already reported, per run
+    private sealed class CarFinishState { public float Rt = float.NaN; public string? RtRun; public int Phase = -1; public List<(string? run, double time)> Peaks = []; }
     private readonly Dictionary<long, CarFinishState> _carFinish = [];
     private readonly Dictionary<long, string> _carNamed = [];   // RaceStateData guid -> driver pushed to the matrix
     private readonly HashSet<string> _identified = [];          // display names whose account ids were pushed
@@ -326,7 +327,7 @@ public sealed class Engine
         // at spawn); its timer + phase drive finish detection; distance/phase/position
         // feed the live progression bar.
         var progress = new List<(long id, float dist, int phase, int pos)>();
-        var finishes = new List<double>();
+        var finishes = new List<(long car, double time, string? run)>();
         foreach (var car in _rep.CarUpdates)
         {
             // The race in progress: the cars carry its RaceId while racing (-1 when
@@ -363,30 +364,42 @@ public sealed class Engine
     /// order: PHASE — the car enters Ended/EndSequence/Post: its current RaceTime IS
     /// the finish (exact, event-driven); RESET — the RaceTime drops to ~0 (next stage
     /// begins): the previous sample was that stage's finish, a safety net for a car
-    /// that finishes and leaves before its end phase replicates. Deduplicated per car.
+    /// that finishes and leaves before its end phase replicates. Each finish is
+    /// reported with its car, so it only ever confirms its own driver, and with the
+    /// run its timer was running in: the RESET signal fires once the NEXT run has
+    /// begun. Deduplicated per car within a run only — a car actor can outlive its
+    /// stage, and a repeat of the same stage can finish within tolerance of the
+    /// previous time (152.876 then 152.806).
     /// </summary>
-    private void OnCarUpdate(ReplicationDecoder.CarState car, List<double> finishes)
+    private void OnCarUpdate(ReplicationDecoder.CarState car, List<(long car, double time, string? run)> finishes)
     {
         if (!_carFinish.TryGetValue(car.Guid, out var st)) _carFinish[car.Guid] = st = new CarFinishState();
         float rt = car.RaceTime;
         bool rtValid = !float.IsNaN(rt) && rt >= 0f && rt < RaceStateWire.FinishMax;
-        void Peak(double v)
+        void Peak(double v, string? run)
         {
-            if (st.Peaks.Exists(f => Math.Abs(f - v) < RaceStateWire.FinishMatchTolerance)) return;
-            st.Peaks.Add(v);
-            finishes.Add(v);
+            if (st.Peaks.Exists(f => f.run == run && Math.Abs(f.time - v) < RaceStateWire.FinishMatchTolerance)) return;
+            st.Peaks.Add((run, v));
+            finishes.Add((car.Guid, v, run));
             Matrix.AddCarTime(car.Guid, v);
         }
         if (rtValid)
         {
-            if (!float.IsNaN(st.Rt) && rt < st.Rt * 0.5f && st.Rt > RaceStateWire.FinishMin) Peak(st.Rt);
-            st.Rt = rt;
+            if (!float.IsNaN(st.Rt) && rt < st.Rt * 0.5f && st.Rt > RaceStateWire.FinishMin) Peak(st.Rt, st.RtRun);
+            // The merged state carries RaceTime on every update of the car, so the run
+            // is taken when the timer CHANGES: a finish time frozen through the next
+            // stage's loading keeps the run it was set in.
+            if (rt != st.Rt)
+            {
+                st.Rt = rt;
+                st.RtRun = _runKey;
+            }
         }
         if (car.Phase >= 0 && car.Phase != st.Phase)
         {
             bool wasEnd = st.Phase >= RaceStateWire.PhaseEnded && st.Phase <= RaceStateWire.PhasePost;
             bool isEnd = car.Phase >= RaceStateWire.PhaseEnded && car.Phase <= RaceStateWire.PhasePost;
-            if (isEnd && !wasEnd && !float.IsNaN(st.Rt) && st.Rt > RaceStateWire.FinishMin) Peak(st.Rt);
+            if (isEnd && !wasEnd && !float.IsNaN(st.Rt) && st.Rt > RaceStateWire.FinishMin) Peak(st.Rt, st.RtRun);
             st.Phase = car.Phase;
         }
     }
@@ -395,7 +408,9 @@ public sealed class Engine
     /// Rally results for the run in progress. The live array (one element per
     /// participant: cumulative sector times, penalty, car) fills the column as
     /// sectors are passed; the per-race session array carries the FINAL entry with
-    /// its DNF/DQ flags. On a provisional (mid-stage) run nothing is published:
+    /// its DNF/DQ flags — written only once the driver is through (10-15 s after the
+    /// line), it confirms the finish or rules it out, keyed by the driver's own name.
+    /// On a provisional (mid-stage) run nothing is published:
     /// the stage is uncounted, but the raws still feed the car-naming scratch.
     /// </summary>
     private void ApplyResults(string runKey)
@@ -416,8 +431,11 @@ public sealed class Engine
             if (r.Sectors.Count > 0) Matrix.MarkDriverStarted(r.ParticipantId);
             if (r.Raw is float raw)
                 Matrix.AddResult(runKey, r.ParticipantId, raw + r.Penalty, raw, r.Sectors.Count, splits);
-            if (source == ReplicationDecoder.ResultSource.Session && r.Dnf)
+            if (source != ReplicationDecoder.ResultSource.Session) continue;
+            if (r.Dnf || r.Dq)
                 Matrix.MarkDriverDnf(runKey, r.ParticipantId);
+            else if (r.Raw is float finish)
+                Matrix.MarkDriverFinished(runKey, r.ParticipantId, finish);
         }
     }
 

@@ -33,8 +33,9 @@ Cloudflare tunnel link.
 
 - **Zero configuration** — join an ACR lobby; the game server is auto-detected by
   protocol signature (IP and port change every lobby, nothing is hardcoded).
-- **Live stage results** — driver names, split-validated final times (ms-exact vs
-  the in-game screen, penalties included), stage name, nation flag and car model.
+- **Live stage results** — driver names, final times confirmed at the finish line
+  (ms-exact vs the in-game screen, penalties included), stage name, nation flag and
+  car model.
   Stage and car names read as the game shows them (e.g. *Vallée de Munster Montée*,
   *Alfa Romeo GTA 1300 Junior*) and the current stage shows its length, all resolved
   from an embedded catalog of ACR's content tables; anything not in the catalog keeps
@@ -43,10 +44,17 @@ Cloudflare tunnel link.
   car between stages and removing duplicate models. While a stage is running
   (Racing through Spectating, back to the stage history at Results), with
   **Hide split times** off (the default), the board keeps the total pinned on the
-  left and replaces stage history with cumulative
-  sector splits followed by the final stage time. Each column shows its gap and top
-  three, while rows automatically follow the latest available split classification.
-  The regular stage history returns at Results.
+  left and replaces stage history with a live sector board: one column per split
+  point, then the **Stage** column. Times are **cumulative** from the start — the
+  time at each split point, not the time spent in that sector as on the game's
+  *Sectors* tab — so the last sector has no column of its own: it ends at the
+  finish, and its cumulative time is the stage time. A stage the game splits into
+  three sectors reads `Sector 1 | Sector 2 | Stage`. Columns appear as the leading
+  car reaches each split point; when the first car crosses the line, its time
+  briefly sits in one more sector column until the finish is confirmed, under a
+  second later. Each column shows its gap and top three, while rows automatically
+  follow the latest available split classification. The regular stage history
+  returns at Results.
 - **Session classification** — one column per stage run, running totals and ranks.
   Configurable *penalty-cap rule*: a driver missing a stage is counted at
   `slowest completed time × (1 + penalty-cap %)` and flagged.
@@ -71,11 +79,16 @@ Cloudflare tunnel link.
   only once they actually cross the finish line. Detection is event-driven and exact:
   the game replicates a per-car race phase
   (`RaceStateData.Phase`); the transition to *Ended* marks the finish the instant it
-  happens, with the frozen stage timer matching the displayed result to the
-  millisecond. Streamed packet-by-packet, so replays reveal the same progression as
-  live regardless of playback speed. A tool locking on mid-session re-identifies the
-  timer stream from its wire shape, so no stage restart is needed; only genuinely
-  timer-less captures (older recordings) fall back to split-completion gating.
+  happens (under a second after the line), with the frozen stage timer matching the
+  displayed result to the millisecond. That finish confirms only the driver of that
+  car, never another driver whose split happens to be close to it. The game's
+  session result, written for each driver once they are through (10–15 s later),
+  then has the final word: it confirms a finish whose race phase was missed, and its
+  DNF/DQ flags override one. Streamed packet-by-packet, so replays reveal the same
+  progression as live regardless of playback speed. A tool locking on mid-session
+  re-identifies the timer stream from its wire shape, so no stage restart is needed;
+  only genuinely timer-less captures (older recordings) fall back to split-completion
+  gating.
   **Hide split times** is off by default: leave it off for the dedicated live sector
   board, or turn it on to keep the former stage-history board and hide intermediate
   times until the finish.
@@ -84,10 +97,11 @@ Cloudflare tunnel link.
   appears the moment the car's race phase turns *Retire/Disqualify*; when a stage
   closes, each car's fate is snapshotted (retired, disqualified or vanished
   mid-run), so past stages keep an exact DNF record, with a peer-finish inference as
-  fallback for capture gaps. The retirement flag of the game's replicated results is
-  also decoded directly, so even a driver who quits **before the first split** is
-  listed as DNF — with no time, since none was ever set — instead of silently
-  disappearing. The optional **DNF – No Rejoin** rule makes that first non-finish
+  fallback for capture gaps. The retirement and disqualification flags of the game's
+  replicated results are also decoded directly, so even a driver who quits **before
+  the first split** is listed as DNF — with no time, since none was ever set —
+  instead of silently disappearing, and a disqualification stands even when the car
+  crossed the line. The optional **DNF – No Rejoin** rule makes that first non-finish
   permanent for the rally: later stage times remain visible but no longer contribute
   to a general-classification total. Finishers stay ahead of every DNF; DNF ties use
   completed stages before the first abandon, then their real cumulative time on
@@ -383,8 +397,8 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Stage name | ✅ level + driven route (Full/Short/Cut, Forward/Reverse), shown as the in-game route name from the embedded content catalog (wire id kept in the JSON state). The route is replicated at lobby join, at the service-park load and when the host picks the next stage — not when the stage itself loads — so start the tool **before joining** to get the first stage's route |
 | Nation + car per driver/stage | ✅ read from the replicated participant data (driver nationality, car, crew) bound to the participant id, and from each result entry's CarId; car retained per stage and listed without duplicates across the selected stages. The participant data replicates at lobby join and on change only, so a driver who was already in the lobby when the tool started shows no flag until they rejoin — another reason to start the tool **before joining** |
 | Complete finisher list | ✅ from the replicated rally result arrays (live per-participant entries, then the per-race session entries) |
-| Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*), exact to the ms, streamed live |
-| DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; the replicated results' retirement flag is decoded too, so even a zero-split quit is listed as DNF |
+| Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*) of the driver's own car, exact to the ms, streamed live; the game's per-driver session result then confirms it or overrides it (DNF/DQ) |
+| DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; the replicated results' retirement and disqualification flags are decoded too, so even a zero-split quit is listed as DNF and a disqualification stands even after the line |
 | Live stage progression | ✅ horizontal track above the board, fixed range behind the leader by default (leader↔tail auto-fit as an option); markers named at spawn (PlayerState identity block), first-split fallback — can be partial during the first stage after lock-on |
 | Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config |
 | Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names; independent per-rally classification and championship points, shared with every viewer |
