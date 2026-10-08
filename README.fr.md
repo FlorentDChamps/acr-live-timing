@@ -14,9 +14,15 @@ peut suivre dans un navigateur, spéciale après spéciale, avec les totaux de s
 Partageable sur le LAN, ou publiable pour n'importe qui via un lien Cloudflare Tunnel
 en un clic.
 
-![La page de classement live pendant une spéciale](docs/screenshot.png)
+![Le tableau de secteurs en direct pendant une spéciale : splits cumulés, puis temps de la spéciale](docs/screenshot.png)
 
-<sub>Données de démonstration — pseudos fictifs, adresse de serveur d'exemple.</sub>
+| Stages | Sectors | Standings |
+|:---:|:---:|:---:|
+| [![Temps des spéciales et totaux une fois la spéciale terminée](docs/stages.png)](docs/stages.png) | [![Le temps propre de chaque secteur d'une spéciale](docs/sectors.png)](docs/sectors.png) | [![Points de championnat par rallye](docs/standings.png)](docs/standings.png) |
+
+<sub>Données de démonstration — pseudos fictifs, adresse de serveur d'exemple. En
+haut : une spéciale en cours ; en dessous : la même session une fois terminée, sur
+chaque onglet.</sub>
 
 > ⚠️ **Outil d'analyse passif, à usage personnel/éducatif.** Il ne fait que *lire*
 > le trafic des lobbies où vous jouez. Il ne modifie rien, n'injecte rien, et ne
@@ -68,6 +74,14 @@ en un clic.
   capturée depuis le début, soit prête dès le premier split. Les colonnes sont
   triables (n'importe quelle spéciale ou le total), et des flèches de progression à
   côté de chaque pilote montrent son mouvement sur la dernière spéciale.
+- **Temps par secteur** — un onglet **Sectors** montre une spéciale comme l'onglet
+  *Secteurs* du jeu : le temps propre de chaque secteur (pas cumulé, repris des
+  enregistrements de secteur du jeu), puis la pénalité, avec le temps de la spéciale
+  épinglé à gauche, le top 3 et l'écart au meilleur sur chaque colonne, et un tri par
+  n'importe quelle colonne. Choisissez la spéciale dans son sélecteur, ou cliquez sur
+  le nom d'une spéciale dans l'onglet **Stages** pour l'ouvrir directement. Chaque
+  spéciale de la session est disponible une fois terminée ; celle en cours reste sur
+  le tableau en direct.
 - **Rallyes, classement général & points de championnat** — regroupez les spéciales
   en rallyes nommés depuis le panneau hôte (*Stages — select to group* : cochez les
   spéciales, cliquez **Group**, renommez sur place). La page web gagne un onglet
@@ -431,6 +445,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 |---|---|
 | Trafic serveur→client | en clair (non chiffré), décodé |
 | Temps splits + final par pilote | ✅ exact au ms vs écran en jeu, pénalités incluses |
+| Temps par secteur de chaque spéciale | ✅ temps propre de chaque secteur tel que le jeu l'enregistre, pour toute spéciale terminée de la session |
 | Nom de la spéciale | ✅ niveau + route courue (Full/Short/Cut, Forward/Reverse), affichée avec le nom de route du jeu via le catalogue de contenu embarqué (identifiant brut conservé dans l'état JSON). La route est répliquée à l'entrée dans le lobby, au chargement du parc d'assistance et quand l'hôte choisit la spéciale suivante — pas au chargement de la spéciale elle-même — donc lancer l'outil **avant de rejoindre** pour avoir la route de la première spéciale |
 | Nationalité + voiture par pilote/spéciale | ✅ lues dans les données de participant répliquées (nationalité du pilote, voiture, équipage) liées à l'identifiant de participant, et dans le CarId de chaque entrée de résultat ; voiture conservée par spéciale et listée sans doublon sur la sélection. Les données de participant ne sont répliquées qu'à l'entrée au lobby et au changement : un pilote déjà présent au lancement de l'outil n'a pas de drapeau tant qu'il ne rejoint pas à nouveau — une raison de plus de lancer l'outil **avant de rejoindre** |
 | Liste complète des arrivants | ✅ depuis les tableaux de résultats répliqués (entrées live par participant, puis entrées de session par course) |

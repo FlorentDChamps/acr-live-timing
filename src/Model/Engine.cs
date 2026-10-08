@@ -430,7 +430,10 @@ public sealed class Engine
             if (r.CarId != null) Matrix.SetDriverCar(runKey, r.ParticipantId, r.CarId);
             if (r.Sectors.Count > 0) Matrix.MarkDriverStarted(r.ParticipantId);
             if (r.Raw is float raw)
-                Matrix.AddResult(runKey, r.ParticipantId, raw + r.Penalty, raw, r.Sectors.Count, splits);
+            {
+                var sectorTimes = r.SplitSectorTimes.Select(v => float.IsNaN(v) ? (double?)null : v).ToList();
+                Matrix.AddResult(runKey, r.ParticipantId, raw + r.Penalty, raw, r.Sectors.Count, splits, sectorTimes);
+            }
             if (source != ReplicationDecoder.ResultSource.Session) continue;
             if (r.Dnf || r.Dq)
                 Matrix.MarkDriverDnf(runKey, r.ParticipantId);

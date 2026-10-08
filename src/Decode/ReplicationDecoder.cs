@@ -75,18 +75,26 @@ public sealed class ReplicationDecoder
     }
 
     /// <summary>One rally result (a participant on one race): cumulative sector
-    /// times, penalty, car, and the DNF/DQ flags when the entry is final.</summary>
+    /// times, each sector's own time, penalty, car, and the DNF/DQ flags when the
+    /// entry is final.</summary>
     public sealed class RallyResult
     {
         public string ParticipantId = "";
         public int RaceId = -1;
         public SortedDictionary<int, float> Sectors { get; } = [];   // index -> cumulative time
+        // index -> the sector's own time (SectorRecord.RelativeTime), as the game's
+        // Sectors tab shows it: not always the difference of two cumulative times
+        // to the millisecond, the game keeps its own
+        public Dictionary<int, float> SectorTimes { get; } = [];
         public int SectorCount;                                          // replicated array count
         public float Penalty;
         public string? CarId;
         public bool Dnf, Dq;
         public float? Raw => Sectors.Count > 0 ? Sectors.Values.Max() : null;
         public IReadOnlyList<float> Splits => [.. Sectors.OrderBy(kv => kv.Key).Select(kv => kv.Value)];
+        // aligned with Splits; NaN where the sector's own time was not replicated
+        public IReadOnlyList<float> SplitSectorTimes => [.. Sectors.OrderBy(kv => kv.Key)
+            .Select(kv => SectorTimes.TryGetValue(kv.Key, out float own) ? own : float.NaN)];
     }
 
     public enum ResultSource { Partial, Session, Best }
@@ -489,7 +497,11 @@ public sealed class ReplicationDecoder
         {
             r.SectorCount = sectors.Count;
             foreach (var (i, s) in sectors.Elements)
-                if (i < sectors.Count && s.Get<float>("Time") is float t && t > 0f) r.Sectors[i] = t;
+            {
+                if (i >= sectors.Count || s.Get<float>("Time") is not float t || t <= 0f) continue;
+                r.Sectors[i] = t;
+                if (s.Get<float>("RelativeTime") is float own && own > 0f) r.SectorTimes[i] = own;
+            }
         }
     }
 }
