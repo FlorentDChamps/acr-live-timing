@@ -13,9 +13,14 @@ flag and car — that the whole lobby can follow in a browser, stage after stage
 running session totals. Share it on the LAN or publish it to anyone with a one-click
 Cloudflare tunnel link.
 
-![The live leaderboard page during a stage](docs/screenshot.png)
+![The live sector board during a stage: cumulative splits, then the stage time](docs/screenshot.png)
 
-<sub>Demo data — fictional pseudonyms, placeholder server address.</sub>
+| Stages | Sectors | Standings |
+|:---:|:---:|:---:|
+| [![Stage times and running totals once the stage is over](docs/stages.png)](docs/stages.png) | [![Each sector's own time on one stage](docs/sectors.png)](docs/sectors.png) | [![Championship points per rally](docs/standings.png)](docs/standings.png) |
+
+<sub>Demo data — fictional pseudonyms, placeholder server address. Above: a stage
+being run; below: the same session once it is over, on each tab.</sub>
 
 > ⚠️ **Passive analysis tool, for personal/educational use.** It only *reads* the
 > traffic of lobbies you are playing in. It modifies nothing, injects nothing, and
@@ -63,6 +68,13 @@ Cloudflare tunnel link.
   driver/car bindings are still learned, so the next, fully-captured stage is ready
   from the first split. Columns are sortable (any stage or the total), and
   rank-change arrows next to each driver show their movement on the latest stage.
+- **Sector times** — a **Sectors** tab shows one stage the way the game's *Sectors*
+  tab does: each sector's own time (not cumulative, taken from the game's own sector
+  records), then the penalty, with the stage time pinned on the left, top three and
+  gap to the best on every column, and any column sortable. Pick the stage from its
+  selector, or click a stage's name in the **Stages** tab to open it directly. Every
+  stage of the session is available once it is over; the one still being run stays
+  on the live board.
 - **Rallies, standings & championship points** — group stages into named rallies
   from the host panel (*Stages — select to group*: tick the stages, click **Group**,
   rename inline). The web page gains a **Standings** tab: an independent
@@ -394,6 +406,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 |---|---|
 | Server→client traffic | cleartext (unencrypted), decoded |
 | Split + final times per driver | ✅ ms-exact vs in-game screen, penalties included |
+| Sector times per stage | ✅ each sector's own time as the game records it, any finished stage of the session |
 | Stage name | ✅ level + driven route (Full/Short/Cut, Forward/Reverse), shown as the in-game route name from the embedded content catalog (wire id kept in the JSON state). The route is replicated at lobby join, at the service-park load and when the host picks the next stage — not when the stage itself loads — so start the tool **before joining** to get the first stage's route |
 | Nation + car per driver/stage | ✅ read from the replicated participant data (driver nationality, car, crew) bound to the participant id, and from each result entry's CarId; car retained per stage and listed without duplicates across the selected stages. The participant data replicates at lobby join and on change only, so a driver who was already in the lobby when the tool started shows no flag until they rejoin — another reason to start the tool **before joining** |
 | Complete finisher list | ✅ from the replicated rally result arrays (live per-participant entries, then the per-race session entries) |

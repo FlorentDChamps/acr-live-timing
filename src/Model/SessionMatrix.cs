@@ -24,6 +24,10 @@ public sealed class RawCell
     public int S { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<double>? Splits { get; set; } // penalty-free cumulative sector times
+    // each sector's own time as the game records it, aligned with Splits (null
+    // where it was not replicated)
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<double?>? Sectors { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool R { get; set; }
 }
@@ -125,6 +129,9 @@ public sealed class SessionMatrix
     // id -> driver -> complete cumulative split chain. Kept separately so the
     // established latest-result storage and scoring rules remain unchanged.
     private readonly Dictionary<string, Dictionary<string, List<double>>> _splits = [];
+    // id -> driver -> each sector's own time from the results chain (RelativeTime),
+    // the latest chain at least as long as the one kept
+    private readonly Dictionary<string, Dictionary<string, List<double?>>> _sectorTimes = [];
     private readonly List<string> _driverOrder = [];
     // columnId -> penalty-free finish times (raw), each owned by ONE driver: a
     // driver's result is a real FINISH iff its raw matches one of their own. Two
@@ -258,6 +265,15 @@ public sealed class SessionMatrix
                     column[to] = oldSplits;
                 else
                     MergeSplitChain(currentSplits, oldSplits);
+            }
+        }
+
+        foreach (var column in _sectorTimes.Values)
+        {
+            if (column.Remove(from, out var oldTimes)
+                && (!column.TryGetValue(to, out var currentTimes) || oldTimes.Count > currentTimes.Count))
+            {
+                column[to] = oldTimes;
             }
         }
 
@@ -458,7 +474,7 @@ public sealed class SessionMatrix
         => AddResult(columnId, driver, time, raw, sectors, null);
 
     public void AddResult(string columnId, string driver, double time, double raw, int sectors,
-                          IReadOnlyList<double>? splits)
+                          IReadOnlyList<double>? splits, IReadOnlyList<double?>? sectorTimes = null)
     {
         bool changed = false;
         lock (_lock)
@@ -482,6 +498,19 @@ public sealed class SessionMatrix
                 if (!splitColumn.TryGetValue(driver, out var known))
                     splitColumn[driver] = known = [];
                 changed |= MergeSplitChain(known, splits);
+            }
+            if (sectorTimes != null && sectorTimes.Count > 0)
+            {
+                if (!_sectorTimes.TryGetValue(columnId, out var sectorColumn))
+                    _sectorTimes[columnId] = sectorColumn = [];
+                // a results array describes the whole chain: keep the latest one that
+                // is not a stale, shorter rebroadcast
+                if (!sectorColumn.TryGetValue(driver, out var own)
+                    || (sectorTimes.Count >= own.Count && !sectorTimes.SequenceEqual(own)))
+                {
+                    sectorColumn[driver] = [.. sectorTimes];
+                    changed = true;
+                }
             }
             // Prefer the furthest sector reached. Within the same sector keep the
             // largest cumulative total (latest penalty/result update). Sector count
@@ -948,6 +977,7 @@ public sealed class SessionMatrix
         {
             _times.Clear();
             _splits.Clear();
+            _sectorTimes.Clear();
             _labels.Clear();
             _columnOrder.Clear();
             _driverOrder.Clear();
@@ -1002,6 +1032,7 @@ public sealed class SessionMatrix
         {
             _times.Clear();
             _splits.Clear();
+            _sectorTimes.Clear();
             _labels.Clear();
             _columnOrder.Clear();
             _driverOrder.Clear();
@@ -1213,6 +1244,8 @@ public sealed class SessionMatrix
                             F = IsFinished(id, driverKey, re.raw),
                             S = re.sectors,
                             Splits = splitValues != null ? [.. splitValues] : null,
+                            Sectors = _sectorTimes.TryGetValue(id, out var sectorColumn)
+                                && sectorColumn.TryGetValue(driverKey, out var own) ? [.. own] : null,
                             R = isDnf || (id == lastColumn && retired.Contains(driverKey))
                         });
                     }

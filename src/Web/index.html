@@ -182,8 +182,17 @@
        position: sticky; top: 0; background: var(--bg); z-index: 1; }
   .sorthead { width: 100%; padding: 0; border: 0; background: transparent;
               color: inherit; font: inherit; text-align: inherit;
-              text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
+              text-transform: inherit; letter-spacing: inherit; cursor: pointer;
+              white-space: normal; }  /* a long rally name wraps instead of spilling */
   .sorthead:hover { color: var(--txt); }
+  /* sort cue: faint ↕ on a sortable column, ↓ (best on top) on the sorted one. The
+     glyph is CSS content so copied text and exports keep the bare header. */
+  /* ↕ hangs ~.2em below the baseline: lift it to centre on the capitals (↓ doesn't) */
+  .sortarrow::before { content: "↕"; margin-left: 3px; opacity: .45; text-transform: none;
+                       position: relative; top: -.1em; }
+  .sorthead:hover .sortarrow::before { opacity: .8; }
+  .sorthead[aria-sort="ascending"] .sortarrow::before,
+  .sorthead[aria-sort="descending"] .sortarrow::before { content: "↓"; opacity: 1; color: var(--accent); top: 0; }
 
   /* fixed-width time columns (stage cells + Total) */
   .cell, .total { width: var(--w-time); min-width: var(--w-time);
@@ -360,17 +369,25 @@
   .groupfilter { display: flex; align-items: center; gap: 8px; margin: 0 0 10px;
                  color: var(--dim); font-size: 12px; }
   .groupfilter select { background: var(--bg); color: var(--txt); border: 1px solid var(--line);
-                        border-radius: 6px; padding: 4px 6px; font: inherit; }
+                        border-radius: 6px; padding: 4px 6px; font: inherit;
+                        min-width: 0; max-width: min(280px, calc(100vw - 90px)); text-overflow: ellipsis; }
   .boardbar { display: flex; align-items: center; justify-content: space-between; gap: 12px;
               margin: 0 0 10px; flex-wrap: wrap; }
   .boardbar .groupfilter { margin: 0; }
-  .viewtools { display: flex; align-items: center; gap: 16px; }
+  /* three tabs plus a stage or rally selector: wraps under the tabs on a phone */
+  .viewtools { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; min-width: 0; }
   .exporttools { display: flex; align-items: center; gap: 6px; }
   .viewtabs { display: flex; gap: 4px; }
   .viewtab { padding: 4px 9px; border: 1px solid var(--line); border-radius: 6px;
              background: var(--bg); color: var(--dim); cursor: pointer; font: inherit; font-size: 12px; }
   .viewtab:hover { color: var(--txt); border-color: var(--accent); }
   .viewtab.active { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  /* Stages tab: the stage name under "SSn" opens that stage in the Sectors tab
+     (the "SSn" line above it keeps sorting the column) */
+  .stagelink { display: block; width: 100%; padding: 0; border: 0; background: transparent;
+               color: inherit; font: inherit; text-align: inherit; cursor: pointer; }
+  .stagelink .stagename { text-decoration: underline dotted; text-underline-offset: 3px; }
+  .stagelink:hover .stagename { color: var(--accent); }
   .exportbtn { width: 28px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 6px;
                background: var(--bg); color: var(--dim); cursor: pointer; font: inherit; font-size: 15px; }
   .exportbtn:hover:not(:disabled) { color: var(--txt); border-color: var(--accent); }
@@ -486,10 +503,14 @@
       <div class="viewtools">
         <div class="viewtabs" role="tablist" aria-label="Results view">
           <button type="button" class="viewtab active" id="tabStages" role="tab" aria-selected="true">Stages</button>
+          <button type="button" class="viewtab" id="tabSectors" role="tab" aria-selected="false">Sectors</button>
           <button type="button" class="viewtab" id="tabStandings" role="tab" aria-selected="false">Standings</button>
         </div>
         <div class="groupfilter" id="groupFilter" style="display:none">
           <label for="groupSelect">Rally</label><select id="groupSelect"></select>
+        </div>
+        <div class="groupfilter" id="sectorFilter" style="display:none">
+          <label for="sectorSelect">Stage</label><select id="sectorSelect"></select>
         </div>
       </div>
       <div class="exporttools">
@@ -572,23 +593,34 @@ function setLinkified(el, text) {
   if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
 }
 
-function fmt(sec) {
-  if (sec == null) return "—";
-  // round to ms FIRST, then split: toFixed on the seconds remainder can round
-  // 59.9996 up to "60.000" without carrying into the minutes
-  const ms = Math.round(sec * 1000);
+// Whole milliseconds of a time: the single place seconds become displayed digits.
+// A time the game holds as 152.672 travels as the float32 152.6719970703125;
+// rounding gives back the 152672 ms the game itself holds.
+function timeMs(sec) {
+  return Math.round(sec * 1000);
+}
+
+// ms -> "02:32.672". Built from whole milliseconds, so the seconds remainder can
+// never round 59.9996 up to "60.000" without carrying into the minutes.
+function fmtMs(ms) {
   const m = Math.floor(ms / 60000);
   const s = (ms - m * 60000) / 1000;
   return String(m).padStart(2, "0") + ":" + s.toFixed(3).padStart(6, "0");
 }
 
-// gap to the column leader; blank when this cell IS the leader (or no value)
-function fmtGap(sec) {
-  if (sec == null || sec <= 0.0005) return "";
-  const ms = Math.round(sec * 1000);
-  const m = Math.floor(ms / 60000);
-  const s = (ms - m * 60000) / 1000;
-  return "+" + String(m).padStart(2, "0") + ":" + s.toFixed(3).padStart(6, "0");
+function fmt(sec) {
+  if (sec == null) return "—";
+  return fmtMs(timeMs(sec));
+}
+
+// gap to the column leader; blank when this cell IS the leader (or no value).
+// Taken between the two displayed times, so the gap always equals the subtraction
+// the reader can do on screen — rounding the raw difference can land one
+// millisecond off it.
+function fmtGap(sec, reference) {
+  if (sec == null || reference == null) return "";
+  const ms = timeMs(sec) - timeMs(reference);
+  return ms > 0 ? "+" + fmtMs(ms) : "";
 }
 
 // a time cell: main time on line 1, small gap-to-leader on line 2
@@ -602,6 +634,49 @@ function setCell(td, mainText, diffText) {
 
 function medalClass(n) {
   return n === 1 ? "gold" : n === 2 ? "silver" : n === 3 ? "bronze" : "";
+}
+
+// Top 3 of a time column: index -> medal rank, null values left out. Ties are
+// common at the millisecond, so a medal goes by the displayed time: equal times
+// share it (1, 1, 3).
+function podiumRanks(values) {
+  const shown = values.filter(value => value != null).map(timeMs);
+  const ranks = new Map();
+  values.forEach((value, index) => {
+    if (value == null) return;
+    const rank = 1 + shown.filter(ms => ms < timeMs(value)).length;
+    if (rank <= 3) ranks.set(index, rank);
+  });
+  return ranks;
+}
+
+// Driver cell shared by every board: flag, name and the car line below it.
+function driverCell(r, car, medal) {
+  const td = document.createElement("td");
+  td.className = "name" + (medal ? " " + medal : "");
+  const fc = hideNatOn() ? null : flagCode(r);
+  if (fc) {
+    const img = document.createElement("img");
+    img.className = "flag";
+    img.src = "https://flagcdn.com/20x15/" + fc + ".png";
+    img.srcset = "https://flagcdn.com/40x30/" + fc + ".png 2x";
+    img.width = 20; img.height = 15; img.alt = r.nationName || r.nation; img.title = r.nationName || r.nation;
+    img.onerror = () => { const ph = document.createElement("span");
+                          ph.className = "flag-ph"; img.replaceWith(ph); };
+    td.appendChild(img);
+  } else {
+    // no known flag: reserve the same space so pseudos stay aligned
+    const ph = document.createElement("span");
+    ph.className = "flag-ph";
+    td.appendChild(ph);
+  }
+  td.appendChild(document.createTextNode(r.driver));
+  if (car) {
+    const c = document.createElement("span");
+    c.className = "car"; c.textContent = car; td.appendChild(c);
+  }
+  td.title = r.driver + (car ? " — " + car : "");
+  return td;
 }
 
 // The flag code (ISO 3166-1 alpha-2, or a gb-* subdivision) comes with the state:
@@ -621,6 +696,15 @@ function carLabels(cars) {
 }
 
 // "SS1 AlsaceS4Saverne" -> "SS1" over "AlsaceS4Saverne" (two lines)
+// Puts the sort cue right after the header's first line ("SS1", "Total"…), before a
+// stage name that wraps under it.
+function addSortArrow(button) {
+  const arrow = document.createElement("span");
+  arrow.className = "sortarrow";
+  arrow.setAttribute("aria-hidden", "true");
+  button.insertBefore(arrow, button.querySelector(".stagename"));
+}
+
 function stageHeaderHtml(label) {
   const m = /^(SS\d+)\s+(.+)$/.exec(label);
   if (m) return esc(m[1]) + '<span class="stagename">' + esc(m[2]) + "</span>";
@@ -774,6 +858,8 @@ let lastHostDnfNoRejoin = null;
 let sortKey = "total";  // total by default; stage keys are stable stage ids
 let standingsSortKey = "total"; // points are naturally sorted from highest to lowest
 let activeTab = "stages";
+let sectorStageId = null;       // stage shown in the Sectors tab (null: the latest one over)
+let sectorSortKey = "stage";    // "stage" (stage classification) or a sector index
 let groupSelection = new Set();
 const seenStageIds = new Set();
 
@@ -1129,7 +1215,8 @@ function initPanel() {
     hideSplits: $("cfgHideSplits"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
     groupToggle: $("cfgGroupToggle"),
     groupFilter: $("groupFilter"), groupSelect: $("groupSelect"),
-    tabStages: $("tabStages"), tabStandings: $("tabStandings"),
+    tabStages: $("tabStages"), tabStandings: $("tabStandings"), tabSectors: $("tabSectors"),
+    sectorFilter: $("sectorFilter"), sectorSelect: $("sectorSelect"),
     copyTable: $("copyTable"), exportCsv: $("exportCsv"), exportPng: $("exportPng")
   });
   cfgEls.btn.addEventListener("click", () => {
@@ -1150,6 +1237,8 @@ function initPanel() {
   };
   cfgEls.tabStages.addEventListener("click", () => setTab("stages"));
   cfgEls.tabStandings.addEventListener("click", () => setTab("standings"));
+  cfgEls.tabSectors.addEventListener("click", () => setTab("sectors"));
+  cfgEls.sectorSelect.addEventListener("change", () => openSectors(cfgEls.sectorSelect.value));
   cfgEls.copyTable.addEventListener("click", () => copyVisibleTable(cfgEls.copyTable));
   cfgEls.exportCsv.addEventListener("click", () => exportVisibleTableCsv(cfgEls.exportCsv));
   cfgEls.exportPng.addEventListener("click", () => exportVisibleTablePng(cfgEls.exportPng));
@@ -1282,15 +1371,15 @@ function syncGroupFilter() {
   cfgEls.groupSelect.value = ov.groupFilter == null ? "" : String(ov.groupFilter);
 }
 function syncTabBar() {
-  const standings = activeTab === "standings";
-  cfgEls.tabStages.classList.toggle("active", !standings);
-  cfgEls.tabStandings.classList.toggle("active", standings);
-  cfgEls.tabStages.setAttribute("aria-selected", String(!standings));
-  cfgEls.tabStandings.setAttribute("aria-selected", String(standings));
-  // Every rally is intentionally present in this board, so filtering is disabled.
-  cfgEls.groupSelect.disabled = standings;
-  cfgEls.groupSelect.title = standings ? "All rallies are shown in this view" : "";
-  cfgEls.groupFilter.style.display = standings ? "none" : "flex";
+  [["stages", cfgEls.tabStages], ["standings", cfgEls.tabStandings], ["sectors", cfgEls.tabSectors]]
+    .forEach(([tab, button]) => {
+      button.classList.toggle("active", activeTab === tab);
+      button.setAttribute("aria-selected", String(activeTab === tab));
+    });
+  // The rally filter only applies to the Stages board: Standings shows every rally
+  // on purpose, Sectors shows one stage and has its own stage selector.
+  cfgEls.groupFilter.style.display = activeTab === "stages" ? "flex" : "none";
+  cfgEls.sectorFilter.style.display = activeTab === "sectors" ? "flex" : "none";
 }
 // refresh the controls from host defaults + overrides; never clobber an input the
 // user is actively editing (poll re-renders call this every second).
@@ -1455,12 +1544,13 @@ function buildLiveSplitBoard(v) {
   }
 
   columns.forEach((column, columnIndex) => {
-    const timed = rows.filter(row => {
+    const times = rows.map(row => {
       const value = row.liveValues[columnIndex];
-      return value.time != null && !value.dnf && !value.substituted;
-    }).sort((a, b) => a.liveValues[columnIndex].time - b.liveValues[columnIndex].time);
-    column.fastest = timed.length ? timed[0].liveValues[columnIndex].time : null;
-    column.medals = new Map(timed.slice(0, 3).map((row, index) => [row.driver, index + 1]));
+      return value.time != null && !value.dnf && !value.substituted ? value.time : null;
+    });
+    const timed = times.filter(time => time != null);
+    column.fastest = timed.length ? Math.min(...timed) : null;
+    column.medals = new Map([...podiumRanks(times)].map(([i, rank]) => [rows[i].driver, rank]));
   });
   return { rows, columns };
 }
@@ -1524,6 +1614,11 @@ function render(v) {
     scheduleScrollLayout();
     return;
   }
+  if (activeTab === "sectors") {
+    renderSectors(v);
+    scheduleScrollLayout();
+    return;
+  }
 
   const live = liveSplits;
   const liveBoard = live ? buildLiveSplitBoard(v) : null;
@@ -1557,6 +1652,7 @@ function render(v) {
       button.title = "Sort fastest to slowest (no time last)";
       button.setAttribute("aria-sort", sortKey === key ? "ascending" : "none");
       button.addEventListener("click", () => { sortKey = key; render(lastRendered); });
+      addSortArrow(button);
       th.appendChild(button);
     }
     head.appendChild(th);
@@ -1564,8 +1660,25 @@ function render(v) {
   addTh("#", "pos");
   addTh("Driver", "name");
   addTh("Total", "total", live ? null : "total");
-  stageCols.forEach(stage => addTh(live ? esc(stage.name) : stageHeaderHtml(stage.name),
-    "cell" + (live && stage.latest ? " live-latest" : ""), live ? null : stage.id));
+  // A stage that is over gets its name as a link to its sector times; the "SSn"
+  // line above it keeps sorting the column.
+  const withSectors = live ? new Set() : new Set(sectorStages(lastServer || v).map(stage => stage.id));
+  stageCols.forEach(stage => {
+    const m = /^(SS\d+)\s+(.+)$/.exec(stage.name);
+    if (live || !m || !withSectors.has(stage.id)) {
+      addTh(live ? esc(stage.name) : stageHeaderHtml(stage.name),
+        "cell" + (live && stage.latest ? " live-latest" : ""), live ? null : stage.id);
+      return;
+    }
+    addTh(esc(m[1]), "cell", stage.id);
+    const link = document.createElement("button");
+    link.type = "button";
+    link.className = "stagelink";
+    link.title = "Show this stage's sector times";
+    link.innerHTML = '<span class="stagename">' + esc(m[2]) + "</span>";
+    link.addEventListener("click", () => openSectors(stage.id));
+    head.lastChild.appendChild(link);
+  });
 
   if (rows.length === 0) {
     document.getElementById("body").innerHTML = "";
@@ -1602,14 +1715,12 @@ function render(v) {
   // per stage column: the 3 fastest real times get gold/silver/bronze
   const stageMedal = stageCols.map(({ cellIndex, medals }) => {
     if (live) return medals;
-    const m = new Map();
-    rows.map(r => ({ d: r.driver, c: r.cells ? r.cells[cellIndex] : null }))
-        // finish times only — an intermediate split never takes a podium slot
-        .filter(x => x.c && x.c.final && !x.c.substituted && x.c.real != null)
-        .sort((a, b) => a.c.real - b.c.real)
-        .slice(0, 3)
-        .forEach((x, i) => m.set(x.d, i + 1));
-    return m;
+    // finish times only — an intermediate split never takes a podium slot
+    const finishes = rows.map(r => {
+      const c = r.cells ? r.cells[cellIndex] : null;
+      return c && c.final && !c.substituted && c.real != null ? c.real : null;
+    });
+    return new Map([...podiumRanks(finishes)].map(([i, rank]) => [rows[i].driver, rank]));
   });
 
   // per stage column: fastest real time (reference for the small gap line)
@@ -1647,32 +1758,7 @@ function render(v) {
     tdPos.appendChild(document.createTextNode(live ? r.liveRank : r.rank));
     tr.appendChild(tdPos);
 
-    const tdName = document.createElement("td");
-    tdName.className = "name" + (nmc ? " " + nmc : "");
-    const fc = hideNatOn() ? null : flagCode(r);
-    if (fc) {
-      const img = document.createElement("img");
-      img.className = "flag";
-      img.src = "https://flagcdn.com/20x15/" + fc + ".png";
-      img.srcset = "https://flagcdn.com/40x30/" + fc + ".png 2x";
-      img.width = 20; img.height = 15; img.alt = r.nationName || r.nation; img.title = r.nationName || r.nation;
-      img.onerror = () => { const ph = document.createElement("span");
-                            ph.className = "flag-ph"; img.replaceWith(ph); };
-      tdName.appendChild(img);
-    } else {
-      // no known flag: reserve the same space so pseudos stay aligned
-      const ph = document.createElement("span");
-      ph.className = "flag-ph";
-      tdName.appendChild(ph);
-    }
-    tdName.appendChild(document.createTextNode(r.driver));
-    const car = carLabels(r.cars);
-    if (car) {
-      const c = document.createElement("span");
-      c.className = "car"; c.textContent = car; tdName.appendChild(c);
-    }
-    tdName.title = r.driver + (car ? " — " + car : "");
-    tr.appendChild(tdName);
+    tr.appendChild(driverCell(r, carLabels(r.cars), nmc));
 
     const tdTot = document.createElement("td");
     // The overall classification always shows the CAPPED ranking total. Real times
@@ -1690,7 +1776,7 @@ function render(v) {
       setCell(tdTot, "", "");
       tdTot.title = "No stage time yet";
     } else {
-      setCell(tdTot, fmt(r.total), fmtGap(r.total - leader));
+      setCell(tdTot, fmt(r.total), fmtGap(r.total, leader));
       if (r.totalSubstituted)
         tdTot.title = "Classification total including capped stage times";
     }
@@ -1703,7 +1789,7 @@ function render(v) {
       if (live && latest) td.classList.add("live-latest");
       const fastest = stageFastest[s];
       const value = live ? cell.time : cell.real;
-      const gap = (value != null && fastest != null) ? fmtGap(value - fastest) : "";
+      const gap = (value != null && fastest != null) ? fmtGap(value, fastest) : "";
       if (cell.dnf) {
         // started the stage (posted splits) but never crossed the line
         td.classList.add("dnf");
@@ -1784,6 +1870,7 @@ function renderStandings(v) {
       button.title = "Sort highest to lowest (no points last)";
       button.setAttribute("aria-sort", standingsSortKey === key ? "descending" : "none");
       button.addEventListener("click", () => { standingsSortKey = key; render(lastRendered); });
+      addSortArrow(button);
       th.appendChild(button);
     }
     head.appendChild(th);
@@ -1844,25 +1931,7 @@ function renderStandings(v) {
     const tdPos = document.createElement("td");
     tdPos.className = "pos"; tdPos.textContent = index + 1; tr.appendChild(tdPos);
 
-    const tdName = document.createElement("td");
-    tdName.className = "name" + (mc ? " " + mc : "");
-    const fc = hideNatOn() ? null : flagCode(r);
-    if (fc) {
-      const img = document.createElement("img");
-      img.className = "flag";
-      img.src = "https://flagcdn.com/20x15/" + fc + ".png";
-      img.srcset = "https://flagcdn.com/40x30/" + fc + ".png 2x";
-      img.width = 20; img.height = 15; img.alt = r.nationName || r.nation; img.title = r.nationName || r.nation;
-      img.onerror = () => { const ph = document.createElement("span"); ph.className = "flag-ph"; img.replaceWith(ph); };
-      tdName.appendChild(img);
-    } else {
-      const ph = document.createElement("span"); ph.className = "flag-ph"; tdName.appendChild(ph);
-    }
-    tdName.appendChild(document.createTextNode(r.driver));
-    const car = carLabels(r.cars);
-    if (car) { const c = document.createElement("span"); c.className = "car"; c.textContent = car; tdName.appendChild(c); }
-    tdName.title = r.driver + (car ? " — " + car : "");
-    tr.appendChild(tdName);
+    tr.appendChild(driverCell(r, carLabels(r.cars), mc));
 
     const tdTotal = document.createElement("td");
     tdTotal.className = "total rallypoints" + (mc ? " " + mc : "");
@@ -1881,6 +1950,200 @@ function renderStandings(v) {
   });
 }
 
+// ---- sectors -----------------------------------------------------------------
+// Phases in which the last stage may still be running.
+const RUN_PHASES = ["Start sequence", "Semaphore", "Racing", "Finishing", "Post race", "Spectating"];
+
+// Stages whose sector times can be shown: every stage with splits, except one still
+// being run — the live board covers it, and Hide split times must keep hiding its
+// intermediate times. The last stage counts as run once every driver on it has
+// finished or retired, or once the lobby has moved on to the results.
+function sectorStages(source) {
+  const all = source.allStages || [];
+  const rows = source.rows || [];
+  const last = all.length - 1;
+  const running = RUN_PHASES.includes(source.phase) && rows.some(row => {
+    const rc = row.rawCells && row.rawCells[last];
+    return rc && !rc.f && !rc.r;
+  });
+  return all.map((stage, index) => ({ id: stage.id, name: stage.name, index }))
+    .filter(stage => !(running && stage.index === last) && rows.some(row => {
+      const rc = row.rawCells && row.rawCells[stage.index];
+      return rc && Array.isArray(rc.splits) && rc.splits.length > 0;
+    }));
+}
+
+function openSectors(stageId) {
+  sectorStageId = stageId;
+  sectorSortKey = "stage";
+  activeTab = "sectors";
+  if (lastServer) { render(displayedView(lastServer)); syncPanel(lastServer); }
+}
+
+function syncSectorSelect(stages, shownId) {
+  const select = cfgEls.sectorSelect;
+  const key = stages.map(stage => stage.id + "=" + stage.name).join("|");
+  if (select.dataset.key !== key) {
+    select.dataset.key = key;
+    select.innerHTML = "";
+    stages.forEach(stage => {
+      const option = document.createElement("option");
+      option.value = stage.id; option.textContent = stage.name;
+      select.appendChild(option);
+    });
+  }
+  if (document.activeElement !== select) select.value = shownId || "";
+}
+
+// One stage, like the game's Sectors tab: each sector's own time (not cumulative),
+// then the penalty; the stage time sits in the pinned column. Always every driver of
+// the stage, whatever stages the viewer excluded from the totals.
+function renderSectors(v) {
+  const source = lastServer || v;
+  const stages = sectorStages(source);
+  const stage = stages.find(s => s.id === sectorStageId) || stages[stages.length - 1] || null;
+  syncSectorSelect(stages, stage && stage.id);
+  const tbl = document.getElementById("tbl");
+  const empty = document.getElementById("empty");
+  const head = document.getElementById("head");
+  const body = document.getElementById("body");
+  head.innerHTML = "";
+  body.innerHTML = "";
+  const showEmpty = text => {
+    empty.textContent = text;
+    empty.style.display = "block";
+    tbl.style.display = "none";
+  };
+  if (!stage) { showEmpty("Sector times appear here once a stage is over."); return; }
+
+  // finish / DNF per driver on this stage, from the same rules as the Stages board
+  const ci = stage.index;
+  const status = computeView(source, {
+    discarded: new Set(), groups: effGroups(source), pct: 0, dnfNoRejoin: false, hideSplits: true
+  }, false);
+  const rawByDriver = new Map((source.rows || []).map(row => [row.driver, row]));
+  const entries = status.rows.map(row => {
+    const raw = rawByDriver.get(row.driver);
+    const rc = raw && raw.rawCells && raw.rawCells[ci];
+    const splits = rc && Array.isArray(rc.splits) ? rc.splits : [];
+    if (!splits.length) return null;
+    // the game's own sector times; a host without them: differences of the splits
+    const own = splits.map((t, i) => {
+      const sector = rc.sectors && rc.sectors[i];
+      return Number.isFinite(sector) ? sector : t - (i > 0 ? splits[i - 1] : 0);
+    });
+    const cell = row.cells[ci];
+    const final = !!(cell && cell.final);
+    return {
+      row, own, dnf: !!(cell && cell.dnf),
+      stageTime: final ? rc.t : null,
+      last: splits[splits.length - 1],
+      penaltyMs: final ? timeMs(rc.t) - timeMs(splits[splits.length - 1]) : 0,
+      car: (raw.carNames && raw.carNames[ci]) || (raw.cars && raw.cars[ci]) || ""
+    };
+  }).filter(Boolean);
+  if (!entries.length) { showEmpty("No sector times for this stage."); return; }
+
+  // stage classification: finishers by time, then the others by distance covered
+  entries.sort((a, b) => {
+    if ((a.stageTime == null) !== (b.stageTime == null)) return a.stageTime == null ? 1 : -1;
+    if (a.stageTime != null) return (a.stageTime - b.stageTime) || a.row.driver.localeCompare(b.row.driver);
+    return (b.own.length - a.own.length) || (a.last - b.last) || a.row.driver.localeCompare(b.row.driver);
+  });
+  entries.forEach((entry, index) => entry.pos = index + 1);
+
+  const sectorCount = Math.max(...entries.map(entry => entry.own.length));
+  if (sectorSortKey !== "stage" && sectorSortKey >= sectorCount) sectorSortKey = "stage";
+  const hasPenalty = entries.some(entry => entry.penaltyMs > 0);
+  const podium = values => {
+    const timed = values.filter(value => value != null);
+    return { best: timed.length ? Math.min(...timed) : null, medals: podiumRanks(values) };
+  };
+  const stagePodium = podium(entries.map(entry => entry.stageTime));
+  const sectorPodiums = Array.from({ length: sectorCount }, (_, k) =>
+    podium(entries.map(entry => k < entry.own.length ? entry.own[k] : null)));
+
+  const addTh = (text, cls, key) => {
+    const th = document.createElement("th");
+    if (cls) th.className = cls;
+    if (key == null) th.textContent = text;
+    else {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "sorthead";
+      button.textContent = text;
+      button.title = "Sort fastest to slowest (no time last)";
+      button.setAttribute("aria-sort", sectorSortKey === key ? "ascending" : "none");
+      button.addEventListener("click", () => { sectorSortKey = key; render(lastRendered); });
+      addSortArrow(button);
+      th.appendChild(button);
+    }
+    head.appendChild(th);
+  };
+  addTh("#", "pos");
+  addTh("Driver", "name");
+  addTh("Stage", "total", "stage");
+  for (let k = 0; k < sectorCount; k++) addTh("Sector " + (k + 1), "cell", k);
+  if (hasPenalty) addTh("Penalty", "cell");
+
+  const order = entries.map((entry, index) => ({ entry, index }));
+  if (sectorSortKey !== "stage") {
+    const value = x => sectorSortKey < x.entry.own.length ? x.entry.own[sectorSortKey] : null;
+    order.sort((a, b) => {
+      const av = value(a), bv = value(b);
+      if (av == null || bv == null) return av == null ? (bv == null ? a.index - b.index : 1) : -1;
+      return (av - bv) || (a.index - b.index);
+    });
+  }
+
+  empty.style.display = "none";
+  tbl.style.display = "";
+  order.forEach(({ entry, index }) => {
+    const tr = document.createElement("tr");
+    const mc = medalClass(stagePodium.medals.get(index));
+    const tdPos = document.createElement("td");
+    tdPos.className = "pos"; tdPos.textContent = entry.pos; tr.appendChild(tdPos);
+    tr.appendChild(driverCell(entry.row, entry.car, mc));
+
+    const tdStage = document.createElement("td");
+    tdStage.className = "total" + (mc ? " " + mc : "");
+    if (entry.stageTime != null) {
+      setCell(tdStage, fmt(entry.stageTime), fmtGap(entry.stageTime, stagePodium.best));
+      tdStage.title = entry.penaltyMs > 0 ? "Stage time, penalty included" : "Stage time";
+    } else if (entry.dnf) {
+      tdStage.classList.add("dnf");
+      setCell(tdStage, "DNF", "");
+      tdStage.title = "Did not finish";
+    } else {
+      setCell(tdStage, "", "");
+      tdStage.title = "No finish time";
+    }
+    tr.appendChild(tdStage);
+
+    for (let k = 0; k < sectorCount; k++) {
+      const td = document.createElement("td");
+      td.className = "cell";
+      if (k < entry.own.length) {
+        setCell(td, fmt(entry.own[k]), fmtGap(entry.own[k], sectorPodiums[k].best));
+        const smc = medalClass(sectorPodiums[k].medals.get(index));
+        if (smc) td.classList.add(smc);
+        td.title = "Sector " + (k + 1) + " time";
+      } else {
+        setCell(td, "", "");
+      }
+      tr.appendChild(td);
+    }
+    if (hasPenalty) {
+      const td = document.createElement("td");
+      td.className = "cell";
+      setCell(td, entry.penaltyMs > 0 ? fmtMs(entry.penaltyMs) : "", "");
+      if (entry.penaltyMs > 0) td.title = "Time penalty, included in the stage time";
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  });
+}
+
 // ---- sharing -----------------------------------------------------------------
 // Export from the rendered DOM so the copied text and PNG exactly follow the
 // active tab, selected stages and current column sort.
@@ -1888,6 +2151,8 @@ function visibleTableData() {
   const headerCells = [...document.getElementById("head").children];
   const headers = headerCells.map(th => {
     const copy = th.cloneNode(true);
+    // the stage name is its own line on screen: keep it apart from "SSn" in text
+    copy.querySelectorAll(".stagename").forEach(name => name.before(" "));
     return copy.textContent.trim().replace(/\s+/g, " ");
   });
   const cellData = td => {
@@ -1917,9 +2182,9 @@ function visibleTableData() {
 
 function tableText(data) {
   if (!data.rows.length) return "";
-  // Stage deltas are a visual aid on the page; keep copied results to the actual
-  // times. Standings has no deltas today, but keeps the generic secondary support.
-  const includeSecondary = activeTab !== "stages";
+  // Stage and sector deltas are a visual aid on the page; keep copied results to the
+  // actual times. Standings has no deltas today, but keeps the generic secondary support.
+  const includeSecondary = activeTab === "standings";
   const values = [data.headers, ...data.rows.map(row => row.map((cell, index) =>
     cell.primary + (includeSecondary && index !== 1 && cell.secondary ? " " + cell.secondary : "")))];
   const widths = data.headers.map((_, i) => Math.max(...values.map(row => textDisplayWidth(row[i]))));
@@ -2091,8 +2356,14 @@ function pngHeaderLayout(data, widths, ctx) {
     : paddingY * 2 + 14));
   return { cells, headerHeight, paddingY, stageLineHeight, nameLineHeight };
 }
+// the stage the Sectors tab is showing (the select mirrors it)
+function shownSectorStageName() {
+  const select = cfgEls.sectorSelect;
+  return select && select.selectedIndex >= 0 ? select.options[select.selectedIndex].textContent : "";
+}
 function pngExportScope() {
   if (activeTab === "standings") return "Standings";
+  if (activeTab === "sectors") return shownSectorStageName() + " · Sectors";
   if (ov.groupFilter == null || !lastServer) return "Stages";
   const all = lastServer.allStages || [];
   return rallyName(all, effGroups(lastServer), ov.groupFilter);
@@ -2204,6 +2475,7 @@ function exportFilename(extension) {
   const datedBase = /\d{8}/.test(base) ? base : base + "-" + date;
   const scope = activeTab === "stages"
     ? "stages-" + (ov.groupFilter == null ? "all" : pngExportScope())
+    : activeTab === "sectors" ? "sectors-" + shownSectorStageName()
     : "standings";
   const safeScope = scope.replace(/[\\/:*?\"<>|]/g, "-").trim();
   return datedBase + "-" + safeScope + "." + extension;
