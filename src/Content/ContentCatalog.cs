@@ -41,7 +41,9 @@ public static partial class ContentCatalog
     private sealed class Tables
     {
         public Dictionary<string, string> Stages = new(StringComparer.Ordinal);   // id or wireId -> name
-        public Dictionary<string, string> Cars = new(StringComparer.Ordinal);
+        // CarId -> display name, without case: like a nationality token, the CarId is an
+        // FName registered on each client ("HyundaiI20NRally2", "Hyundaii20NRally2")
+        public Dictionary<string, string> Cars = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> Routes = new(StringComparer.Ordinal);              // every known id + wireId
         public Dictionary<string, string> Levels = new(StringComparer.Ordinal);   // wire level -> id level
         public Dictionary<string, string> RouteIds = new(StringComparer.Ordinal); // wireId -> id

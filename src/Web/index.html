@@ -1517,11 +1517,21 @@ function buildLiveSplitBoard(v) {
   const latestIndex = finishSectors > 0 ? columns.length - 1
     : sectorCount > 0 ? sectorCount - 1 : -1;
   if (latestIndex >= 0) columns[latestIndex].latest = true;
+  // Each car ranks at the furthest checkpoint it has reached, so a car still
+  // between two split points keeps its place from the previous one instead of
+  // falling back to the overall standings. Retired cars go below every car still
+  // running; cars with no time yet keep the overall order.
+  rows.forEach(row => {
+    row.liveReached = -1;
+    for (let i = latestIndex; i >= 0 && row.liveReached < 0; i--)
+      if (row.liveValues[i].time != null) row.liveReached = i;
+    row.liveOut = row.liveValues[columns.length - 1].dnf;
+  });
   rows.sort((a, b) => {
-    if (latestIndex < 0) return a.rank - b.rank;
-    const av = a.liveValues[latestIndex].time, bv = b.liveValues[latestIndex].time;
-    if (av == null || bv == null) return av == null ? (bv == null ? a.rank - b.rank : 1) : -1;
-    return (av - bv) || (a.rank - b.rank);
+    if (a.liveOut !== b.liveOut) return a.liveOut ? 1 : -1;
+    if (a.liveReached !== b.liveReached) return b.liveReached - a.liveReached;
+    if (a.liveReached < 0) return a.rank - b.rank;
+    return (a.liveValues[a.liveReached].time - b.liveValues[b.liveReached].time) || (a.rank - b.rank);
   });
   rows.forEach((row, index) => row.liveRank = index + 1);
 
