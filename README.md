@@ -206,6 +206,9 @@ picture, plainly:
   replicates stable account identifiers (Steam/EOS); the app uses them only
   internally, to keep a driver's results on one row across a pseudonym change — they
   are never displayed, never published on the page and never included in any export.
+  The one exception is a results server you pair with yourself (see
+  [Sending results to a server](#sending-results-to-a-server)): the results you
+  confirm sending carry them, so that server can tell drivers apart.
   No real-name field is read.
 - **What leaves your machine?** Nothing, by default. The app has no telemetry and
   uploads nothing. Its only outbound connections are: (1) a lightweight startup check
@@ -219,7 +222,8 @@ picture, plainly:
   the tunnel process can outlive it — check for `cloudflared.exe` in Task Manager;
   (4) a message to Discord, *only if* you paste a webhook URL in the Discord panel
   and click one of its buttons — it posts the alert or results image to that channel
-  and nothing else.
+  and nothing else; (5) a results server, *only if* you paste its pairing key and
+  click **Pair** — then only the results you confirm sending.
   (Browsers viewing the page also fetch flag images from flagcdn.com.)
 - **Who can see the local page?** The embedded web server listens on all network
   interfaces, so anyone on the same LAN/Wi-Fi can open the page while the server
@@ -378,6 +382,39 @@ Sends are manual — nothing is ever posted without a click.
 
 <img src="docs/discord-messages.png" alt="Alert and standings messages posted to a Discord channel" width="300">
 
+## Sending results to a server
+
+A league or championship can collect the results straight from the app. The
+**Servers** panel pairs with its server and sends the results you choose; ACR Live
+Timing knows no server of its own and contacts none until you pair.
+
+1. Paste the **pairing key** the organiser gave you (it starts with `acrlt1:`). The
+   server's address shows under it: check it, then click **Pair** — before the
+   rally, so the server knows the stages were run after pairing. The event then
+   shows on the page.
+2. After the rally, pick **All stages** or the rally in the selector, keep the
+   server on ▶ and click **Send…**. A preview lists the stages, the drivers and
+   anything that blocks (a stage still running, a finish not yet confirmed);
+   nothing leaves before you confirm. The server's answer shows on its row.
+3. Corrected something? Send again: the server keeps the latest.
+
+What is sent is raw facts — each driver's status, time, penalty, sectors and car
+per stage, with their pseudonym and **SteamID/EOS ID** — never a classification:
+the server builds its own. A copy of every send is kept in the `Results` folder
+next to the app (📂 opens it), and with no server on ▶ the button becomes **Save…** to write
+the same results to a JSON file. The pairing token is stored encrypted for your
+Windows account.
+
+ACR Live Timing is software that runs on your PC: its authors receive nothing.
+Once results reach a server, that server's operator is responsible for them — how
+they are stored, used, published and deleted follows their own rules and privacy
+policy, which you should know before pairing. Choosing to send them is yours: let
+the drivers of your lobby know that their results and account IDs go to that
+league or championship.
+
+For server authors, the protocol is in
+[docs/results-submission.md](docs/results-submission.md).
+
 ## Antivirus & SmartScreen
 
 The published `.exe` is not code-signed, so on first launch Windows may show one of
@@ -442,10 +479,12 @@ src/
   Web/       embedded HTTP server (/, /state) + single-page UI
   Tunnel/    cloudflared runner (latest release, Authenticode-verified)
   Discord/   webhook publisher (alert + results messages)
+  Submission/ results servers: pairing key, exchange, results payload, sends
   Updates/   startup release check (GitHub API)
   UI/        WPF control panel + transparent OBS overlay windows + settings
 tools/
   demo-page.js   demo session for the README screenshots
+tests/       unit tests (dotnet test tests/ACRLiveTiming.Tests)
 ```
 
 ## Support the project

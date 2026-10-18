@@ -229,6 +229,10 @@ tableau complet, sans détour :
   (Steam/EOS) ; l'application ne s'en sert qu'en interne, pour garder les résultats
   d'un pilote sur une seule ligne malgré un changement de pseudo — ils ne sont
   jamais affichés, jamais publiés sur la page et jamais inclus dans un export.
+  Seule exception : un serveur de résultats auquel vous vous associez vous-même (voir
+  [Envoyer les résultats à un serveur](#envoyer-les-résultats-à-un-serveur)) — les
+  résultats que vous confirmez envoyer les contiennent, pour que ce serveur
+  distingue les pilotes.
   Aucun champ de nom réel n'est lu.
 - **Qu'est-ce qui sort de votre machine ?** Rien, par défaut. Aucune télémétrie,
   aucun envoi. Seules connexions sortantes : (1) une vérification légère au démarrage,
@@ -245,7 +249,9 @@ tableau complet, sans détour :
   `cloudflared.exe` dans le Gestionnaire des tâches ; (4) un message vers Discord,
   *uniquement si* vous collez une URL de webhook dans le panneau Discord et cliquez
   un de ses boutons — il poste l'alerte ou l'image de résultats dans ce salon, rien
-  d'autre. (Les navigateurs qui consultent la page chargent aussi les drapeaux depuis
+  d'autre ; (5) un serveur de résultats, *uniquement si* vous collez sa clé
+  d'association et cliquez **Pair** — ensuite, seulement les résultats dont vous
+  confirmez l'envoi. (Les navigateurs qui consultent la page chargent aussi les drapeaux depuis
   flagcdn.com.)
 - **Qui peut voir la page locale ?** Le serveur web embarqué écoute sur toutes les
   interfaces réseau : n'importe qui sur le même LAN/Wi-Fi peut ouvrir la page tant
@@ -415,6 +421,41 @@ L'envoi est manuel — rien n'est jamais posté sans un clic.
 
 <img src="docs/discord-messages.png" alt="Messages Alert et Standings postés dans un salon Discord" width="300">
 
+## Envoyer les résultats à un serveur
+
+Une ligue ou un championnat peut récupérer les résultats directement depuis
+l'application. Le panneau **Servers** s'associe à son serveur et envoie les
+résultats que vous choisissez ; ACR Live Timing ne connaît aucun serveur et n'en
+contacte aucun tant que vous ne vous êtes pas associé.
+
+1. Collez la **clé d'association** donnée par l'organisateur (elle commence par
+   `acrlt1:`). L'adresse du serveur s'affiche dessous : vérifiez-la, puis cliquez
+   **Pair** — avant le rallye, pour que le serveur sache que les spéciales ont été
+   courues après l'association. L'épreuve s'affiche alors sur la page.
+2. Après le rallye, choisissez **All stages** ou le rallye dans la liste, laissez le
+   serveur en ▶ et cliquez **Send…**. Un aperçu liste les spéciales, les pilotes et
+   ce qui bloque (une spéciale en cours, une arrivée pas encore confirmée) ; rien ne
+   part avant votre confirmation. La réponse du serveur s'affiche sur sa ligne.
+3. Une correction ? Renvoyez : le serveur garde le dernier envoi.
+
+Ce qui part, ce sont des faits bruts — statut, temps, pénalité, secteurs et voiture
+de chaque pilote par spéciale, avec son pseudo et son **SteamID/EOS ID** — jamais un
+classement : le serveur fait le sien. Une copie de chaque envoi est gardée dans le
+dossier `Results` à côté de l'application (📂 l'ouvre), et sans serveur en ▶ le bouton devient
+**Save…** pour écrire les mêmes résultats dans un fichier JSON. Le jeton
+d'association est stocké chiffré pour votre compte Windows.
+
+ACR Live Timing est un logiciel qui tourne sur votre PC : ses auteurs ne reçoivent
+rien. Une fois les résultats arrivés sur un serveur, c'est son exploitant qui en
+est responsable — leur conservation, leur usage, leur publication et leur
+suppression relèvent de ses propres règles et de sa politique de confidentialité,
+à connaître avant de vous associer. Le choix de les envoyer vous revient :
+prévenez les pilotes de votre lobby que leurs résultats et identifiants de compte
+partent vers cette ligue ou ce championnat.
+
+Pour les auteurs de serveurs, le protocole est décrit dans
+[docs/results-submission.fr.md](docs/results-submission.fr.md).
+
 ## Antivirus & SmartScreen
 
 L'`.exe` publié n'est pas signé numériquement : au premier lancement, Windows peut
@@ -482,10 +523,12 @@ src/
   Web/       serveur HTTP embarqué (/, /state) + interface single-page
   Tunnel/    lanceur cloudflared (dernière release, signature Authenticode vérifiée)
   Discord/   éditeur webhook (messages d'alerte + résultats)
+  Submission/ serveurs de résultats : clé d'association, échange, contenu, envois
   Updates/   vérification de release au démarrage (API GitHub)
   UI/        panneau de contrôle WPF + fenêtres overlay OBS transparentes + réglages
 tools/
   demo-page.js   session de démo pour les captures du README
+tests/       tests unitaires (dotnet test tests/ACRLiveTiming.Tests)
 ```
 
 ## Soutenir le projet

@@ -69,6 +69,10 @@
          declare it as the entry point and drop it from the Page glob. -->
     <ApplicationDefinition Include="src\App.xaml" />
     <Page Remove="src\App.xaml" />
+    <!-- The test project has its own csproj: keep its sources and build output out of the app. -->
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+    <Page Remove="tests\**" />
   </ItemGroup>
 
   <ItemGroup>

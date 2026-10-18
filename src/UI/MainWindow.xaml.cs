@@ -61,6 +61,7 @@ public partial class MainWindow : Window
             () => (_engine.Matrix.PageTitle, _engine.Matrix.PageDescription));
         Loaded += OnLoaded;
         Closed += OnClosed;
+        WheelScroll.Attach(this);   // the wheel keeps scrolling the panels over a text field
     }
 
     // ---- theme -----------------------------------------------------------
@@ -251,6 +252,7 @@ public partial class MainWindow : Window
         // Rows list is freshly built per call, so mutating it here is safe).
         if (_hideNations)
             foreach (var row in view.Rows) row.Nation = row.NationFlag = row.NationName = null;
+        view.Events = _publicEvents;
         string json = JsonSerializer.Serialize(view, JsonOpts);
         if (_engine.Matrix.Version == version)
         {
@@ -298,6 +300,7 @@ public partial class MainWindow : Window
         _web.Log += msg => Dispatcher.BeginInvoke(() => AppendLog(msg));
 
         ApplySettings();   // restore saved options / text (theme already applied)
+        InitServers();
 
         // start sniffing
         try
@@ -313,6 +316,7 @@ public partial class MainWindow : Window
         _timer.Tick += (_, _) =>
         {
             _engine.Tick();
+            _associations.ExpireTokens(DateTimeOffset.UtcNow);
             if (_pcap != null)
                 PcapStatus.Text = $"{_pcap.Count} packets → {Path.GetFileName(_pcap.Path)}";
         };
@@ -773,6 +777,7 @@ public partial class MainWindow : Window
         bool enabled = DnfNoRejoinCheck.IsChecked == true;
         PenaltyCapPanel?.IsEnabled = !enabled;
         _engine?.Matrix.DnfNoRejoin = enabled;
+        RefreshSettingWarnings();
     }
 
     private void ProgressFixed_Changed(object sender, RoutedEventArgs e) => _engine?.Matrix.ProgressFixed = ProgressFixedCheck.IsChecked == true;
@@ -800,6 +805,7 @@ public partial class MainWindow : Window
         string text = PctBox.Text.Trim().Replace(',', '.');
         if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double pct) && pct >= 0 && pct <= 500)
             _engine.Matrix.Pct = pct / 100.0;
+        RefreshSettingWarnings();
     }
 
     private void ProgressWindowBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -960,6 +966,7 @@ public partial class MainWindow : Window
         if (key.SequenceEqual(_lastStageKey)) return;   // avoid churn
         _lastStageKey = key;
         RefreshDiscordRallies(view);
+        RefreshServerSelections(view);
 
         StagesPanel.Children.Clear();
         foreach (var stage in view.AllStages)
@@ -1129,7 +1136,7 @@ public partial class MainWindow : Window
     {
         var selected = SelectedGroupStages().ToList();
         if (selected.Count == 0) { AppendLog("Select at least one stage to group."); return; }
-        _engine.Matrix.GroupStages(selected);
+        _engine.Matrix.GroupStages(selected, ActiveEventName());
     }
 
     private void UngroupStages_Click(object sender, RoutedEventArgs e)

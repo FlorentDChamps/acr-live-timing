@@ -90,6 +90,13 @@
               white-space: pre-wrap; overflow-wrap: anywhere; }
   .pagetitle a, .pagedesc a { color: var(--accent); text-decoration: underline; }
   .pagetitle a { color: inherit; }
+  /* events of the results servers the host is paired with */
+  .pageevents { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .pageevent { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px;
+               border-radius: 8px; background: var(--accent); color: var(--accent-contrast);
+               font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+  .pageevent .tag { font-size: 12px; font-weight: 700; letter-spacing: .5px;
+                    text-transform: uppercase; opacity: .85; }
   /* current-stage bar: phase badge + stage name + start time / length.
      Sits BELOW the header's separator line, as its own row. */
   .stagebar { padding: 12px 20px 0; display: flex; align-items: center; gap: 22px;
@@ -484,6 +491,7 @@
     <div class="pageinfo" id="pageinfo" style="display:none">
       <div class="pagetitle" id="pagetitle"></div>
       <div class="pagedesc" id="pagedesc"></div>
+      <div class="pageevents" id="pageevents"></div>
     </div>
   </header>
   <div class="stagebar" id="stagebar" style="display:none">
@@ -1583,7 +1591,25 @@ function render(v) {
   const dd = document.getElementById("pagedesc");
   setLinkified(dd, desc);
   dd.style.display = desc ? "" : "none";
-  info.style.display = (title || desc) ? "" : "none";
+  // official events: the results servers the host sends this session to
+  // ("server — event", plain text)
+  const events = v.events || [];
+  const de = document.getElementById("pageevents");
+  de.textContent = "";
+  for (const e of events) {
+    const chip = document.createElement("span");
+    chip.className = "pageevent";
+    chip.title = "The results of this session are sent to this event";
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = "🏆 Counts for";
+    const name = document.createElement("span");
+    name.textContent = (e.server || "") + " — " + (e.name || "");
+    chip.append(tag, name);
+    de.appendChild(chip);
+  }
+  de.style.display = events.length ? "" : "none";
+  info.style.display = (title || desc || events.length) ? "" : "none";
 
   // current-stage bar: phase badge + stage + start time / length estimate
   const bar = document.getElementById("stagebar");
