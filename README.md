@@ -443,6 +443,7 @@ src/
   UI/        WPF control panel + transparent OBS overlay windows + settings
 tools/
   demo-page.js   demo session for the README screenshots
+  test-classification.js  checks of the page's classification rules (node, by hand)
 ```
 
 ## Support the project

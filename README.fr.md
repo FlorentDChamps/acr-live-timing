@@ -483,6 +483,7 @@ src/
   UI/        panneau de contrôle WPF + fenêtres overlay OBS transparentes + réglages
 tools/
   demo-page.js   session de démo pour les captures du README
+  test-classification.js  contrôles des règles de classement de la page (node, à la main)
 ```
 
 ## Soutenir le projet
