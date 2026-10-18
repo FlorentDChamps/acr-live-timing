@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using ACRLiveTiming.Content;
 using ACRLiveTiming.Decode;
+using ACRLiveTiming.Submission;
 
 namespace ACRLiveTiming.Model;
 
@@ -94,7 +97,12 @@ public sealed class MatrixView
     public bool HasRaceState { get; set; }   // finish-timer stream exists
     public bool HideSplits { get; set; }     // host's hide-splits setting (viewer default)
     public string Version { get; set; } = "";  // host app version, shown in the page footer
+    // Events of the active results-server associations, filled by the host: the
+    // server's name (or its host, never the port or URL) and the event name.
+    public List<EventView> Events { get; set; } = [];
 }
+
+public sealed record EventView(string Server, string Name);
 
 /// <summary>
 /// Session-wide classification: drivers (rows) × run columns. Each run of a
@@ -104,7 +112,7 @@ public sealed class MatrixView
 /// (1 + Pct)) and flagged Substituted. Total = sum of effective
 /// times, re-sorted every update. Thread-safe; raises <see cref="Changed"/>.
 /// </summary>
-public sealed class SessionMatrix
+public sealed partial class SessionMatrix
 {
     /// <summary>Float32 tolerance (seconds) for binding a car marker (NetGUID) to a
     /// driver by matching one of its split/finish times to a result row's raw.
@@ -211,6 +219,16 @@ public sealed class SessionMatrix
     private string _stageWeather = "";
     private string _pageTitle = "";        // operator-set page heading (persists across resets)
     private string _pageDescription = "";  // operator-set page blurb (persists across resets)
+    // ---- results submission ----
+    // When each run started (its column opened on the run-start event), and the
+    // in-game start time and forecast it ran with: the board keeps only the current
+    // stage's, a submission needs every stage's.
+    private sealed class ColumnStart { public DateTime Utc; public long Timestamp; public string InGame = ""; public string Weather = ""; }
+    private readonly Dictionary<string, ColumnStart> _columnStarts = [];
+    // runId of each rally group, and of the "All stages" selection for this
+    // session. Random, never the group number: group ids restart from 1.
+    private readonly Dictionary<int, string> _groupRunIds = [];
+    private string _sessionRunId = Guid.NewGuid().ToString();
 
     public event Action? Changed;
 
@@ -325,6 +343,7 @@ public sealed class SessionMatrix
         {
             if (_stageStart == start) return;
             _stageStart = start;
+            if (CurrentColumnStart() is ColumnStart current) current.InGame = start;
         }
         RaiseChanged();
     }
@@ -337,6 +356,7 @@ public sealed class SessionMatrix
         {
             if (_stageWeather == weather) return;
             _stageWeather = weather;
+            if (CurrentColumnStart() is ColumnStart current) current.Weather = weather;
         }
         RaiseChanged();
     }
@@ -352,9 +372,23 @@ public sealed class SessionMatrix
             _labels[id] = label;
             _columnOrder.Add(id);
             _currentStage = label;
+            _columnStarts[id] = new ColumnStart
+            {
+                Utc = DateTime.UtcNow,
+                Timestamp = Stopwatch.GetTimestamp(),
+                InGame = _stageStart,
+                Weather = _stageWeather
+            };
         }
         RaiseChanged();
     }
+
+    // Caller holds _lock. The start record of the run being raced, which takes the
+    // start time and forecast replicated while it runs (between stages they
+    // describe the next one).
+    private ColumnStart? CurrentColumnStart()
+        => _columnOrder.Count > 0 && _lobbyPhase is "Start sequence" or "Semaphore" or "Racing" or "Finishing"
+           && _columnStarts.TryGetValue(_columnOrder[^1], out var start) ? start : null;
 
     /// <summary>Update a run column's display label (e.g. once the stage name lands).</summary>
     public void SetLabel(string id, string label)
@@ -1005,6 +1039,9 @@ public sealed class SessionMatrix
             _currentStage = "";
             _stageStart = "";
             _stageWeather = "";
+            _columnStarts.Clear();
+            _groupRunIds.Clear();
+            _sessionRunId = Guid.NewGuid().ToString();
         }
         RaiseChanged();
     }
@@ -1049,6 +1086,9 @@ public sealed class SessionMatrix
             _lobbyPhase = "";
             _stageStart = "";
             _stageWeather = "";
+            _columnStarts.Clear();
+            _groupRunIds.Clear();
+            _sessionRunId = Guid.NewGuid().ToString();
         }
         RaiseChanged();
     }
@@ -1065,7 +1105,7 @@ public sealed class SessionMatrix
 
     /// <summary>Put the selected stage columns in one new group. Group ids are
     /// session-local labels for the UI/page; timings and totals are unaffected.</summary>
-    public void GroupStages(IEnumerable<string> ids)
+    public void GroupStages(IEnumerable<string> ids, string? name = null)
     {
         var selected = ids.Distinct().Where(id => !string.IsNullOrWhiteSpace(id)).ToList();
         if (selected.Count == 0) return;
@@ -1075,7 +1115,8 @@ public sealed class SessionMatrix
             if (valid.Count == 0) return;
             int next = _groups.Count == 0 ? 1 : _groups.Values.Max() + 1;
             foreach (string? id in valid) _groups[id] = next;
-            _groupNames[next] = $"Rally {next}";
+            _groupNames[next] = string.IsNullOrWhiteSpace(name) ? $"Rally {next}" : name.Trim();
+            _groupRunIds[next] = Guid.NewGuid().ToString();
             RemoveUnusedGroups();
         }
         RaiseChanged();
@@ -1117,7 +1158,10 @@ public sealed class SessionMatrix
     {
         var used = _groups.Values.ToHashSet();
         foreach (int id in _groupNames.Keys.Where(id => !used.Contains(id)).ToList())
+        {
             _groupNames.Remove(id);
+            _groupRunIds.Remove(id);
+        }
     }
 
     public double Pct
@@ -1177,6 +1221,180 @@ public sealed class SessionMatrix
     {
         get { lock (_lock) return _pageDescription; }
         set { string v = value ?? ""; lock (_lock) { if (_pageDescription == v) return; _pageDescription = v; } RaiseChanged(); }
+    }
+
+    [GeneratedRegex(@"^SS\d+(?:\s+(?<route>.+))?$")]
+    private static partial Regex RunLabelRoute { get; }
+
+    private static long Ms(double seconds) => (long)Math.Round(seconds * 1000, MidpointRounding.AwayFromZero);
+
+    /// <summary>
+    /// The facts of one selection for a results server: the ticked stages of rally
+    /// <paramref name="group"/> (0 = every ticked stage), each driver's status, time,
+    /// penalty, sectors and car on each, and the account ids kept for this purpose
+    /// only. Strict: a cell is sent only when it is conclusive — a finish confirmed
+    /// by the driver's own car or the session result, a retirement, or no entry —
+    /// anything else is listed in <see cref="ResultsSnapshot.Problems"/>.
+    /// </summary>
+    public ResultsSnapshot BuildSubmission(int group)
+    {
+        lock (_lock)
+        {
+            var problems = new List<string>();
+            var warnings = new List<string>();
+            string? lastColumn = _columnOrder.Count > 0 ? _columnOrder[^1] : null;
+            bool running = _lobbyPhase is "Racing" or "Finishing";
+
+            bool HasData(string id)
+                => (_times.TryGetValue(id, out var t) && t.Count > 0)
+                   || (_splits.TryGetValue(id, out var sp) && sp.Count > 0)
+                   || (_dnfByColumn.TryGetValue(id, out var d) && d.Count > 0);
+
+            // a rally is all its stages, ticked or not (as for Discord); All stages is
+            // the board's ticked selection
+            var stageIds = _columnOrder
+                .Where(id => (group == 0 ? !_discarded.Contains(id) : _groups.TryGetValue(id, out int g) && g == group)
+                             && HasData(id))
+                .ToList();
+
+            var stages = new List<SnapshotStage>(stageIds.Count);
+            foreach (string id in stageIds)
+            {
+                string label = _labels.GetValueOrDefault(id, id);
+                var match = RunLabelRoute.Match(label);
+                string? route = match.Success
+                    ? (match.Groups["route"].Success ? match.Groups["route"].Value : null)
+                    : ContentCatalog.RouteIdFromLabel(label);
+                _columnStarts.TryGetValue(id, out var start);
+                string shown = ContentCatalog.StageLabelName(label);
+                stages.Add(new SnapshotStage
+                {
+                    ColumnId = id,
+                    Label = shown,
+                    RouteId = route,
+                    Name = route == null ? label : ContentCatalog.StageName(route),
+                    LengthKm = route == null ? null : ContentCatalog.StageLengthKm(route),
+                    StartTimestamp = start?.Timestamp,
+                    StartedAtUtc = start?.Utc,
+                    InGameStartTime = string.IsNullOrEmpty(start?.InGame) ? null : start.InGame,
+                    Weather = string.IsNullOrEmpty(start?.Weather) ? null : start.Weather
+                });
+                if (route == null) warnings.Add($"{shown}: route never received.");
+                if (id == lastColumn && running) problems.Add($"{shown} is still running.");
+            }
+
+            var retired = new HashSet<string>();
+            foreach (var kv in _carsLive)
+                if (kv.Value.Retired && _carNames.TryGetValue(kv.Key, out string? rd)) retired.Add(rd);
+
+            var drivers = new List<SnapshotDriver>();
+            int noCar = 0;
+            foreach (string key in _driverOrder)
+            {
+                string name = _driverLabels.GetValueOrDefault(key, key);
+                var cells = new List<SnapshotCell>(stages.Count);
+                bool any = false;
+                foreach (var stage in stages)
+                {
+                    string id = stage.ColumnId;
+                    bool hasTime = _times[id].TryGetValue(key, out var re);
+                    List<double>? splits = _splits.TryGetValue(id, out var splitColumn)
+                        && splitColumn.TryGetValue(key, out var own) ? own : null;
+                    bool dnf = (_dnfByColumn.TryGetValue(id, out var outs) && outs.Contains(key))
+                               || (id == lastColumn && retired.Contains(key));
+                    string? car = _carsByColumn.TryGetValue(id, out var columnCars)
+                        && columnCars.TryGetValue(key, out string? value) ? value : null;
+                    string? carName = car == null ? null : ContentCatalog.CarName(car);
+
+                    if (hasTime && IsFinished(id, key, re.raw))
+                    {
+                        any = true;
+                        var sectors = SectorsMs(splits, re.raw);
+                        long penalty = Ms(re.time - re.raw);
+                        cells.Add(new SnapshotCell
+                        {
+                            Status = CellStatus.Finished,
+                            TimeMs = sectors.Sum() + penalty,
+                            PenaltyMs = penalty,
+                            SectorsMs = sectors,
+                            CarId = car,
+                            CarName = carName
+                        });
+                        if (car == null) noCar++;
+                    }
+                    else if (dnf)
+                    {
+                        any = true;
+                        cells.Add(new SnapshotCell
+                        {
+                            Status = CellStatus.Dnf,
+                            SectorsMs = SectorsMs(splits, null),
+                            CarId = car,
+                            CarName = carName
+                        });
+                    }
+                    else if (hasTime || (splits != null && splits.Count > 0))
+                    {
+                        any = true;
+                        cells.Add(new SnapshotCell { Status = CellStatus.NotStarted });
+                        if (!(id == lastColumn && running))
+                            problems.Add($"{name} — {stage.Label}: no confirmed finish or retirement.");
+                    }
+                    else
+                    {
+                        cells.Add(new SnapshotCell { Status = CellStatus.NotStarted });
+                    }
+                }
+                if (!any) continue;
+
+                _identities.TryGetValue(key, out var identity);
+                _nations.TryGetValue(key, out string? nation);
+                drivers.Add(new SnapshotDriver
+                {
+                    SteamId64 = string.IsNullOrEmpty(identity.steamId) ? null : identity.steamId,
+                    EosPuid = string.IsNullOrEmpty(identity.eosPuid) ? null : identity.eosPuid,
+                    UsernameAtRun = name,
+                    Nation = nation,
+                    NationName = nation == null ? null : ContentCatalog.CountryName(nation),
+                    Cells = cells
+                });
+                if (string.IsNullOrEmpty(identity.steamId) && string.IsNullOrEmpty(identity.eosPuid))
+                    warnings.Add($"{name}: no SteamID / EOS ID received.");
+            }
+            // a retirement without a car is common (out before the car replicated)
+            if (noCar > 0) warnings.Add($"{noCar} finish(es) without a car.");
+            if (stages.Count == 0) problems.Add("No stage with results in this selection.");
+            else if (drivers.Count == 0) problems.Add("No driver in this selection.");
+
+            return new ResultsSnapshot
+            {
+                RunId = group == 0 ? _sessionRunId : _groupRunIds.GetValueOrDefault(group, _sessionRunId),
+                Group = group,
+                GroupName = group == 0 ? null : _groupNames.GetValueOrDefault(group, $"Rally {group}"),
+                Stages = stages,
+                Drivers = drivers,
+                Problems = problems,
+                Warnings = warnings
+            };
+        }
+    }
+
+    // Each sector's time as the difference of the game's cumulative times rounded
+    // to the millisecond, so the sectors add up exactly to the stage time. The
+    // finish (penalty-free) closes the chain when the splits stop short of it.
+    private static List<long> SectorsMs(List<double>? splits, double? finish)
+    {
+        var cumulative = (splits ?? []).Select(Ms).ToList();
+        if (finish is double f && (splits == null || splits.Count == 0 || Math.Abs(splits[^1] - f) > 0.002))
+            cumulative.Add(Ms(f));
+        var sectors = new List<long>(cumulative.Count);
+        long previous = 0;
+        foreach (long value in cumulative)
+        {
+            sectors.Add(value - previous);
+            previous = value;
+        }
+        return sectors;
     }
 
     public MatrixView BuildView()

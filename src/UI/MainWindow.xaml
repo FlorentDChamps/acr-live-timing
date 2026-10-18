@@ -600,11 +600,15 @@
                           Padding="0" FontSize="8" Width="16" Height="12" Margin="0,1,0,0" ToolTip="-10 %"/>
                 </StackPanel>
                 <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                <TextBlock x:Name="PctWarn" Text="⚠" Visibility="Collapsed" VerticalAlignment="Center"
+                           Margin="4,0,0,0" Foreground="{DynamicResource Brush.Danger}"/>
               </StackPanel>
               <CheckBox x:Name="DnfNoRejoinCheck" Content="DNF – No Rejoin"
                         VerticalAlignment="Center" Margin="14,0,0,0"
                         Checked="DnfNoRejoin_Changed" Unchecked="DnfNoRejoin_Changed"
                         ToolTip="On: a first non-finished stage makes the driver permanently DNF for the rally. Later stage times remain visible but do not count in the general classification."/>
+              <TextBlock x:Name="DnfWarn" Text="⚠" Visibility="Collapsed" VerticalAlignment="Center"
+                         Margin="4,0,0,0" Foreground="{DynamicResource Brush.Danger}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
               <TextBlock Text="Max progression range:" VerticalAlignment="Center"/>
@@ -667,6 +671,47 @@
               <Button x:Name="DiscordStandingsBtn" Grid.Column="3" Content="Standings" IsEnabled="False" Click="DiscordStandingsBtn_Click"
                       HorizontalAlignment="Right" Margin="12,0,0,0"
                       ToolTip="Post the standings image to Discord. Requires at least one stage group."/>
+            </Grid>
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Servers"
+                  ToolTip="Send the results to a league or championship server. Nothing is sent before you confirm a preview.">
+          <StackPanel>
+            <StackPanel x:Name="ServersPanel"/>
+            <TextBlock x:Name="ServersEmptyText" Text="No server paired. Paste the key a server gave you, then Pair."
+                       Foreground="{DynamicResource Brush.Muted}" TextWrapping="Wrap"/>
+            <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <PasswordBox x:Name="PairKeyBox" Grid.Column="0" MaxLength="4096" VerticalAlignment="Center"
+                           PasswordChanged="PairKeyBox_PasswordChanged"
+                           ToolTip="The acrlt1: key the server gave you. Check the host shown below before pairing."/>
+              <TextBlock x:Name="PairKeyPlaceholder" Grid.Column="0" Text="Pairing key (acrlt1:…)" IsHitTestVisible="False"
+                         VerticalAlignment="Center" Margin="7,0,0,0" Foreground="{DynamicResource Brush.Faint}"/>
+              <Button x:Name="PairBtn" Grid.Column="1" Content="Pair" IsEnabled="False" Margin="6,0,0,0" Padding="10,3"
+                      VerticalAlignment="Center"
+                      Click="PairBtn_Click" ToolTip="Pair with the server shown below. This is the first request made to it."/>
+            </Grid>
+            <TextBlock x:Name="PairKeyInfo" Text="" Foreground="{DynamicResource Brush.Muted}"
+                       TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/>
+            <Grid Margin="0,10,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="80"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <ComboBox x:Name="ServersSelectionBox" Grid.Column="0" DisplayMemberPath="Name" IsEnabled="False"
+                        SelectionChanged="ServersSelectionBox_SelectionChanged"
+                        ToolTip="The stages to send: every ticked stage, or one rally."/>
+              <Button x:Name="ServersSendBtn" Grid.Column="1" Content="Save…" IsEnabled="False" Margin="6,0,0,0"
+                      Click="ServersSendBtn_Click"
+                      ToolTip="Send the selection to the servers set to ▶, or save it as a JSON file when none is. A preview opens first."/>
+              <Button Grid.Column="2" Content="📂" FontFamily="Segoe UI Emoji" FontSize="14" Padding="8,4"
+                      Margin="6,0,0,0" Click="OpenResultsFolder_Click"
+                      ToolTip="Open the Results folder: a copy of every send."/>
             </Grid>
           </StackPanel>
         </GroupBox>
