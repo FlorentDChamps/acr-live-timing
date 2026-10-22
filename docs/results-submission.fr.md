@@ -261,7 +261,7 @@ User-Agent: ACRLiveTiming/<appVersion>
     { "order": 1, "routeId": "AlsaceS4SaverneFullForward", "name": "Saverne",
       "lengthKm": 9.2, "startedAfterPairing": true,
       "startedAt": "2026-08-15T20:05:31.204Z",
-      "inGameStartTime": "17:40", "weather": "Light rain · 12°C" },
+      "inGameStartTime": "17:40", "weather": "Light Rain · 12°C" },
     { "order": 2, "routeId": "WelesS3HafrenNorthFullForward", "name": "Hafren North",
       "startedAfterPairing": true, "startedAt": "2026-08-15T20:21:09.877Z" }
   ],
@@ -324,7 +324,7 @@ Les spéciales de la sélection qui ont des données, dans l'ordre de course : t
 | `startedAfterPairing` | `true` si la spéciale a démarré après l'association **de cette destination**. |
 | `startedAt` | Départ en UTC, d'après l'horloge Windows. Absent si le départ n'a pas été vu. |
 | `inGameStartTime` | Heure du jeu au départ, `HH:mm`, si reçue. |
-| `weather` | Libellé météo comme sur la page (`Light rain · 12°C`), si reçu. |
+| `weather` | Libellé météo comme sur la page (`Light Rain · 12°C`), si reçu. |
 
 `startedAfterPairing` : une spéciale démarre quand le client voit son départ (la
 séquence de départ qui ouvre sa colonne sur le tableau ; une spéciale rejointe en

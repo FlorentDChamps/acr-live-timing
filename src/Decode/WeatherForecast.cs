@@ -1,3 +1,5 @@
+using ACRLiveTiming.Content;
+
 namespace ACRLiveTiming.Decode;
 
 /// <summary>
@@ -18,12 +20,17 @@ namespace ACRLiveTiming.Decode;
 /// </summary>
 public static class WeatherForecast
 {
-    /// <summary>EWeatherType display names (dmenvironment_enums.hpp order).</summary>
-    public static readonly string[] TypeNames =
+    /// <summary>EWeatherType values in their wire order; the catalog names them
+    /// through these values, listed as weather aliases.</summary>
+    public static readonly string[] TypeValues =
     [
-        "Clear", "Light clouds", "Heavy clouds", "Light fog", "Heavy fog",
-        "Light rain", "Heavy rain", "Storm", "Light snow", "Heavy snow", "Blizzard"
+        "WT_CLEAR", "WT_LIGHT_CLOUDS", "WT_HEAVY_CLOUDS", "WT_LIGHT_FOG", "WT_HEAVY_FOG",
+        "WT_LIGHT_RAIN", "WT_HEAVY_RAIN", "WT_STORM", "WT_LIGHT_SNOW", "WT_HEAVY_SNOW", "WT_BLIZZARD"
     ];
+
+    /// <summary>Display name of a weather type number, from the content catalog.</summary>
+    public static string TypeName(int type)
+        => ContentCatalog.WeatherName(TypeValues[type]) ?? TypeValues[type];
 
     /// <summary>
     /// Scan a raw payload for a forecast table; returns the FIRST slot
@@ -87,7 +94,7 @@ public static class WeatherForecast
             if (IntPacked() != 10) continue;
             int ty = 0;
             for (int i = 0; i < 4; i++) { int b = Bit(); if (b < 0) { ty = -1; break; } ty |= b << i; }
-            if (ty < 0 || ty >= TypeNames.Length) continue;
+            if (ty < 0 || ty >= TypeValues.Length) continue;
 
             return (ty, temp);
         }

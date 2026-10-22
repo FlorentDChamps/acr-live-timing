@@ -33,6 +33,29 @@ jobs:
       - name: Check formatting
         run: dotnet format whitespace ACRLiveTiming.csproj --verify-no-changes
 
+      # Non-blocking: warns when the embedded content catalog (src/Content/acr-content.json)
+      # differs from the published community one, or cannot be fetched. The build stays
+      # green either way; `python tools/update-catalog.py` updates the copy.
+      - name: Compare the content catalog with the published one
+        shell: bash
+        env:
+          PYTHONUTF8: '1'   # names outside cp1252 must not break the report on Windows
+        run: |
+          set +e
+          python tools/update-catalog.py --check > catalog-report.txt 2>&1
+          code=$?
+          cat catalog-report.txt
+          if [ "$code" -ne 0 ]; then
+            echo "::warning title=Content catalog::$(head -n 1 catalog-report.txt)"
+            {
+              echo '### Content catalog'
+              echo '```'
+              cat catalog-report.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit 0
+
       # Manual runs ("Run workflow") also produce a downloadable test exe. It keeps
       # the csproj's "-dev" suffix, and the commit sha baked into the version already
       # tells two test builds apart — and apart from a release (plain x.y.z).

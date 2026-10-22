@@ -252,7 +252,7 @@ User-Agent: ACRLiveTiming/<appVersion>
     { "order": 1, "routeId": "AlsaceS4SaverneFullForward", "name": "Saverne",
       "lengthKm": 9.2, "startedAfterPairing": true,
       "startedAt": "2026-08-15T20:05:31.204Z",
-      "inGameStartTime": "17:40", "weather": "Light rain · 12°C" },
+      "inGameStartTime": "17:40", "weather": "Light Rain · 12°C" },
     { "order": 2, "routeId": "WelesS3HafrenNorthFullForward", "name": "Hafren North",
       "startedAfterPairing": true, "startedAt": "2026-08-15T20:21:09.877Z" }
   ],
@@ -315,7 +315,7 @@ The selection's stages that have data, in run order: every stage of the rally gr
 | `startedAfterPairing` | `true` when the stage started after **this destination's** association was made. |
 | `startedAt` | UTC start, from the Windows clock. Absent when the start was not seen. |
 | `inGameStartTime` | In-game time of day at the start, `HH:mm`, when received. |
-| `weather` | Forecast label as on the page (`Light rain · 12°C`), when received. |
+| `weather` | Forecast label as on the page (`Light Rain · 12°C`), when received. |
 
 `startedAfterPairing`: a stage starts when the client sees its run start (the
 start sequence that opens its column on the board; a stage joined while it was

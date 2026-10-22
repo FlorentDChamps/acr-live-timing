@@ -55,7 +55,7 @@ public sealed class StageInfo
 {
     public string Id { get; set; } = "";      // stable column key (UI checkboxes)
     public string Name { get; set; } = "";    // display label, e.g. "SS1 AlsaceS4Saverne"
-    public string RouteId { get; set; } = ""; // ACR level/route identifier (catalog id when known, wire string otherwise)
+    public string RouteId { get; set; } = ""; // ACR route (or level) as the game sends it
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? LengthKm { get; set; }     // route length from the content catalog (null: unknown route)
     public bool Discarded { get; set; }
@@ -88,7 +88,7 @@ public sealed class MatrixView
     public string Title { get; set; } = "";         // operator-set page title (empty = hidden)
     public string Description { get; set; } = "";    // operator-set page description (empty = hidden)
     public string StageStart { get; set; } = "";   // IN-GAME time of day of the stage start (HH:mm)
-    public string StageWeather { get; set; } = ""; // forecast for the stage ("Light rain · 0.5°C")
+    public string StageWeather { get; set; } = ""; // forecast for the stage ("Light Rain · 0.5°C")
     public List<CarProgressView> Progress { get; set; } = []; // live cars, sorted by dist desc
     public double ProgressWindowKm { get; set; }    // width of the sliding progression window (km)
     public bool ProgressFixed { get; set; }         // freeze the window at its max span (no auto-fit)
@@ -348,7 +348,7 @@ public sealed partial class SessionMatrix
         RaiseChanged();
     }
 
-    /// <summary>Stage weather forecast label ("Light rain · 0.5°C"; "" = none
+    /// <summary>Stage weather forecast label ("Light Rain · 0.5°C"; "" = none
     /// broadcast). From the replicated MainWeatherForecaster table.</summary>
     public void SetStageWeather(string weather)
     {
@@ -1409,7 +1409,7 @@ public sealed partial class SessionMatrix
                     {
                         Id = id,
                         Name = ContentCatalog.StageLabelName(rawLabel),
-                        RouteId = ContentCatalog.CanonicalRouteId(ContentCatalog.RouteIdFromLabel(rawLabel)),
+                        RouteId = ContentCatalog.RouteIdFromLabel(rawLabel),
                         LengthKm = ContentCatalog.StageLengthKm(ContentCatalog.RouteIdFromLabel(rawLabel)),
                         Discarded = _discarded.Contains(id),
                         Group = _groups.TryGetValue(id, out int group) ? group : 0,

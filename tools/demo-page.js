@@ -179,7 +179,7 @@ const view = {
   title: "ACR Rally Championship — Round 3",
   description: "Live timing for the Sunday evening lobby. Open to spectators.",
   stageStart: "17:40",
-  stageWeather: "Light rain · 11.5°C",
+  stageWeather: "Light Rain · 11.5°C",
   progress,
   progressWindowKm: WINDOW_KM,
   hasRaceState: true,
