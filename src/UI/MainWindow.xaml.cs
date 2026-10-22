@@ -862,8 +862,10 @@ public partial class MainWindow : Window
 
     private static void CaptureBounds(OverlayWindow o, OverlayState s)
     {
-        s.Left = o.Left; s.Top = o.Top;
-        s.Width = o.ActualWidth; s.Height = o.ActualHeight;
+        // where the player put it, not where a display-mode change left the window
+        var placed = o.PlacedBounds;
+        s.Left = placed.Left; s.Top = placed.Top;
+        s.Width = placed.Width; s.Height = placed.Height;
     }
 
     // ---- per-overlay chrome (topmost / lock / opacity), applied to the live
