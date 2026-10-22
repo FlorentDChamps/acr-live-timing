@@ -48,13 +48,15 @@ public partial class OverlayWindow : Window
         // transparent WebView2 background must be set before the first paint so
         // the page's see-through canvas shows the desktop/game behind it.
         Web.DefaultBackgroundColor = System.Drawing.Color.Transparent;
-        SizeChanged += (_, _) => ApplyZoom();
+        SizeChanged += (_, _) => { ApplyZoom(); OnMovedBySystem(); };
+        LocationChanged += (_, _) => OnMovedBySystem();
         SetChrome(false);   // hidden until the cursor enters the window
         Loaded += async (_, _) =>
         {
             // async void handler: an uncaught throw here (typically the WebView2
             // Evergreen Runtime missing on a fresh machine) would escape every
             // caller's try/catch and take the whole app down.
+            if (_placed.IsEmpty) RememberPlacement();   // first open: where Windows showed it
             try
             {
                 await Web.EnsureCoreWebView2Async();
@@ -252,7 +254,87 @@ public partial class OverlayWindow : Window
     {
         base.OnSourceInitialized(e);
         ((HwndSource)PresentationSource.FromVisual(this)!).AddHook(HitTestHook);
+        RememberPlacement();   // the saved bounds were applied in the constructor
     }
+
+    // ---- keep the player's placement across display-mode changes ---------------
+    //
+    // A fullscreen game in another resolution than the desktop (4K game, 1080p
+    // desktop) makes Windows switch the display mode on every focus change. This
+    // process is DPI-unaware, so Windows also rescales it (225 % at 4K: the screen
+    // reads 1707x960) and moves its windows — on the way back to the desktop
+    // before WM_DISPLAYCHANGE even arrives, their positions multiplied by 2.25 —
+    // and does not always put them back. So the overlay remembers where the
+    // player put it (the bounds and the screen size at that moment) and returns
+    // there whenever it is moved or resized without the player doing it, on the
+    // screen it was placed on.
+
+    private const int WM_ENTERSIZEMOVE = 0x0231, WM_EXITSIZEMOVE = 0x0232;
+    private const int SM_CXSCREEN = 0, SM_CYSCREEN = 1;
+
+    [LibraryImport("user32.dll")]
+    private static partial int GetSystemMetrics(int index);
+
+    private Rect _placed = Rect.Empty;          // where the player put the window (DIP)
+    private (int w, int h) _placedScreen;       // the screen size at that moment
+    private bool _moving;                       // the player is dragging or resizing it
+    private int _putBacks;                      // since the last placement or display change
+    private const int MaxPutBacks = 5;          // Windows refusing the bounds must not loop
+    private DispatcherTimer? _settleTimer;
+
+    /// <summary>Where the player put the overlay: what is saved, whatever Windows
+    /// did to the window since.</summary>
+    public Rect PlacedBounds => _placed.IsEmpty ? new Rect(Left, Top, ActualWidth, ActualHeight) : _placed;
+
+    private static (int w, int h) ScreenSize() => (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+
+    // The window's own bounds properties: they hold what was just set, before
+    // layout catches up (ActualWidth/Height lag behind a code-set size).
+    private Rect CurrentBounds() => new(Left, Top, double.IsNaN(Width) ? ActualWidth : Width,
+                                        double.IsNaN(Height) ? ActualHeight : Height);
+
+    private void RememberPlacement()
+    {
+        var bounds = CurrentBounds();
+        if (double.IsNaN(bounds.Left) || double.IsNaN(bounds.Top) || bounds.Width <= 0 || bounds.Height <= 0) return;
+        _placed = bounds;
+        _placedScreen = ScreenSize();
+        _putBacks = 0;
+    }
+
+    private void OnMovedBySystem()
+    {
+        if (_moving || _placed.IsEmpty) return;
+        // let whatever moved it finish first, so a wanted change is never undone
+        Dispatcher.BeginInvoke(DispatcherPriority.Normal, PutBack);
+    }
+
+    private void PutBack()
+    {
+        if (_moving || _placed.IsEmpty || ScreenSize() != _placedScreen) return;
+        var current = CurrentBounds();
+        if (Same(current, _placed) || _putBacks >= MaxPutBacks) return;
+        _putBacks++;
+        Left = _placed.Left;
+        Top = _placed.Top;
+        Width = _placed.Width;
+        Height = _placed.Height;
+    }
+
+    private void OnDisplayChange()
+    {
+        _putBacks = 0;
+        Dispatcher.BeginInvoke(DispatcherPriority.Normal, PutBack);
+        // and once more when the mode change has settled
+        _settleTimer?.Stop();
+        _settleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _settleTimer.Tick += (_, _) => { _settleTimer.Stop(); PutBack(); };
+        _settleTimer.Start();
+    }
+
+    private static bool Same(Rect a, Rect b)
+        => Math.Abs(a.Left - b.Left) < 0.5 && Math.Abs(a.Top - b.Top) < 0.5
+           && Math.Abs(a.Width - b.Width) < 0.5 && Math.Abs(a.Height - b.Height) < 0.5;
 
     private IntPtr HitTestHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
@@ -262,7 +344,18 @@ public partial class OverlayWindow : Window
         // of the window, the rest transparent. The DOM is unaffected (innerWidth
         // reads normal) so the zoom probe cannot see it; only pushing fresh host
         // bounds resets the presentation. Nudge once the mode change settles.
-        if (msg == WM_DISPLAYCHANGE) _ = NudgeWebAsync();
+        if (msg == WM_DISPLAYCHANGE)
+        {
+            _ = NudgeWebAsync();
+            OnDisplayChange();
+        }
+        // DragMove and the WM_NCHITTEST resize both run the system move/size loop
+        if (msg == WM_ENTERSIZEMOVE) _moving = true;
+        if (msg == WM_EXITSIZEMOVE)
+        {
+            _moving = false;
+            RememberPlacement();
+        }
 
         if (msg != WM_NCHITTEST) return IntPtr.Zero;
 
@@ -335,6 +428,7 @@ public partial class OverlayWindow : Window
                 if (!_hasSavedFitSize)
                 {
                     if (_byHeight) Height = _baseHeight; else Width = _baseWidth;
+                    RememberPlacement();   // the fitted size is the placement now
                 }
                 ApplyZoom();   // zoom == 1 at the fitted base (or the saved size's ratio)
                 return;

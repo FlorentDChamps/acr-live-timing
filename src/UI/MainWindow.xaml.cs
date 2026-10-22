@@ -55,6 +55,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Title = "ACR Live Timing " + AppInfo.Version;   // so bug reports carry a version
         RestoreWindowBounds();   // before the window is shown => no reposition flicker
+        SyncMaximizeGlyph();     // a state set before the window exists raises no StateChanged
         // saved theme if any, else follow the OS light/dark setting on first run
         ApplyTheme(_settings.HasTheme ? _settings.Dark : OsPrefersDark());
         _web = new WebServer(BuildStateJson,
@@ -94,8 +95,12 @@ public partial class MainWindow : Window
     protected override void OnStateChanged(EventArgs e)
     {
         base.OnStateChanged(e);
-        MaximizeBtn?.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        SyncMaximizeGlyph();
     }
+
+    // restore glyph when maximized, maximize glyph otherwise
+    private void SyncMaximizeGlyph()
+        => MaximizeBtn?.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
 
     protected override void OnSourceInitialized(EventArgs e)
     {
@@ -862,8 +867,10 @@ public partial class MainWindow : Window
 
     private static void CaptureBounds(OverlayWindow o, OverlayState s)
     {
-        s.Left = o.Left; s.Top = o.Top;
-        s.Width = o.ActualWidth; s.Height = o.ActualHeight;
+        // where the player put it, not where a display-mode change left the window
+        var placed = o.PlacedBounds;
+        s.Left = placed.Left; s.Top = placed.Top;
+        s.Width = placed.Width; s.Height = placed.Height;
     }
 
     // ---- per-overlay chrome (topmost / lock / opacity), applied to the live

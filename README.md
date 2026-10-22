@@ -168,7 +168,10 @@ being run; below: the same session once it is over, on each tab.</sub>
   instead — the *Overlays* panel has a *Copy OBS source URL* button per widget (see
   [Streaming with OBS](#streaming-with-obs)). (Start the local web server first —
   overlays load from it. A borderless / windowed-fullscreen game is required for a
-  desktop overlay to sit on top; exclusive fullscreen can't be covered.)
+  desktop overlay to sit on top; exclusive fullscreen can't be covered.) Each
+  overlay stays where you put it, even when a fullscreen game in another resolution
+  than the desktop (4K game, 1080p desktop) makes Windows switch the display mode
+  and shift the windows at every Alt+Tab.
 - **Light or dark, everywhere** — the app picks up your Windows light/dark setting
   on launch, with a toggle in the header to switch at any time. The web page follows
   each viewer's own system theme too, with its own sun/moon toggle.

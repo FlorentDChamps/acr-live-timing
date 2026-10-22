@@ -187,7 +187,10 @@ chaque onglet.</sub>
   *Copy OBS source URL* par widget (voir [Capture avec OBS](#capture-avec-obs)).
   (Lancez d'abord le serveur web local — les overlays s'y chargent. Un jeu en fenêtré /
   plein écran fenêtré est requis pour qu'un overlay bureau passe devant ; le plein
-  écran exclusif ne peut pas être recouvert.)
+  écran exclusif ne peut pas être recouvert.) Chaque overlay reste là où vous l'avez
+  placé, même quand un jeu plein écran dans une autre résolution que le bureau (jeu
+  en 4K, bureau en 1080p) fait changer le mode d'affichage à Windows et décaler les
+  fenêtres à chaque Alt+Tab.
 - **Clair ou sombre, partout** — l'application reprend le réglage clair/sombre de
   Windows au lancement, avec un interrupteur dans l'en-tête pour basculer à tout
   moment. La page web suit elle aussi le thème système de chaque spectateur, avec son
