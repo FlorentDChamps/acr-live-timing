@@ -275,7 +275,7 @@ public sealed class Engine
         if (wx != null)
         {
             Matrix.SetStageWeather(
-                $"{WeatherForecast.TypeNames[wx.Value.type]} · {wx.Value.temp:0.#}°C");
+                $"{WeatherForecast.TypeName(wx.Value.type)} · {wx.Value.temp:0.#}°C");
         }
         // the variant labels the run while it drives the current level (level aliases
         // included: "Weles…" routes on a "Wales…" level); a stale variant from another

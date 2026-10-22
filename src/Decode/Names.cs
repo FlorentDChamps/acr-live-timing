@@ -38,11 +38,13 @@ public static partial class Names
     /// → "WelesS3HafrenNorth". Spelling is the wire's; see <see cref="VariantExtends"/>.</summary>
     public static string BaseOf(string variant) => VariantSuffixRe.Replace(variant, "");
 
-    /// <summary>True if the route drives the given level. Compared through the
-    /// catalog's level aliases: the game spells some routes differently from their
-    /// level ("WelesS3HafrenNorthCut1Reverse" runs on "WalesS3HafrenNorth").</summary>
+    /// <summary>True if the route drives the given level. Compared by the catalog's
+    /// track: the game spells some routes differently from their level
+    /// ("WelesS3HafrenNorthCut1Reverse" runs on "WalesS3HafrenNorth"). A route the
+    /// catalog does not know falls back to its name's level.</summary>
     public static bool VariantExtends(string variant, string level)
-        => ContentCatalog.CanonicalLevel(BaseOf(variant)) == ContentCatalog.CanonicalLevel(level);
+        => (ContentCatalog.TrackOfRoute(variant) ?? ContentCatalog.TrackOfLevel(BaseOf(variant)))
+           == ContentCatalog.TrackOfLevel(level);
 
     /// <summary>The bare LEVEL name in the packet ("MonteCarloS2Sisteron"), longest
     /// match wins; routes (variants) are handled separately and never count as the

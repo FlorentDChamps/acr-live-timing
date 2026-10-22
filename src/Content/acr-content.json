@@ -1,2250 +1,2774 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
+  "gameVersion": "0.6.0",
   "locations": [
     {
-      "id": "Alsace",
+      "id": "alsace",
       "name": "Alsace",
-      "country": {
-        "id": "France",
-        "name": "France"
-      },
-      "surfaces": [
-        {
-          "id": "Tarmac",
-          "percentage": 1.0
-        }
-      ]
+      "country": "fr",
+      "surfaces": {
+        "tarmac": 100
+      }
     },
     {
-      "id": "Greece",
-      "name": "Greece",
-      "country": {
-        "id": "Greece",
-        "name": "Greece"
-      },
-      "surfaces": [
-        {
-          "id": "Gravel",
-          "percentage": 0.78999996
-        },
-        {
-          "id": "Tarmac",
-          "percentage": 0.21
-        }
-      ]
-    },
-    {
-      "id": "Livigno",
+      "id": "livigno",
       "name": "Livigno Circuit",
-      "country": {
-        "id": "Italy",
-        "name": "Italy"
+      "labels": {
+        "fr": "Livigno",
+        "en": "Livigno"
       },
-      "surfaces": [
-        {
-          "id": "Snow",
-          "percentage": 1.0
-        }
-      ]
+      "country": "it",
+      "surfaces": {
+        "snow": 100
+      }
     },
     {
-      "id": "MonteCarlo",
+      "id": "montecarlo",
       "name": "Monte Carlo",
-      "country": {
-        "id": "Monaco",
-        "name": "Monaco"
+      "labels": {
+        "fr": "Monte-Carlo",
+        "en": "Monte-Carlo"
       },
-      "surfaces": [
-        {
-          "id": "Tarmac",
-          "percentage": 1.0
-        }
+      "country": "mc",
+      "surfaces": {
+        "tarmac": 100
+      }
+    },
+    {
+      "id": "wales",
+      "name": "Wales",
+      "labels": {
+        "fr": "Pays de Galles"
+      },
+      "country": "gb-wls",
+      "surfaces": {
+        "gravel": 100
+      }
+    },
+    {
+      "id": "greece",
+      "name": "Greece",
+      "labels": {
+        "fr": "Grèce"
+      },
+      "country": "gr",
+      "surfaces": {
+        "gravel": 79,
+        "tarmac": 21
+      }
+    }
+  ],
+  "tracks": [
+    {
+      "id": "munster",
+      "location": "alsace",
+      "name": "Vallée de Munster",
+      "labels": {
+        "en": "Munster Valley"
+      },
+      "aliases": [
+        "alsaces2munster"
       ]
     },
     {
-      "id": "Wales",
-      "name": "Wales",
-      "country": {
-        "id": "Wales",
-        "name": "Wales"
+      "id": "saverne",
+      "location": "alsace",
+      "name": "Saverne",
+      "aliases": [
+        "alsaces4saverne"
+      ]
+    },
+    {
+      "id": "livignotesttrack01",
+      "location": "livigno",
+      "name": "Ice Track",
+      "labels": {
+        "fr": "Circuit de Livigno",
+        "en": "Livigno Circuit"
       },
-      "surfaces": [
-        {
-          "id": "Gravel",
-          "percentage": 1.0
-        }
+      "aliases": [
+        "livignotesttrack",
+        "livignoicedrivingschool"
+      ]
+    },
+    {
+      "id": "montecarlos1bollene",
+      "location": "montecarlo",
+      "name": "Col de Turini"
+    },
+    {
+      "id": "montecarlos2sisteron",
+      "location": "montecarlo",
+      "name": "Sisteron"
+    },
+    {
+      "id": "waless3hafrennorth",
+      "location": "wales",
+      "name": "Hafren North",
+      "aliases": [
+        "weless3hafrennorth"
+      ]
+    },
+    {
+      "id": "waless4hafrensouth",
+      "location": "wales",
+      "name": "Hafren South",
+      "aliases": [
+        "weless4hafrensouth"
+      ]
+    },
+    {
+      "id": "greeces3elatia",
+      "location": "greece",
+      "name": "Elatia"
+    },
+    {
+      "id": "greeces4loutraki",
+      "location": "greece",
+      "name": "Loutraki"
+    }
+  ],
+  "stages": [
+    {
+      "id": "alsaces2munsterfullreverse",
+      "track": "munster",
+      "name": "Vallée de Munster Descente",
+      "shortName": "Descente",
+      "labels": {
+        "en": "Munster Valley Descent"
+      },
+      "lengthKm": 10.3
+    },
+    {
+      "id": "alsaces2munsterfullforward",
+      "track": "munster",
+      "name": "Vallée de Munster Montée",
+      "shortName": "Montée",
+      "labels": {
+        "en": "Munster Valley Climb"
+      },
+      "lengthKm": 10.3
+    },
+    {
+      "id": "alsaces2munstershort1reverse",
+      "track": "munster",
+      "name": "Forêt de Munster",
+      "shortName": "Forêt",
+      "labels": {
+        "en": "Munster Forest"
+      },
+      "lengthKm": 6.8
+    },
+    {
+      "id": "alsaces2munstershort1forward",
+      "track": "munster",
+      "name": "Luttenbach près Munster",
+      "shortName": "Luttenbach",
+      "labels": {
+        "en": "Luttenbach near Munster"
+      },
+      "lengthKm": 7.0
+    },
+    {
+      "id": "alsaces2munstershort2reverse",
+      "track": "munster",
+      "name": "Col du petit Ballon",
+      "shortName": "Petit Ballon",
+      "labels": {
+        "fr": "Col du Petit Ballon",
+        "en": "Petit Ballon Pass"
+      },
+      "lengthKm": 5.6
+    },
+    {
+      "id": "alsaces2munstershort2forward",
+      "track": "munster",
+      "name": "Sommet de Munster",
+      "shortName": "Sommet",
+      "labels": {
+        "en": "Munster Summit"
+      },
+      "lengthKm": 5.3
+    },
+    {
+      "id": "alsaces4savernefullreverse",
+      "track": "saverne",
+      "name": "Steigenbach",
+      "lengthKm": 8.9
+    },
+    {
+      "id": "alsaces4savernefullforward",
+      "track": "saverne",
+      "name": "Forêt de Saverne",
+      "shortName": "Forêt",
+      "labels": {
+        "en": "Saverne Forest"
+      },
+      "lengthKm": 9.1
+    },
+    {
+      "id": "alsaces4saverneshort1forward",
+      "track": "saverne",
+      "name": "Obersteigen",
+      "lengthKm": 4.6
+    },
+    {
+      "id": "alsaces4saverneshort1reverse",
+      "track": "saverne",
+      "name": "La traversée de La Mossig",
+      "shortName": "La Mossig",
+      "labels": {
+        "fr": "La traversée de la Mossig",
+        "en": "La Mossig Crossing"
+      },
+      "lengthKm": 4.6
+    },
+    {
+      "id": "livignotesttrack01fullforward",
+      "track": "livignotesttrack01",
+      "name": "Main Circuit",
+      "labels": {
+        "fr": "Circuit de Livigno",
+        "en": "Livigno Circuit"
+      },
+      "lengthKm": 0.9
+    },
+    {
+      "id": "livignotesttrack01fullreverse",
+      "track": "livignotesttrack01",
+      "name": "Main Circuit Reverse",
+      "shortName": "Main Reverse",
+      "labels": {
+        "fr": "Circuit de Livigno : inversé",
+        "en": "Livigno Circuit Reverse"
+      },
+      "lengthKm": 0.9
+    },
+    {
+      "id": "montecarlos1bollenefullforward",
+      "track": "montecarlos1bollene",
+      "name": "La Bollène-Vésubie - Peïra Cava",
+      "shortName": "La Bollène",
+      "lengthKm": 18.2
+    },
+    {
+      "id": "montecarlos1bollenefullreverse",
+      "track": "montecarlos1bollene",
+      "name": "Peïra Cava - La Bollène-Vésubie",
+      "shortName": "Peïra Cava",
+      "lengthKm": 18.2
+    },
+    {
+      "id": "montecarlos1bollenecut1forward",
+      "track": "montecarlos1bollene",
+      "name": "La Bollène-Vésubie - Turini",
+      "shortName": "Turini Montée",
+      "lengthKm": 11.8
+    },
+    {
+      "id": "montecarlos1bollenecut1reverse",
+      "track": "montecarlos1bollene",
+      "name": "Turini - La Bollène-Vésubie",
+      "shortName": "Turini Descente",
+      "lengthKm": 11.8
+    },
+    {
+      "id": "montecarlos1bollenecut2forward",
+      "track": "montecarlos1bollene",
+      "name": "Turini - Peïra Cava",
+      "lengthKm": 6.3
+    },
+    {
+      "id": "montecarlos1bollenecut2reverse",
+      "track": "montecarlos1bollene",
+      "name": "Peïra Cava - Turini",
+      "lengthKm": 6.3
+    },
+    {
+      "id": "montecarlos1bollenecut3forward",
+      "track": "montecarlos1bollene",
+      "name": "Pra d'Alart",
+      "lengthKm": 5.2
+    },
+    {
+      "id": "montecarlos1bollenecut3reverse",
+      "track": "montecarlos1bollene",
+      "name": "Sommet de Turini",
+      "labels": {
+        "en": "Turini Summit"
+      },
+      "lengthKm": 5.3,
+      "aliases": [
+        "montecarloss1bollenecut3reverse"
+      ]
+    },
+    {
+      "id": "montecarlos2sisteronfullforward",
+      "track": "montecarlos2sisteron",
+      "name": "Sisteron - St. Geniez",
+      "lengthKm": 13.1
+    },
+    {
+      "id": "montecarlos2sisteronfullreverse",
+      "track": "montecarlos2sisteron",
+      "name": "St. Geniez - Sisteron",
+      "lengthKm": 13.1
+    },
+    {
+      "id": "montecarlos2sisteroncut1forward",
+      "track": "montecarlos2sisteron",
+      "name": "Sisteron - Mézien",
+      "lengthKm": 7.2
+    },
+    {
+      "id": "montecarlos2sisteroncut1reverse",
+      "track": "montecarlos2sisteron",
+      "name": "Mézien - Sisteron",
+      "lengthKm": 7.2
+    },
+    {
+      "id": "montecarlos2sisteroncut2forward",
+      "track": "montecarlos2sisteron",
+      "name": "Mézien - St. Geniez",
+      "lengthKm": 5.2
+    },
+    {
+      "id": "montecarlos2sisteroncut2reverse",
+      "track": "montecarlos2sisteron",
+      "name": "St. Geniez - Mézien",
+      "lengthKm": 5.2
+    },
+    {
+      "id": "weless3hafrennorthfullforward",
+      "track": "waless3hafrennorth",
+      "name": "Cwmbiga - Afon Biga",
+      "shortName": "Cwmbiga",
+      "lengthKm": 11.3,
+      "aliases": [
+        "waless3hafrennorthfullforward"
+      ]
+    },
+    {
+      "id": "weless3hafrennorthfullreverse",
+      "track": "waless3hafrennorth",
+      "name": "Afon Biga - Cwmbiga",
+      "shortName": "Afon Biga",
+      "lengthKm": 11.0,
+      "aliases": [
+        "waless3hafrennorthfullreverse"
+      ]
+    },
+    {
+      "id": "weless3hafrennorthcut1forward",
+      "track": "waless3hafrennorth",
+      "name": "Cwmbiga - Fedw Fain",
+      "shortName": "Hafren Forest",
+      "lengthKm": 6.1,
+      "aliases": [
+        "waless3hafrennorthcut1forward"
+      ]
+    },
+    {
+      "id": "weless3hafrennorthcut1reverse",
+      "track": "waless3hafrennorth",
+      "name": "Fedw Fain - Cwmbiga",
+      "shortName": "Fedw Fain",
+      "lengthKm": 6.1,
+      "aliases": [
+        "waless3hafrennorthcut1reverse"
+      ]
+    },
+    {
+      "id": "weless3hafrennorthcut2forward",
+      "track": "waless3hafrennorth",
+      "name": "Banc Gwyn - Afon Biga",
+      "shortName": "Banc Gwyn",
+      "lengthKm": 5.4,
+      "aliases": [
+        "waless3hafrennorthcut2forward"
+      ]
+    },
+    {
+      "id": "weless3hafrennorthcut2reverse",
+      "track": "waless3hafrennorth",
+      "name": "Afon Biga - Banc Gwyn",
+      "shortName": "Ospreys",
+      "lengthKm": 5.4,
+      "aliases": [
+        "waless3hafrennorthcut2reverse"
+      ]
+    },
+    {
+      "id": "weless4hafrensouthfullforward",
+      "track": "waless4hafrensouth",
+      "name": "Afon Bidno - Severn",
+      "shortName": "Afon Bidno",
+      "lengthKm": 4.8,
+      "aliases": [
+        "waless4hafrensouthfullforward"
+      ]
+    },
+    {
+      "id": "weless4hafrensouthfullreverse",
+      "track": "waless4hafrensouth",
+      "name": "Severn - Afon Bidno",
+      "shortName": "Severn",
+      "lengthKm": 4.8,
+      "aliases": [
+        "waless4hafrensouthfullreverse"
+      ]
+    },
+    {
+      "id": "greeces3elatiafullforward",
+      "track": "greeces3elatia",
+      "name": "Elatia - Zeli",
+      "lengthKm": 11.6
+    },
+    {
+      "id": "greeces3elatiafullreverse",
+      "track": "greeces3elatia",
+      "name": "Zeli - Elatia",
+      "lengthKm": 11.7
+    },
+    {
+      "id": "greeces3elatiacut1forward",
+      "track": "greeces3elatia",
+      "name": "Elatia",
+      "lengthKm": 4.9
+    },
+    {
+      "id": "greeces3elatiacut1reverse",
+      "track": "greeces3elatia",
+      "name": "Elatia Reverse",
+      "labels": {
+        "fr": "Elatia inversé"
+      },
+      "lengthKm": 6.2
+    },
+    {
+      "id": "greeces3elatiacut2forward",
+      "track": "greeces3elatia",
+      "name": "Zeli",
+      "lengthKm": 5.5
+    },
+    {
+      "id": "greeces3elatiacut2reverse",
+      "track": "greeces3elatia",
+      "name": "Zeli Reverse",
+      "labels": {
+        "fr": "Zeli inversé"
+      },
+      "lengthKm": 5.5
+    },
+    {
+      "id": "greeces4loutrakifullforward",
+      "track": "greeces4loutraki",
+      "name": "Loutraki - Aghii Theodori",
+      "lengthKm": 10.2
+    },
+    {
+      "id": "greeces4loutrakifullreverse",
+      "track": "greeces4loutraki",
+      "name": "Aghii Theodori - Loutraki",
+      "lengthKm": 10.2
+    },
+    {
+      "id": "greeces4loutrakicut1forward",
+      "track": "greeces4loutraki",
+      "name": "New Loutraki",
+      "lengthKm": 4.9
+    },
+    {
+      "id": "greeces4loutrakicut1reverse",
+      "track": "greeces4loutraki",
+      "name": "New Loutraki Reverse",
+      "labels": {
+        "fr": "New Loutraki inversé"
+      },
+      "lengthKm": 4.9
+    },
+    {
+      "id": "greeces4loutrakicut2forward",
+      "track": "greeces4loutraki",
+      "name": "Aghii Theodori",
+      "lengthKm": 5.8
+    },
+    {
+      "id": "greeces4loutrakicut2reverse",
+      "track": "greeces4loutraki",
+      "name": "Aghii Theodori Reverse",
+      "labels": {
+        "fr": "Aghii Theodori inversé"
+      },
+      "lengthKm": 5.7
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "gravel",
+      "name": "Gravel",
+      "labels": {
+        "fr": "Terre"
+      }
+    },
+    {
+      "id": "tarmac",
+      "name": "Tarmac",
+      "labels": {
+        "fr": "Asphalte"
+      }
+    },
+    {
+      "id": "snow",
+      "name": "Snow",
+      "labels": {
+        "fr": "Neige"
+      }
+    }
+  ],
+  "cars": [
+    {
+      "id": "citroenxsarawrc",
+      "manufacturer": "Citroën",
+      "name": "Citroën Xsara WRC",
+      "class": "wr20evo2",
+      "group": "groupwr",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "lanciastratoshf",
+      "manufacturer": "Lancia",
+      "name": "Lancia Stratos HF",
+      "labels": {
+        "fr": "Lancia Stratos Gr.4",
+        "en": "Lancia Stratos Gr.4"
+      },
+      "class": "h1",
+      "group": "group24",
+      "drivetrain": "RWD"
+    },
+    {
+      "id": "lanciarally037evo2",
+      "manufacturer": "Lancia",
+      "name": "Lancia Rally 037 Evoluzione 2",
+      "labels": {
+        "fr": "Lancia Rally 037 EVO 2",
+        "en": "Lancia Rally 037 EVO 2"
+      },
+      "class": "b2",
+      "group": "groupb",
+      "drivetrain": "RWD"
+    },
+    {
+      "id": "hyundaii20nrally2",
+      "manufacturer": "Hyundai",
+      "name": "Hyundai i20 Rally2",
+      "labels": {
+        "fr": "Hyundai i20N Rally2",
+        "en": "Hyundai i20N Rally2"
+      },
+      "class": "rally2",
+      "group": "groupr",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "alfaromeogta1300",
+      "manufacturer": "Alfa Romeo",
+      "name": "Alfa Romeo GTA 1300 Junior",
+      "class": "h3",
+      "group": "group24",
+      "drivetrain": "RWD"
+    },
+    {
+      "id": "lanciadeltaintegraleevo",
+      "manufacturer": "Lancia",
+      "name": "Lancia Delta Integrale Evoluzione",
+      "labels": {
+        "fr": "Lancia Delta HF Integrale EVO",
+        "en": "Lancia Delta HF Integrale EVO"
+      },
+      "class": "a8evo2",
+      "group": "groupa",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "minicoopers1275",
+      "manufacturer": "Mini",
+      "name": "Mini Cooper S",
+      "class": "h3",
+      "group": "group24",
+      "drivetrain": "FWD"
+    },
+    {
+      "id": "peugeot208rally4",
+      "manufacturer": "Peugeot",
+      "name": "Peugeot 208 Rally4",
+      "class": "rally4",
+      "group": "groupr",
+      "drivetrain": "FWD"
+    },
+    {
+      "id": "fiat131abarth",
+      "manufacturer": "Fiat",
+      "name": "Fiat 131 Abarth",
+      "class": "h1",
+      "group": "group24",
+      "drivetrain": "RWD"
+    },
+    {
+      "id": "fiat124abarth",
+      "manufacturer": "Fiat",
+      "name": "Fiat 124 Abarth Rally 16V",
+      "labels": {
+        "fr": "Fiat 124 Sport Abarth Rally 16V",
+        "en": "Fiat 124 Sport Abarth Rally 16V"
+      },
+      "class": "h2",
+      "group": "group24",
+      "drivetrain": "RWD"
+    },
+    {
+      "id": "alpinea110",
+      "manufacturer": "Alpine",
+      "name": "Alpine A110 1.8",
+      "labels": {
+        "fr": "Alpine A110",
+        "en": "Alpine A110"
+      },
+      "class": "h2",
+      "group": "group24",
+      "drivetrain": "RWD"
+    },
+    {
+      "id": "lanciafulviahf",
+      "manufacturer": "Lancia",
+      "name": "Lancia Fulvia Coupé HF",
+      "labels": {
+        "fr": "Lancia Fulvia Coupé 1.6 HF",
+        "en": "Lancia Fulvia Coupé 1.6 HF"
+      },
+      "class": "h3",
+      "group": "group24",
+      "drivetrain": "FWD"
+    },
+    {
+      "id": "skodafabiarsrally2",
+      "manufacturer": "Škoda",
+      "name": "Škoda Fabia RS Rally2",
+      "class": "rally2",
+      "group": "groupr",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "peugeot306iimaxikitcar",
+      "manufacturer": "Peugeot",
+      "name": "Peugeot 306 II Maxi",
+      "labels": {
+        "fr": "Peugeot 306 Maxi Kit Car",
+        "en": "Peugeot 306 Maxi Kit Car"
+      },
+      "class": "k11",
+      "group": "groupa",
+      "drivetrain": "FWD"
+    },
+    {
+      "id": "subaruimprezas3",
+      "manufacturer": "Subaru",
+      "name": "Subaru Impreza S3",
+      "class": "a8evo3",
+      "group": "groupa",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "audiquattrogr4",
+      "manufacturer": "Audi",
+      "name": "Audi Quattro Gr.4",
+      "class": "h1",
+      "group": "group24",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "vwpologtir5",
+      "manufacturer": "Volkswagen",
+      "name": "Volkswagen Polo GTI R5",
+      "class": "rally2",
+      "group": "groupr",
+      "drivetrain": "4WD"
+    },
+    {
+      "id": "peugeot206",
+      "manufacturer": "Peugeot",
+      "name": "Peugeot 206 WRC",
+      "class": "wr20evo1",
+      "group": "groupwr",
+      "drivetrain": "4WD"
+    }
+  ],
+  "classes": [
+    {
+      "id": "h1",
+      "group": "group24",
+      "name": "H1"
+    },
+    {
+      "id": "h2",
+      "group": "group24",
+      "name": "H2"
+    },
+    {
+      "id": "h3",
+      "group": "group24",
+      "name": "H3"
+    },
+    {
+      "id": "a8evo2",
+      "group": "groupa",
+      "name": "A8 Evo2"
+    },
+    {
+      "id": "k11",
+      "group": "groupa",
+      "name": "K11"
+    },
+    {
+      "id": "a8evo3",
+      "group": "groupa",
+      "name": "A8 Evo3"
+    },
+    {
+      "id": "rally2",
+      "group": "groupr",
+      "name": "Rally2/R5"
+    },
+    {
+      "id": "rally4",
+      "group": "groupr",
+      "name": "Rally4"
+    },
+    {
+      "id": "wr20evo2",
+      "group": "groupwr",
+      "name": "WR Evo2"
+    },
+    {
+      "id": "wr20evo1",
+      "group": "groupwr",
+      "name": "WR Evo1"
+    },
+    {
+      "id": "b2",
+      "group": "groupb",
+      "name": "B2"
+    }
+  ],
+  "groups": [
+    {
+      "id": "group24",
+      "name": "Group 2/4",
+      "labels": {
+        "fr": "Groupe 2/4"
+      }
+    },
+    {
+      "id": "groupa",
+      "name": "Group A",
+      "labels": {
+        "fr": "Groupe A"
+      }
+    },
+    {
+      "id": "groupr",
+      "name": "Group R",
+      "labels": {
+        "fr": "Groupe R"
+      }
+    },
+    {
+      "id": "groupwr",
+      "name": "Group WR",
+      "labels": {
+        "fr": "Groupe WR"
+      }
+    },
+    {
+      "id": "groupb",
+      "name": "Group B",
+      "labels": {
+        "fr": "Groupe B"
+      }
+    }
+  ],
+  "modes": [
+    {
+      "id": "defaultsinglestage",
+      "name": "Single stage",
+      "labels": {
+        "fr": "Spéciale unique"
+      }
+    },
+    {
+      "id": "defaulttimeattack",
+      "name": "Time attack"
+    },
+    {
+      "id": "defaultfreepractice",
+      "name": "Free practice",
+      "labels": {
+        "fr": "Essai libre"
+      }
+    },
+    {
+      "id": "defaultrally",
+      "name": "Rally",
+      "labels": {
+        "fr": "Rallye"
+      }
+    },
+    {
+      "id": "defaultonlinesinglestage",
+      "name": "Online single stage",
+      "labels": {
+        "fr": "Spéciale unique en ligne"
+      }
+    },
+    {
+      "id": "defaultchampionship",
+      "name": "Championship",
+      "labels": {
+        "fr": "Championnat"
+      }
+    },
+    {
+      "id": "defaultonlinerally",
+      "name": "Online rally",
+      "labels": {
+        "fr": "Rallye en ligne"
+      }
+    }
+  ],
+  "weather": [
+    {
+      "id": "clear",
+      "name": "Clear",
+      "labels": {
+        "fr": "Soleil"
+      },
+      "aliases": [
+        "wtclear"
+      ]
+    },
+    {
+      "id": "lightclouds",
+      "name": "Light clouds",
+      "labels": {
+        "fr": "Peu nuageux"
+      },
+      "aliases": [
+        "wtlightclouds"
+      ]
+    },
+    {
+      "id": "heavyclouds",
+      "name": "Heavy clouds",
+      "labels": {
+        "fr": "Nuageux"
+      },
+      "aliases": [
+        "wtheavyclouds"
+      ]
+    },
+    {
+      "id": "lightrain",
+      "name": "Light rain",
+      "labels": {
+        "fr": "Pluie faible"
+      },
+      "aliases": [
+        "wtlightrain"
+      ]
+    },
+    {
+      "id": "heavyrain",
+      "name": "Heavy rain",
+      "labels": {
+        "fr": "Forte pluie"
+      },
+      "aliases": [
+        "wtheavyrain"
+      ]
+    },
+    {
+      "id": "storm",
+      "name": "Storm",
+      "labels": {
+        "fr": "Orage"
+      },
+      "aliases": [
+        "wtstorm"
+      ]
+    },
+    {
+      "id": "lightfog",
+      "name": "Light fog",
+      "labels": {
+        "fr": "Brume"
+      },
+      "aliases": [
+        "wtlightfog"
+      ]
+    },
+    {
+      "id": "heavyfog",
+      "name": "Heavy fog",
+      "labels": {
+        "fr": "Brouillard"
+      },
+      "aliases": [
+        "wtheavyfog"
+      ]
+    },
+    {
+      "id": "lightsnow",
+      "name": "Light snow",
+      "labels": {
+        "fr": "Neige faible"
+      },
+      "aliases": [
+        "wtlightsnow"
+      ]
+    },
+    {
+      "id": "heavysnow",
+      "name": "Heavy snow",
+      "labels": {
+        "fr": "Forte neige"
+      },
+      "aliases": [
+        "wtheavysnow"
+      ]
+    },
+    {
+      "id": "blizzard",
+      "name": "Blizzard",
+      "aliases": [
+        "wtblizzard"
       ]
     }
   ],
   "countries": [
     {
-      "id": "Afghanistan",
-      "name": "Afghanistan",
-      "iso": "af",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Albania",
-      "name": "Albania",
-      "iso": "al",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Algeria",
-      "name": "Algeria",
-      "iso": "dz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Andorra",
+      "id": "ad",
       "name": "Andorra",
-      "iso": "ad",
+      "labels": {
+        "fr": "Andorre"
+      },
       "aliases": [
-        "AndOrra"
-      ],
-      "available": true
+        "andorra"
+      ]
     },
     {
-      "id": "Angola",
-      "name": "Angola",
-      "iso": "ao",
-      "aliases": [],
-      "available": true
+      "id": "ae",
+      "name": "United Arab Emirates",
+      "labels": {
+        "fr": "Émirats arabes unis"
+      },
+      "aliases": [
+        "unitedarabemirates"
+      ]
     },
     {
-      "id": "AntiguaAndBarbuda",
+      "id": "af",
+      "name": "Afghanistan",
+      "aliases": [
+        "afghanistan"
+      ]
+    },
+    {
+      "id": "ag",
       "name": "Antigua and Barbuda",
-      "iso": "ag",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Antigua-et-Barbuda"
+      },
+      "aliases": [
+        "antiguaandbarbuda"
+      ]
     },
     {
-      "id": "Argentina",
-      "name": "Argentina",
-      "iso": "ar",
-      "aliases": [],
-      "available": true
+      "id": "al",
+      "name": "Albania",
+      "labels": {
+        "fr": "Albanie"
+      },
+      "aliases": [
+        "albania"
+      ]
     },
     {
-      "id": "Armenia",
+      "id": "am",
       "name": "Armenia",
-      "iso": "am",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Arménie"
+      },
+      "aliases": [
+        "armenia"
+      ]
     },
     {
-      "id": "Australia",
-      "name": "Australia",
-      "iso": "au",
-      "aliases": [],
-      "available": true
+      "id": "ao",
+      "name": "Angola",
+      "aliases": [
+        "angola"
+      ]
     },
     {
-      "id": "Austria",
+      "id": "ar",
+      "name": "Argentina",
+      "labels": {
+        "fr": "Argentine"
+      },
+      "aliases": [
+        "argentina"
+      ]
+    },
+    {
+      "id": "at",
       "name": "Austria",
-      "iso": "at",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Autriche"
+      },
+      "aliases": [
+        "austria"
+      ]
     },
     {
-      "id": "Azerbaijan",
+      "id": "au",
+      "name": "Australia",
+      "labels": {
+        "fr": "Australie"
+      },
+      "aliases": [
+        "australia"
+      ]
+    },
+    {
+      "id": "az",
       "name": "Azerbaijan",
-      "iso": "az",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Azerbaïdjan"
+      },
+      "aliases": [
+        "azerbaijan"
+      ]
     },
     {
-      "id": "Bahamas",
-      "name": "The Bahamas",
-      "iso": "bs",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Bahrain",
-      "name": "Bahrain",
-      "iso": "bh",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Bangladesh",
-      "name": "Bangladesh",
-      "iso": "bd",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Barbados",
-      "name": "Barbados",
-      "iso": "bb",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Belarus",
-      "name": "Belarus",
-      "iso": "by",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Belgium",
-      "name": "Belgium",
-      "iso": "be",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Belize",
-      "name": "Belize",
-      "iso": "bz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Benin",
-      "name": "Benin",
-      "iso": "bj",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Bolivia",
-      "name": "Bolivia",
-      "iso": "bo",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "BosniaAndHerzegovina",
+      "id": "ba",
       "name": "Bosnia and Herzegovina",
-      "iso": "ba",
+      "labels": {
+        "fr": "Bosnie-Herzégovine"
+      },
       "aliases": [
-        "BosniaHerzegovina"
-      ],
-      "available": true
+        "bosniaandherzegovina",
+        "bosniaherzegovina"
+      ]
     },
     {
-      "id": "Botswana",
-      "name": "Botswana",
-      "iso": "bw",
-      "aliases": [],
-      "available": true
+      "id": "bb",
+      "name": "Barbados",
+      "labels": {
+        "fr": "Barbade"
+      },
+      "aliases": [
+        "barbados"
+      ]
     },
     {
-      "id": "Brazil",
-      "name": "Brazil",
-      "iso": "br",
-      "aliases": [],
-      "available": true
+      "id": "bd",
+      "name": "Bangladesh",
+      "aliases": [
+        "bangladesh"
+      ]
     },
     {
-      "id": "Brunei",
-      "name": "Brunei",
-      "iso": "bn",
-      "aliases": [],
-      "available": true
+      "id": "be",
+      "name": "Belgium",
+      "labels": {
+        "fr": "Belgique"
+      },
+      "aliases": [
+        "belgium"
+      ]
     },
     {
-      "id": "Bulgaria",
-      "name": "Bulgaria",
-      "iso": "bg",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Burkinafaso",
+      "id": "bf",
       "name": "Burkina Faso",
-      "iso": "bf",
       "aliases": [
-        "BurkinaFaso"
-      ],
-      "available": true
+        "burkinafaso"
+      ]
     },
     {
-      "id": "Burundi",
+      "id": "bg",
+      "name": "Bulgaria",
+      "labels": {
+        "fr": "Bulgarie"
+      },
+      "aliases": [
+        "bulgaria"
+      ]
+    },
+    {
+      "id": "bh",
+      "name": "Bahrain",
+      "labels": {
+        "fr": "Bahreïn"
+      },
+      "aliases": [
+        "bahrain"
+      ]
+    },
+    {
+      "id": "bi",
       "name": "Burundi",
-      "iso": "bi",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "CaboVerde",
-      "name": "Cabo Verde",
-      "iso": "cv",
       "aliases": [
-        "CapoVerde"
-      ],
-      "available": true
+        "burundi"
+      ]
     },
     {
-      "id": "Cambodia",
-      "name": "Cambodia",
-      "iso": "kh",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Cameroon",
-      "name": "Cameroon",
-      "iso": "cm",
+      "id": "bj",
+      "name": "Benin",
+      "labels": {
+        "fr": "Bénin"
+      },
       "aliases": [
-        "Camerun"
-      ],
-      "available": true
+        "benin"
+      ]
     },
     {
-      "id": "Canada",
+      "id": "bn",
+      "name": "Brunei",
+      "aliases": [
+        "brunei"
+      ]
+    },
+    {
+      "id": "bo",
+      "name": "Bolivia",
+      "labels": {
+        "fr": "Bolivie"
+      },
+      "aliases": [
+        "bolivia"
+      ]
+    },
+    {
+      "id": "br",
+      "name": "Brazil",
+      "labels": {
+        "fr": "Brésil"
+      },
+      "aliases": [
+        "brazil"
+      ]
+    },
+    {
+      "id": "bs",
+      "name": "The Bahamas",
+      "labels": {
+        "fr": "Bahamas",
+        "en": "Bahamas"
+      },
+      "aliases": [
+        "bahamas"
+      ]
+    },
+    {
+      "id": "bw",
+      "name": "Botswana",
+      "aliases": [
+        "botswana"
+      ]
+    },
+    {
+      "id": "by",
+      "name": "Belarus",
+      "labels": {
+        "fr": "Biélorussie"
+      },
+      "aliases": [
+        "belarus"
+      ]
+    },
+    {
+      "id": "bz",
+      "name": "Belize",
+      "aliases": [
+        "belize"
+      ]
+    },
+    {
+      "id": "ca",
       "name": "Canada",
-      "iso": "ca",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "CentralAfricanRepublic",
-      "name": "Central African Republic",
-      "iso": "cf",
       "aliases": [
-        "CentralafricanRepublic"
-      ],
-      "available": true
+        "canada"
+      ]
     },
     {
-      "id": "Chad",
-      "name": "Chad",
-      "iso": "td",
-      "aliases": [],
-      "available": true
+      "id": "cd",
+      "name": "Democratic Republic of the Congo",
+      "labels": {
+        "fr": "République démocratique du Congo"
+      },
+      "aliases": [
+        "democraticrepublicofthecongo",
+        "democraticrepublicofcongo"
+      ]
     },
     {
-      "id": "Chile",
+      "id": "cf",
+      "name": "Central African Republic",
+      "labels": {
+        "fr": "République centrafricaine"
+      },
+      "aliases": [
+        "centralafricanrepublic"
+      ]
+    },
+    {
+      "id": "cg",
+      "name": "Republic of the Congo",
+      "labels": {
+        "fr": "République du Congo"
+      },
+      "aliases": [
+        "republicofthecongo",
+        "republicofcongo"
+      ]
+    },
+    {
+      "id": "ch",
+      "name": "Switzerland",
+      "labels": {
+        "fr": "Suisse"
+      },
+      "aliases": [
+        "switzerland"
+      ]
+    },
+    {
+      "id": "ci",
+      "name": "Côte d’Ivoire",
+      "aliases": [
+        "cotedivoire",
+        "coteivoire"
+      ]
+    },
+    {
+      "id": "cl",
       "name": "Chile",
-      "iso": "cl",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Chili"
+      },
+      "aliases": [
+        "chile"
+      ]
     },
     {
-      "id": "China",
+      "id": "cm",
+      "name": "Cameroon",
+      "labels": {
+        "fr": "Cameroun"
+      },
+      "aliases": [
+        "cameroon",
+        "camerun"
+      ]
+    },
+    {
+      "id": "cn",
       "name": "China",
-      "iso": "cn",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Chine"
+      },
+      "aliases": [
+        "china"
+      ]
     },
     {
-      "id": "Colombia",
+      "id": "co",
       "name": "Colombia",
-      "iso": "co",
+      "labels": {
+        "fr": "Colombie"
+      },
       "aliases": [
         "colombia"
-      ],
-      "available": true
+      ]
     },
     {
-      "id": "Comoros",
-      "name": "Comoros",
-      "iso": "km",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Costarica",
+      "id": "cr",
       "name": "Costa Rica",
-      "iso": "cr",
       "aliases": [
-        "CostaRica"
-      ],
-      "available": true
+        "costarica"
+      ]
     },
     {
-      "id": "CoteDivoire",
-      "name": "Côte d’Ivoire",
-      "iso": "ci",
-      "aliases": [
-        "CôteIvoire"
-      ],
-      "available": true
-    },
-    {
-      "id": "Croatia",
-      "name": "Croatia",
-      "iso": "hr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Cuba",
+      "id": "cu",
       "name": "Cuba",
-      "iso": "cu",
-      "aliases": [],
-      "available": true
+      "aliases": [
+        "cuba"
+      ]
     },
     {
-      "id": "Cyprus",
+      "id": "cv",
+      "name": "Cabo Verde",
+      "labels": {
+        "fr": "Cap-Vert"
+      },
+      "aliases": [
+        "caboverde",
+        "capoverde"
+      ]
+    },
+    {
+      "id": "cy",
       "name": "Cyprus",
-      "iso": "cy",
-      "aliases": [],
-      "available": true
+      "labels": {
+        "fr": "Chypre"
+      },
+      "aliases": [
+        "cyprus"
+      ]
     },
     {
-      "id": "CzechRepublic",
+      "id": "cz",
       "name": "Czech Republic",
-      "iso": "cz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "DemocraticRepublicOfTheCongo",
-      "name": "Democratic Republic of the Congo",
-      "iso": "cd",
+      "labels": {
+        "fr": "Tchéquie"
+      },
       "aliases": [
-        "DemocraticRepublicOfCongo"
-      ],
-      "available": true
+        "czechrepublic"
+      ]
     },
     {
-      "id": "Denmark",
-      "name": "Denmark",
-      "iso": "dk",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Djibouti",
-      "name": "Djibouti",
-      "iso": "dj",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Dominica",
-      "name": "Dominica",
-      "iso": "dm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "DominicanRepublic",
-      "name": "Dominican Republic",
-      "iso": "do",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "EastTimor",
-      "name": "East Timor (Timor-Leste)",
-      "iso": "tl",
-      "aliases": [
-        "TimorLeste"
-      ],
-      "available": true
-    },
-    {
-      "id": "Ecuador",
-      "name": "Ecuador",
-      "iso": "ec",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Egypt",
-      "name": "Egypt",
-      "iso": "eg",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Elsalvador",
-      "name": "El Salvador",
-      "iso": "sv",
-      "aliases": [
-        "ElSalvador"
-      ],
-      "available": true
-    },
-    {
-      "id": "EquatorialGuinea",
-      "name": "Equatorial Guinea",
-      "iso": "gq",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Eritrea",
-      "name": "Eritrea",
-      "iso": "er",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Estonia",
-      "name": "Estonia",
-      "iso": "ee",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Eswatini",
-      "name": "Eswatini",
-      "iso": "sz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Ethiopia",
-      "name": "Ethiopia",
-      "iso": "et",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Fiji",
-      "name": "Fiji",
-      "iso": "fj",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "FinlAnd",
-      "name": "Finland",
-      "iso": "fi",
-      "aliases": [
-        "Finland"
-      ],
-      "available": true
-    },
-    {
-      "id": "France",
-      "name": "France",
-      "iso": "fr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Gabon",
-      "name": "Gabon",
-      "iso": "ga",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Gambia",
-      "name": "Gambia",
-      "iso": "gm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Georgia",
-      "name": "Georgia",
-      "iso": "ge",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Germany",
+      "id": "de",
       "name": "Germany",
-      "iso": "de",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Ghana",
-      "name": "Ghana",
-      "iso": "gh",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Greece",
-      "name": "Greece",
-      "iso": "gr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Grenada",
-      "name": "Grenada",
-      "iso": "gd",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Guatemala",
-      "name": "Guatemala",
-      "iso": "gt",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Guinea",
-      "name": "Guinea",
-      "iso": "gn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "GuineaBissau",
-      "name": "Guinea-Bissau",
-      "iso": "gw",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Guyana",
-      "name": "Guyana",
-      "iso": "gy",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Haiti",
-      "name": "Haiti",
-      "iso": "ht",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Honduras",
-      "name": "Honduras",
-      "iso": "hn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "HongKong",
-      "name": "Hong Kong, China",
-      "iso": "hk",
+      "labels": {
+        "fr": "Allemagne"
+      },
       "aliases": [
-        "Hongkong"
-      ],
-      "available": true
+        "germany"
+      ]
     },
     {
-      "id": "Hungary",
-      "name": "Hungary",
-      "iso": "hu",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "IcelAnd",
-      "name": "Iceland",
-      "iso": "is",
+      "id": "dj",
+      "name": "Djibouti",
       "aliases": [
-        "Iceland"
-      ],
-      "available": true
+        "djibouti"
+      ]
     },
     {
-      "id": "India",
-      "name": "India",
-      "iso": "in",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Indonesia",
-      "name": "Indonesia",
-      "iso": "id",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Iran",
-      "name": "Iran",
-      "iso": "ir",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Iraq",
-      "name": "Iraq",
-      "iso": "iq",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "IrelAnd",
-      "name": "Ireland",
-      "iso": "ie",
+      "id": "dk",
+      "name": "Denmark",
+      "labels": {
+        "fr": "Danemark"
+      },
       "aliases": [
-        "Irleand"
-      ],
-      "available": true
+        "denmark"
+      ]
     },
     {
-      "id": "Israel",
-      "name": "Israel",
-      "iso": "il",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Italy",
-      "name": "Italy",
-      "iso": "it",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Jamaica",
-      "name": "Jamaica",
-      "iso": "jm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Japan",
-      "name": "Japan",
-      "iso": "jp",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Jordan",
-      "name": "Jordan",
-      "iso": "jo",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Kazakhstan",
-      "name": "Kazakhstan",
-      "iso": "kz",
+      "id": "dm",
+      "name": "Dominica",
+      "labels": {
+        "fr": "Dominique"
+      },
       "aliases": [
-        "Kazakhastan"
-      ],
-      "available": true
+        "dominica"
+      ]
     },
     {
-      "id": "Kenya",
-      "name": "Kenya",
-      "iso": "ke",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Kiribati",
-      "name": "Kiribati",
-      "iso": "ki",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Kuwait",
-      "name": "Kuwait",
-      "iso": "kw",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Kyrgyzstan",
-      "name": "Kyrgyzstan",
-      "iso": "kg",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Laos",
-      "name": "Laos",
-      "iso": "la",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Latvia",
-      "name": "Latvia",
-      "iso": "lv",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Lebanon",
-      "name": "Lebanon",
-      "iso": "lb",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Lesotho",
-      "name": "Lesotho",
-      "iso": "ls",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Liberia",
-      "name": "Liberia",
-      "iso": "lr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Libya",
-      "name": "Libya",
-      "iso": "ly",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Liechtenstein",
-      "name": "Liechtenstein",
-      "iso": "li",
+      "id": "do",
+      "name": "Dominican Republic",
+      "labels": {
+        "fr": "République dominicaine"
+      },
       "aliases": [
-        "Lichtenstein"
-      ],
-      "available": true
+        "dominicanrepublic"
+      ]
     },
     {
-      "id": "Lithuania",
-      "name": "Lithuania",
-      "iso": "lt",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Luxembourg",
-      "name": "Luxembourg",
-      "iso": "lu",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Macau",
-      "name": "Macau, China",
-      "iso": "mo",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Madagascar",
-      "name": "Madagascar",
-      "iso": "mg",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Malawi",
-      "name": "Malawi",
-      "iso": "mw",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Malaysia",
-      "name": "Malaysia",
-      "iso": "my",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Maldives",
-      "name": "Maldives",
-      "iso": "mv",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Mali",
-      "name": "Mali",
-      "iso": "ml",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Malta",
-      "name": "Malta",
-      "iso": "mt",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Mauritania",
-      "name": "Mauritania",
-      "iso": "mr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Mauritius",
-      "name": "Mauritius",
-      "iso": "mu",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Mexico",
-      "name": "Mexico",
-      "iso": "mx",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Micronesia",
-      "name": "Micronesia",
-      "iso": "fm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Moldova",
-      "name": "Moldova",
-      "iso": "md",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Monaco",
-      "name": "Monaco",
-      "iso": "mc",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Mongolia",
-      "name": "Mongolia",
-      "iso": "mn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Montenegro",
-      "name": "Montenegro",
-      "iso": "me",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Morocco",
-      "name": "Morocco",
-      "iso": "ma",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Mozambique",
-      "name": "Mozambique",
-      "iso": "mz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Myanmar",
-      "name": "Myanmar (Burma)",
-      "iso": "mm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Namibia",
-      "name": "Namibia",
-      "iso": "na",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Nauru",
-      "name": "Nauru",
-      "iso": "nr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Nepal",
-      "name": "Nepal",
-      "iso": "np",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Netherlands",
-      "name": "Netherlands",
-      "iso": "nl",
+      "id": "dz",
+      "name": "Algeria",
+      "labels": {
+        "fr": "Algérie"
+      },
       "aliases": [
-        "NetherlAndS"
-      ],
-      "available": true
+        "algeria"
+      ]
     },
     {
-      "id": "NewZealand",
-      "name": "New Zealand",
-      "iso": "nz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Nicaragua",
-      "name": "Nicaragua",
-      "iso": "ni",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Niger",
-      "name": "Niger",
-      "iso": "ne",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Nigeria",
-      "name": "Nigeria",
-      "iso": "ng",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "NorthKorea",
-      "name": "Korea, North",
-      "iso": "kp",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "NorthMacedonia",
-      "name": "North Macedonia",
-      "iso": "mk",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Norway",
-      "name": "Norway",
-      "iso": "no",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Oman",
-      "name": "Oman",
-      "iso": "om",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Other",
-      "name": "Other",
-      "iso": null,
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Pakistan",
-      "name": "Pakistan",
-      "iso": "pk",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Palau",
-      "name": "Palau",
-      "iso": "pw",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Panama",
-      "name": "Panama",
-      "iso": "pa",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "PapuaNewGuinea",
-      "name": "Papua New Guinea",
-      "iso": "pg",
+      "id": "ec",
+      "name": "Ecuador",
+      "labels": {
+        "fr": "Équateur"
+      },
       "aliases": [
-        "PapaNewGuinea"
-      ],
-      "available": true
+        "ecuador"
+      ]
     },
     {
-      "id": "Paraguay",
-      "name": "Paraguay",
-      "iso": "py",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Peru",
-      "name": "Peru",
-      "iso": "pe",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Philippines",
-      "name": "Philippines",
-      "iso": "ph",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "PolAnd",
-      "name": "Poland",
-      "iso": "pl",
+      "id": "ee",
+      "name": "Estonia",
+      "labels": {
+        "fr": "Estonie"
+      },
       "aliases": [
-        "Poland"
-      ],
-      "available": true
+        "estonia"
+      ]
     },
     {
-      "id": "Portugal",
-      "name": "Portugal",
-      "iso": "pt",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Qatar",
-      "name": "Qatar",
-      "iso": "qa",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "RepublicOfTheCongo",
-      "name": "Republic of the Congo",
-      "iso": "cg",
+      "id": "eg",
+      "name": "Egypt",
+      "labels": {
+        "fr": "Égypte"
+      },
       "aliases": [
-        "RepublicOfCongo"
-      ],
-      "available": true
+        "egypt"
+      ]
     },
     {
-      "id": "Romania",
-      "name": "Romania",
-      "iso": "ro",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Russia",
-      "name": "Russia",
-      "iso": "ru",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Rwanda",
-      "name": "Rwanda",
-      "iso": "rw",
+      "id": "er",
+      "name": "Eritrea",
+      "labels": {
+        "fr": "Érythrée"
+      },
       "aliases": [
-        "RwAndA"
-      ],
-      "available": true
+        "eritrea"
+      ]
     },
     {
-      "id": "SaintKittsAndNevis",
-      "name": "Saint Kitts and Nevis",
-      "iso": "kn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SaintLucia",
-      "name": "Saint Lucia",
-      "iso": "lc",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SaintVincentAndThegrenadines",
-      "name": "Saint Vincent and the Grenadines",
-      "iso": "vc",
-      "aliases": [
-        "SaintVincentAndGrenadines"
-      ],
-      "available": true
-    },
-    {
-      "id": "Samoa",
-      "name": "Samoa",
-      "iso": "ws",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Sanmarino",
-      "name": "San Marino",
-      "iso": "sm",
-      "aliases": [
-        "SanMarino"
-      ],
-      "available": true
-    },
-    {
-      "id": "SaotomeAndPrincipe",
-      "name": "São Tomé and Príncipe",
-      "iso": "st",
-      "aliases": [
-        "SaoTomeAndPrincipe"
-      ],
-      "available": true
-    },
-    {
-      "id": "SaudiArabia",
-      "name": "Saudi Arabia",
-      "iso": "sa",
-      "aliases": [
-        "Saudiarabia"
-      ],
-      "available": true
-    },
-    {
-      "id": "Senegal",
-      "name": "Senegal",
-      "iso": "sn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Serbia",
-      "name": "Serbia",
-      "iso": "rs",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Seychelles",
-      "name": "Seychelles",
-      "iso": "sc",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SierraLeone",
-      "name": "Sierra Leone",
-      "iso": "sl",
-      "aliases": [
-        "Sierraleone"
-      ],
-      "available": true
-    },
-    {
-      "id": "Singapore",
-      "name": "Singapore",
-      "iso": "sg",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Slovakia",
-      "name": "Slovakia",
-      "iso": "sk",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Slovenia",
-      "name": "Slovenia",
-      "iso": "si",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SolomonIslands",
-      "name": "Solomon Islands",
-      "iso": "sb",
-      "aliases": [
-        "SolomonislAndS"
-      ],
-      "available": true
-    },
-    {
-      "id": "Somalia",
-      "name": "Somalia",
-      "iso": "so",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SouthAfrica",
-      "name": "South Africa",
-      "iso": "za",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SouthKorea",
-      "name": "Korea, South",
-      "iso": "kr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "SouthSudan",
-      "name": "South Sudan",
-      "iso": "ss",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Spain",
+      "id": "es",
       "name": "Spain",
-      "iso": "es",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Srilanka",
-      "name": "Sri Lanka",
-      "iso": "lk",
+      "labels": {
+        "fr": "Espagne"
+      },
       "aliases": [
-        "SriLanka"
-      ],
-      "available": true
+        "spain"
+      ]
     },
     {
-      "id": "Sudan",
-      "name": "Sudan",
-      "iso": "sd",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Suriname",
-      "name": "Suriname",
-      "iso": "sr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Sweden",
-      "name": "Sweden",
-      "iso": "se",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Switzerland",
-      "name": "Switzerland",
-      "iso": "ch",
+      "id": "et",
+      "name": "Ethiopia",
+      "labels": {
+        "fr": "Éthiopie"
+      },
       "aliases": [
-        "SwitzerlAnd"
-      ],
-      "available": true
+        "ethiopia"
+      ]
     },
     {
-      "id": "Syria",
-      "name": "Syria",
-      "iso": "sy",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Taiwan",
-      "name": "Taiwan, China",
-      "iso": "tw",
+      "id": "fi",
+      "name": "Finland",
+      "labels": {
+        "fr": "Finlande"
+      },
       "aliases": [
-        "TaipeiChina"
-      ],
-      "available": true
+        "finland"
+      ]
     },
     {
-      "id": "Tajikistan",
-      "name": "Tajikistan",
-      "iso": "tj",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Tanzania",
-      "name": "Tanzania",
-      "iso": "tz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "ThailAnd",
-      "name": "Thailand",
-      "iso": "th",
+      "id": "fj",
+      "name": "Fiji",
+      "labels": {
+        "fr": "Fidji"
+      },
       "aliases": [
-        "Thailand"
-      ],
-      "available": true
+        "fiji"
+      ]
     },
     {
-      "id": "Togo",
-      "name": "Togo",
-      "iso": "tg",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Tonga",
-      "name": "Tonga",
-      "iso": "to",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "TrinidadAndTobago",
-      "name": "Trinidad and Tobago",
-      "iso": "tt",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Tunisia",
-      "name": "Tunisia",
-      "iso": "tn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Turkey",
-      "name": "Türkiye",
-      "iso": "tr",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Turkmenistan",
-      "name": "Turkmenistan",
-      "iso": "tm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Tuvalu",
-      "name": "Tuvalu",
-      "iso": "tv",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Uganda",
-      "name": "Uganda",
-      "iso": "ug",
+      "id": "fm",
+      "name": "Micronesia",
+      "labels": {
+        "fr": "Micronésie"
+      },
       "aliases": [
-        "UgAndA"
-      ],
-      "available": true
+        "micronesia"
+      ]
     },
     {
-      "id": "Ukraine",
-      "name": "Ukraine",
-      "iso": "ua",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "UnitedArabemirates",
-      "name": "United Arab Emirates",
-      "iso": "ae",
+      "id": "fr",
+      "name": "France",
       "aliases": [
-        "UnitedArabEmirates"
-      ],
-      "available": true
+        "france"
+      ]
     },
     {
-      "id": "UnitedKingdom",
+      "id": "ga",
+      "name": "Gabon",
+      "aliases": [
+        "gabon"
+      ]
+    },
+    {
+      "id": "gb",
       "name": "United Kingdom",
-      "iso": "gb",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "UnitedStates",
-      "name": "United States",
-      "iso": "us",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Uruguay",
-      "name": "Uruguay",
-      "iso": "uy",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Uzbekistan",
-      "name": "Uzbekistan",
-      "iso": "uz",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Vanuatu",
-      "name": "Vanuatu",
-      "iso": "vu",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Vaticancity",
-      "name": "Vatican City",
-      "iso": "va",
+      "labels": {
+        "fr": "Royaume-Uni"
+      },
       "aliases": [
-        "Vatican"
-      ],
-      "available": true
+        "unitedkingdom"
+      ]
     },
     {
-      "id": "Venezuela",
-      "name": "Venezuela",
-      "iso": "ve",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Vietnam",
-      "name": "Vietnam",
-      "iso": "vn",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Wales",
+      "id": "gb-wls",
       "name": "Wales",
-      "iso": "gb-wls",
-      "aliases": [],
-      "available": false
-    },
-    {
-      "id": "Yemen",
-      "name": "Yemen",
-      "iso": "ye",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Zambia",
-      "name": "Zambia",
-      "iso": "zm",
-      "aliases": [],
-      "available": true
-    },
-    {
-      "id": "Zimbabwe",
-      "name": "Zimbabwe",
-      "iso": "zw",
+      "labels": {
+        "fr": "Pays de Galles"
+      },
       "aliases": [
-        "Zimbawe"
-      ],
-      "available": true
-    }
-  ],
-  "stages": [
-    {
-      "id": "AlsaceS2MunsterFullForward",
-      "wireId": "AlsaceS2MunsterFullForward",
-      "locationId": "Alsace",
-      "trackId": "Munster",
-      "name": "Vallée de Munster Montée",
-      "shortName": "Montée",
-      "lengthKm": 10.3,
-      "known": true
+        "wales"
+      ]
     },
     {
-      "id": "AlsaceS2MunsterFullReverse",
-      "wireId": "AlsaceS2MunsterFullReverse",
-      "locationId": "Alsace",
-      "trackId": "Munster",
-      "name": "Vallée de Munster Descente",
-      "shortName": "Descente",
-      "lengthKm": 10.3,
-      "known": true
-    },
-    {
-      "id": "AlsaceS2MunsterShort1Forward",
-      "wireId": "AlsaceS2MunsterShort1Forward",
-      "locationId": "Alsace",
-      "trackId": "Munster",
-      "name": "Luttenbach près Munster",
-      "shortName": "Luttenbach",
-      "lengthKm": 7.0,
-      "known": true
-    },
-    {
-      "id": "AlsaceS2MunsterShort1Reverse",
-      "wireId": "AlsaceS2MunsterShort1Reverse",
-      "locationId": "Alsace",
-      "trackId": "Munster",
-      "name": "Forêt de Munster",
-      "shortName": "Forêt",
-      "lengthKm": 6.8,
-      "known": true
-    },
-    {
-      "id": "AlsaceS2MunsterShort2Forward",
-      "wireId": "AlsaceS2MunsterShort2Forward",
-      "locationId": "Alsace",
-      "trackId": "Munster",
-      "name": "Sommet de Munster",
-      "shortName": "Sommet",
-      "lengthKm": 5.3,
-      "known": true
-    },
-    {
-      "id": "AlsaceS2MunsterShort2Reverse",
-      "wireId": "AlsaceS2MunsterShort2Reverse",
-      "locationId": "Alsace",
-      "trackId": "Munster",
-      "name": "Col du petit Ballon",
-      "shortName": "Petit Ballon",
-      "lengthKm": 5.6,
-      "known": true
-    },
-    {
-      "id": "AlsaceS4SaverneFullForward",
-      "wireId": "AlsaceS4SaverneFullForward",
-      "locationId": "Alsace",
-      "trackId": "Saverne",
-      "name": "Forêt de Saverne",
-      "shortName": "Forêt",
-      "lengthKm": 9.1,
-      "known": true
-    },
-    {
-      "id": "AlsaceS4SaverneFullReverse",
-      "wireId": "AlsaceS4SaverneFullReverse",
-      "locationId": "Alsace",
-      "trackId": "Saverne",
-      "name": "Steigenbach",
-      "shortName": "Steigenbach",
-      "lengthKm": 8.9,
-      "known": true
-    },
-    {
-      "id": "AlsaceS4SaverneShort1Forward",
-      "wireId": "AlsaceS4SaverneShort1Forward",
-      "locationId": "Alsace",
-      "trackId": "Saverne",
-      "name": "Obersteigen",
-      "shortName": "Obersteigen",
-      "lengthKm": 4.6,
-      "known": true
-    },
-    {
-      "id": "AlsaceS4SaverneShort1Reverse",
-      "wireId": "AlsaceS4SaverneShort1Reverse",
-      "locationId": "Alsace",
-      "trackId": "Saverne",
-      "name": "La traversée de La Mossig",
-      "shortName": "La Mossig",
-      "lengthKm": 4.6,
-      "known": true
-    },
-    {
-      "id": "GreeceS3ElatiaCut1Forward",
-      "wireId": "GreeceS3ElatiaCut1Forward",
-      "locationId": "Greece",
-      "trackId": "GreeceS3Elatia",
-      "name": "Elatia",
-      "shortName": "Elatia",
-      "lengthKm": 4.9,
-      "known": true
-    },
-    {
-      "id": "GreeceS3ElatiaCut1Reverse",
-      "wireId": "GreeceS3ElatiaCut1Reverse",
-      "locationId": "Greece",
-      "trackId": "GreeceS3Elatia",
-      "name": "Elatia Reverse",
-      "shortName": "Elatia Reverse",
-      "lengthKm": 6.2,
-      "known": true
-    },
-    {
-      "id": "GreeceS3ElatiaCut2Forward",
-      "wireId": "GreeceS3ElatiaCut2Forward",
-      "locationId": "Greece",
-      "trackId": "GreeceS3Elatia",
-      "name": "Zeli",
-      "shortName": "Zeli",
-      "lengthKm": 5.5,
-      "known": true
-    },
-    {
-      "id": "GreeceS3ElatiaCut2Reverse",
-      "wireId": "GreeceS3ElatiaCut2Reverse",
-      "locationId": "Greece",
-      "trackId": "GreeceS3Elatia",
-      "name": "Zeli Reverse",
-      "shortName": "Zeli Reverse",
-      "lengthKm": 5.5,
-      "known": true
-    },
-    {
-      "id": "GreeceS3ElatiaFullForward",
-      "wireId": "GreeceS3ElatiaFullForward",
-      "locationId": "Greece",
-      "trackId": "GreeceS3Elatia",
-      "name": "Elatia - Zeli",
-      "shortName": "Elatia - Zeli",
-      "lengthKm": 11.6,
-      "known": true
-    },
-    {
-      "id": "GreeceS3ElatiaFullReverse",
-      "wireId": "GreeceS3ElatiaFullReverse",
-      "locationId": "Greece",
-      "trackId": "GreeceS3Elatia",
-      "name": "Zeli - Elatia",
-      "shortName": "Zeli - Elatia",
-      "lengthKm": 11.7,
-      "known": true
-    },
-    {
-      "id": "GreeceS4LoutrakiCut1Forward",
-      "wireId": "GreeceS4LoutrakiCut1Forward",
-      "locationId": "Greece",
-      "trackId": "GreeceS4Loutraki",
-      "name": "New Loutraki",
-      "shortName": "New Loutraki",
-      "lengthKm": 4.9,
-      "known": true
-    },
-    {
-      "id": "GreeceS4LoutrakiCut1Reverse",
-      "wireId": "GreeceS4LoutrakiCut1Reverse",
-      "locationId": "Greece",
-      "trackId": "GreeceS4Loutraki",
-      "name": "New Loutraki Reverse",
-      "shortName": "New Loutraki Reverse",
-      "lengthKm": 4.9,
-      "known": true
-    },
-    {
-      "id": "GreeceS4LoutrakiCut2Forward",
-      "wireId": "GreeceS4LoutrakiCut2Forward",
-      "locationId": "Greece",
-      "trackId": "GreeceS4Loutraki",
-      "name": "Aghii Theodori",
-      "shortName": "Aghii Theodori",
-      "lengthKm": 5.8,
-      "known": true
-    },
-    {
-      "id": "GreeceS4LoutrakiCut2Reverse",
-      "wireId": "GreeceS4LoutrakiCut2Reverse",
-      "locationId": "Greece",
-      "trackId": "GreeceS4Loutraki",
-      "name": "Aghii Theodori Reverse",
-      "shortName": "Aghii Theodori Reverse",
-      "lengthKm": 5.7,
-      "known": true
-    },
-    {
-      "id": "GreeceS4LoutrakiFullForward",
-      "wireId": "GreeceS4LoutrakiFullForward",
-      "locationId": "Greece",
-      "trackId": "GreeceS4Loutraki",
-      "name": "Loutraki - Aghii Theodori",
-      "shortName": "Loutraki - Aghii Theodori",
-      "lengthKm": 10.2,
-      "known": true
-    },
-    {
-      "id": "GreeceS4LoutrakiFullReverse",
-      "wireId": "GreeceS4LoutrakiFullReverse",
-      "locationId": "Greece",
-      "trackId": "GreeceS4Loutraki",
-      "name": "Aghii Theodori - Loutraki",
-      "shortName": "Aghii Theodori - Loutraki",
-      "lengthKm": 10.2,
-      "known": true
-    },
-    {
-      "id": "LivignoTestTrack01FullForward",
-      "wireId": "LivignoTestTrack01FullForward",
-      "locationId": "Livigno",
-      "trackId": "LivignoTestTrack01",
-      "name": "Main Circuit",
-      "shortName": "Main Circuit",
-      "lengthKm": 0.9,
-      "known": true
-    },
-    {
-      "id": "LivignoTestTrack01FullReverse",
-      "wireId": "LivignoTestTrack01FullReverse",
-      "locationId": "Livigno",
-      "trackId": "LivignoTestTrack01",
-      "name": "Main Circuit Reverse",
-      "shortName": "Main Reverse",
-      "lengthKm": 0.9,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneCut1Forward",
-      "wireId": "MonteCarloS1BolleneCut1Forward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "La Bollène-Vésubie - Turini",
-      "shortName": "Turini Montée",
-      "lengthKm": 11.8,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneCut1Reverse",
-      "wireId": "MonteCarloS1BolleneCut1Reverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "Turini - La Bollène-Vésubie",
-      "shortName": "Turini Descente",
-      "lengthKm": 11.8,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneCut2Forward",
-      "wireId": "MonteCarloS1BolleneCut2Forward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "Turini - Peïra Cava",
-      "shortName": "Turini - Peïra Cava",
-      "lengthKm": 6.3,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneCut2Reverse",
-      "wireId": "MonteCarloS1BolleneCut2Reverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "Peïra Cava - Turini",
-      "shortName": "Peïra Cava - Turini",
-      "lengthKm": 6.3,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneCut3Forward",
-      "wireId": "MonteCarloS1BolleneCut3Forward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "Pra d'Alart",
-      "shortName": "Pra d'Alart",
-      "lengthKm": 5.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneFullForward",
-      "wireId": "MonteCarloS1BolleneFullForward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "La Bollène-Vésubie - Peïra Cava",
-      "shortName": "La Bollène",
-      "lengthKm": 18.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS1BolleneFullReverse",
-      "wireId": "MonteCarloS1BolleneFullReverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "Peïra Cava - La Bollène-Vésubie",
-      "shortName": "Peïra Cava",
-      "lengthKm": 18.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS2SisteronCut1Forward",
-      "wireId": "MonteCarloS2SisteronCut1Forward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS2Sisteron",
-      "name": "Sisteron - Mézien",
-      "shortName": "Sisteron - Mézien",
-      "lengthKm": 7.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS2SisteronCut1Reverse",
-      "wireId": "MonteCarloS2SisteronCut1Reverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS2Sisteron",
-      "name": "Mézien - Sisteron",
-      "shortName": "Mézien - Sisteron",
-      "lengthKm": 7.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS2SisteronCut2Forward",
-      "wireId": "MonteCarloS2SisteronCut2Forward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS2Sisteron",
-      "name": "Mézien - St. Geniez",
-      "shortName": "Mézien - St. Geniez",
-      "lengthKm": 5.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS2SisteronCut2Reverse",
-      "wireId": "MonteCarloS2SisteronCut2Reverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS2Sisteron",
-      "name": "St. Geniez - Mézien",
-      "shortName": "St. Geniez - Mézien",
-      "lengthKm": 5.2,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS2SisteronFullForward",
-      "wireId": "MonteCarloS2SisteronFullForward",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS2Sisteron",
-      "name": "Sisteron - St. Geniez",
-      "shortName": "Sisteron - St. Geniez",
-      "lengthKm": 13.1,
-      "known": true
-    },
-    {
-      "id": "MonteCarloS2SisteronFullReverse",
-      "wireId": "MonteCarloS2SisteronFullReverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS2Sisteron",
-      "name": "St. Geniez - Sisteron",
-      "shortName": "St. Geniez - Sisteron",
-      "lengthKm": 13.1,
-      "known": true
-    },
-    {
-      "id": "MonteCarlosS1BolleneCut3Reverse",
-      "wireId": "MonteCarloS1BolleneCut3Reverse",
-      "locationId": "MonteCarlo",
-      "trackId": "MonteCarloS1Bollene",
-      "name": "Sommet de Turini",
-      "shortName": "Sommet de Turini",
-      "lengthKm": 5.3,
-      "known": true
-    },
-    {
-      "id": "WalesS3HafrenNorthCut1Forward",
-      "wireId": "WelesS3HafrenNorthCut1Forward",
-      "locationId": "Wales",
-      "trackId": "WalesS3HafrenNorth",
-      "name": "Cwmbiga - Fedw Fain",
-      "shortName": "Hafren Forest",
-      "lengthKm": 6.1,
-      "known": true
-    },
-    {
-      "id": "WalesS3HafrenNorthCut1Reverse",
-      "wireId": "WelesS3HafrenNorthCut1Reverse",
-      "locationId": "Wales",
-      "trackId": "WalesS3HafrenNorth",
-      "name": "Fedw Fain - Cwmbiga",
-      "shortName": "Fedw Fain",
-      "lengthKm": 6.1,
-      "known": true
-    },
-    {
-      "id": "WalesS3HafrenNorthCut2Forward",
-      "wireId": "WelesS3HafrenNorthCut2Forward",
-      "locationId": "Wales",
-      "trackId": "WalesS3HafrenNorth",
-      "name": "Banc Gwyn - Afon Biga",
-      "shortName": "Banc Gwyn",
-      "lengthKm": 5.4,
-      "known": true
-    },
-    {
-      "id": "WalesS3HafrenNorthCut2Reverse",
-      "wireId": "WelesS3HafrenNorthCut2Reverse",
-      "locationId": "Wales",
-      "trackId": "WalesS3HafrenNorth",
-      "name": "Afon Biga - Banc Gwyn",
-      "shortName": "Ospreys",
-      "lengthKm": 5.4,
-      "known": true
-    },
-    {
-      "id": "WalesS3HafrenNorthFullForward",
-      "wireId": "WelesS3HafrenNorthFullForward",
-      "locationId": "Wales",
-      "trackId": "WalesS3HafrenNorth",
-      "name": "Cwmbiga - Afon Biga",
-      "shortName": "Cwmbiga",
-      "lengthKm": 11.3,
-      "known": true
-    },
-    {
-      "id": "WalesS3HafrenNorthFullReverse",
-      "wireId": "WelesS3HafrenNorthFullReverse",
-      "locationId": "Wales",
-      "trackId": "WalesS3HafrenNorth",
-      "name": "Afon Biga - Cwmbiga",
-      "shortName": "Afon Biga",
-      "lengthKm": 11.0,
-      "known": true
-    },
-    {
-      "id": "WalesS4HafrenSouthFullForward",
-      "wireId": "WelesS4HafrenSouthFullForward",
-      "locationId": "Wales",
-      "trackId": "WalesS4HafrenSouth",
-      "name": "Afon Bidno - Severn",
-      "shortName": "Afon Bidno",
-      "lengthKm": 4.8,
-      "known": true
-    },
-    {
-      "id": "WalesS4HafrenSouthFullReverse",
-      "wireId": "WelesS4HafrenSouthFullReverse",
-      "locationId": "Wales",
-      "trackId": "WalesS4HafrenSouth",
-      "name": "Severn - Afon Bidno",
-      "shortName": "Severn",
-      "lengthKm": 4.8,
-      "known": true
-    }
-  ],
-  "cars": [
-    {
-      "id": "AlfaRomeoGTA1300",
-      "manufacturer": "AlfaRomeo",
-      "name": "GTA 1300 Junior",
-      "displayName": "Alfa Romeo GTA 1300 Junior",
-      "class": {
-        "id": "H3",
-        "name": "H3"
+      "id": "gd",
+      "name": "Grenada",
+      "labels": {
+        "fr": "Grenade"
       },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "aliases": [
+        "grenada"
+      ]
     },
     {
-      "id": "AlpineA110",
-      "manufacturer": "Alpine",
-      "name": "A110 1.8",
-      "displayName": "Alpine A110 1.8",
-      "class": {
-        "id": "H2",
-        "name": "H2"
+      "id": "ge",
+      "name": "Georgia",
+      "labels": {
+        "fr": "Géorgie"
       },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "aliases": [
+        "georgia"
+      ]
     },
     {
-      "id": "AudiQuattroGr4",
-      "manufacturer": "Audi",
-      "name": "Quattro Gr.4",
-      "displayName": "Audi Quattro Gr.4",
-      "class": {
-        "id": "H1",
-        "name": "H1"
-      },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "id": "gh",
+      "name": "Ghana",
+      "aliases": [
+        "ghana"
+      ]
     },
     {
-      "id": "CitroenXsaraWRC",
-      "manufacturer": "Citroen",
-      "name": "Xsara WRC",
-      "displayName": "Citroën Xsara WRC",
-      "class": {
-        "id": "WR20Evo2",
-        "name": "WR Evo2"
+      "id": "gm",
+      "name": "Gambia",
+      "labels": {
+        "fr": "Gambie"
       },
-      "group": {
-        "id": "GroupWR",
-        "name": "Group WR"
-      }
+      "aliases": [
+        "gambia"
+      ]
     },
     {
-      "id": "Fiat124Abarth",
-      "manufacturer": "Fiat",
-      "name": "124 Abarth Rally 16V",
-      "displayName": "Fiat 124 Abarth Rally 16V",
-      "class": {
-        "id": "H2",
-        "name": "H2"
+      "id": "gn",
+      "name": "Guinea",
+      "labels": {
+        "fr": "Guinée"
       },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "aliases": [
+        "guinea"
+      ]
     },
     {
-      "id": "Fiat131Abarth",
-      "manufacturer": "Fiat",
-      "name": "131 Abarth",
-      "displayName": "Fiat 131 Abarth",
-      "class": {
-        "id": "H1",
-        "name": "H1"
+      "id": "gq",
+      "name": "Equatorial Guinea",
+      "labels": {
+        "fr": "Guinée équatoriale"
       },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "aliases": [
+        "equatorialguinea"
+      ]
     },
     {
-      "id": "HyundaiI20NRally2",
-      "manufacturer": "Hyundai",
-      "name": "i20 Rally2",
-      "displayName": "Hyundai i20 Rally2",
-      "class": {
-        "id": "Rally2",
-        "name": "Rally2/R5"
+      "id": "gr",
+      "name": "Greece",
+      "labels": {
+        "fr": "Grèce"
       },
-      "group": {
-        "id": "GroupR",
-        "name": "Group R"
-      }
+      "aliases": [
+        "greece"
+      ]
     },
     {
-      "id": "LanciaDeltaIntegraleEvo",
-      "manufacturer": "Lancia",
-      "name": "Delta Integrale Evoluzione",
-      "displayName": "Lancia Delta Integrale Evoluzione",
-      "class": {
-        "id": "A8_Evo2",
-        "name": "A8 Evo2"
-      },
-      "group": {
-        "id": "GroupA",
-        "name": "Group A"
-      }
+      "id": "gt",
+      "name": "Guatemala",
+      "aliases": [
+        "guatemala"
+      ]
     },
     {
-      "id": "LanciaFulviaHF",
-      "manufacturer": "Lancia",
-      "name": "Fulvia Coupé HF",
-      "displayName": "Lancia Fulvia Coupé HF",
-      "class": {
-        "id": "H3",
-        "name": "H3"
+      "id": "gw",
+      "name": "Guinea-Bissau",
+      "labels": {
+        "fr": "Guinée-Bissau"
       },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "aliases": [
+        "guineabissau"
+      ]
     },
     {
-      "id": "LanciaRally037Evo2",
-      "manufacturer": "Lancia",
-      "name": "Rally 037 Evoluzione 2",
-      "displayName": "Lancia Rally 037 Evoluzione 2",
-      "class": {
-        "id": "B2",
-        "name": "B2"
-      },
-      "group": {
-        "id": "GroupB",
-        "name": "Group B"
-      }
+      "id": "gy",
+      "name": "Guyana",
+      "aliases": [
+        "guyana"
+      ]
     },
     {
-      "id": "LanciaStratosHF",
-      "manufacturer": "Lancia",
-      "name": "Stratos HF",
-      "displayName": "Lancia Stratos HF",
-      "class": {
-        "id": "H1",
-        "name": "H1"
+      "id": "hk",
+      "name": "Hong Kong, China",
+      "labels": {
+        "fr": "Hong Kong",
+        "en": "Hong Kong"
       },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "aliases": [
+        "hongkong"
+      ]
     },
     {
-      "id": "MiniCooperS1275",
-      "manufacturer": "Mini",
-      "name": "Mini Cooper S",
-      "displayName": "Mini Cooper S",
-      "class": {
-        "id": "H3",
-        "name": "H3"
-      },
-      "group": {
-        "id": "Group2/4",
-        "name": "Group 2/4"
-      }
+      "id": "hn",
+      "name": "Honduras",
+      "aliases": [
+        "honduras"
+      ]
     },
     {
-      "id": "Peugeot206",
-      "manufacturer": "Peugeot",
-      "name": "206 WRC",
-      "displayName": "Peugeot 206 WRC",
-      "class": {
-        "id": "WR20Evo1",
-        "name": "WR Evo1"
+      "id": "hr",
+      "name": "Croatia",
+      "labels": {
+        "fr": "Croatie"
       },
-      "group": {
-        "id": "GroupWR",
-        "name": "Group WR"
-      }
+      "aliases": [
+        "croatia"
+      ]
     },
     {
-      "id": "Peugeot208Rally4",
-      "manufacturer": "Peugeot",
-      "name": "208 Rally4",
-      "displayName": "Peugeot 208 Rally4",
-      "class": {
-        "id": "Rally4",
-        "name": "Rally4"
+      "id": "ht",
+      "name": "Haiti",
+      "labels": {
+        "fr": "Haïti"
       },
-      "group": {
-        "id": "GroupR",
-        "name": "Group R"
-      }
+      "aliases": [
+        "haiti"
+      ]
     },
     {
-      "id": "Peugeot306IIMaxiKitCar",
-      "manufacturer": "Peugeot",
-      "name": "306 II Maxi",
-      "displayName": "Peugeot 306 II Maxi",
-      "class": {
-        "id": "K11",
-        "name": "K11"
+      "id": "hu",
+      "name": "Hungary",
+      "labels": {
+        "fr": "Hongrie"
       },
-      "group": {
-        "id": "GroupA",
-        "name": "Group A"
-      }
+      "aliases": [
+        "hungary"
+      ]
     },
     {
-      "id": "SkodaFabiaRSRally2",
-      "manufacturer": "Skoda",
-      "name": "Fabia RS Rally2",
-      "displayName": "Škoda Fabia RS Rally2",
-      "class": {
-        "id": "Rally2",
-        "name": "Rally2/R5"
+      "id": "id",
+      "name": "Indonesia",
+      "labels": {
+        "fr": "Indonésie"
       },
-      "group": {
-        "id": "GroupR",
-        "name": "Group R"
-      }
+      "aliases": [
+        "indonesia"
+      ]
     },
     {
-      "id": "SubaruImprezaS3",
-      "manufacturer": "Subaru",
-      "name": "Impreza S3",
-      "displayName": "Subaru Impreza S3",
-      "class": {
-        "id": "A8_Evo3",
-        "name": "A8 Evo3"
+      "id": "ie",
+      "name": "Ireland",
+      "labels": {
+        "fr": "Irlande"
       },
-      "group": {
-        "id": "GroupA",
-        "name": "Group A"
-      }
+      "aliases": [
+        "ireland",
+        "irleand"
+      ]
     },
     {
-      "id": "VWPoloGTIR5",
-      "manufacturer": "Volkswagen",
-      "name": "Polo GTI R5",
-      "displayName": "Volkswagen Polo GTI R5",
-      "class": {
-        "id": "Rally2",
-        "name": "Rally2/R5"
+      "id": "il",
+      "name": "Israel",
+      "labels": {
+        "fr": "Israël"
       },
-      "group": {
-        "id": "GroupR",
-        "name": "Group R"
-      }
+      "aliases": [
+        "israel"
+      ]
+    },
+    {
+      "id": "in",
+      "name": "India",
+      "labels": {
+        "fr": "Inde"
+      },
+      "aliases": [
+        "india"
+      ]
+    },
+    {
+      "id": "iq",
+      "name": "Iraq",
+      "labels": {
+        "fr": "Irak"
+      },
+      "aliases": [
+        "iraq"
+      ]
+    },
+    {
+      "id": "ir",
+      "name": "Iran",
+      "aliases": [
+        "iran"
+      ]
+    },
+    {
+      "id": "is",
+      "name": "Iceland",
+      "labels": {
+        "fr": "Islande"
+      },
+      "aliases": [
+        "iceland"
+      ]
+    },
+    {
+      "id": "it",
+      "name": "Italy",
+      "labels": {
+        "fr": "Italie"
+      },
+      "aliases": [
+        "italy"
+      ]
+    },
+    {
+      "id": "jm",
+      "name": "Jamaica",
+      "labels": {
+        "fr": "Jamaïque"
+      },
+      "aliases": [
+        "jamaica"
+      ]
+    },
+    {
+      "id": "jo",
+      "name": "Jordan",
+      "labels": {
+        "fr": "Jordanie"
+      },
+      "aliases": [
+        "jordan"
+      ]
+    },
+    {
+      "id": "jp",
+      "name": "Japan",
+      "labels": {
+        "fr": "Japon"
+      },
+      "aliases": [
+        "japan"
+      ]
+    },
+    {
+      "id": "ke",
+      "name": "Kenya",
+      "aliases": [
+        "kenya"
+      ]
+    },
+    {
+      "id": "kg",
+      "name": "Kyrgyzstan",
+      "labels": {
+        "fr": "Kirghizistan"
+      },
+      "aliases": [
+        "kyrgyzstan"
+      ]
+    },
+    {
+      "id": "kh",
+      "name": "Cambodia",
+      "labels": {
+        "fr": "Cambodge"
+      },
+      "aliases": [
+        "cambodia"
+      ]
+    },
+    {
+      "id": "ki",
+      "name": "Kiribati",
+      "aliases": [
+        "kiribati"
+      ]
+    },
+    {
+      "id": "km",
+      "name": "Comoros",
+      "labels": {
+        "fr": "Comores"
+      },
+      "aliases": [
+        "comoros"
+      ]
+    },
+    {
+      "id": "kn",
+      "name": "Saint Kitts and Nevis",
+      "labels": {
+        "fr": "Saint-Christophe-et-Niévès"
+      },
+      "aliases": [
+        "saintkittsandnevis"
+      ]
+    },
+    {
+      "id": "kp",
+      "name": "Korea, North",
+      "labels": {
+        "fr": "Corée du Nord",
+        "en": "North Korea"
+      },
+      "aliases": [
+        "northkorea"
+      ]
+    },
+    {
+      "id": "kr",
+      "name": "Korea, South",
+      "labels": {
+        "fr": "Corée du Sud",
+        "en": "South Korea"
+      },
+      "aliases": [
+        "southkorea"
+      ]
+    },
+    {
+      "id": "kw",
+      "name": "Kuwait",
+      "labels": {
+        "fr": "Koweït"
+      },
+      "aliases": [
+        "kuwait"
+      ]
+    },
+    {
+      "id": "kz",
+      "name": "Kazakhstan",
+      "aliases": [
+        "kazakhstan",
+        "kazakhastan"
+      ]
+    },
+    {
+      "id": "la",
+      "name": "Laos",
+      "aliases": [
+        "laos"
+      ]
+    },
+    {
+      "id": "lb",
+      "name": "Lebanon",
+      "labels": {
+        "fr": "Liban"
+      },
+      "aliases": [
+        "lebanon"
+      ]
+    },
+    {
+      "id": "lc",
+      "name": "Saint Lucia",
+      "labels": {
+        "fr": "Sainte-Lucie"
+      },
+      "aliases": [
+        "saintlucia"
+      ]
+    },
+    {
+      "id": "li",
+      "name": "Liechtenstein",
+      "aliases": [
+        "liechtenstein",
+        "lichtenstein"
+      ]
+    },
+    {
+      "id": "lk",
+      "name": "Sri Lanka",
+      "aliases": [
+        "srilanka"
+      ]
+    },
+    {
+      "id": "lr",
+      "name": "Liberia",
+      "labels": {
+        "fr": "Libéria"
+      },
+      "aliases": [
+        "liberia"
+      ]
+    },
+    {
+      "id": "ls",
+      "name": "Lesotho",
+      "aliases": [
+        "lesotho"
+      ]
+    },
+    {
+      "id": "lt",
+      "name": "Lithuania",
+      "labels": {
+        "fr": "Lituanie"
+      },
+      "aliases": [
+        "lithuania"
+      ]
+    },
+    {
+      "id": "lu",
+      "name": "Luxembourg",
+      "aliases": [
+        "luxembourg"
+      ]
+    },
+    {
+      "id": "lv",
+      "name": "Latvia",
+      "labels": {
+        "fr": "Lettonie"
+      },
+      "aliases": [
+        "latvia"
+      ]
+    },
+    {
+      "id": "ly",
+      "name": "Libya",
+      "labels": {
+        "fr": "Libye"
+      },
+      "aliases": [
+        "libya"
+      ]
+    },
+    {
+      "id": "ma",
+      "name": "Morocco",
+      "labels": {
+        "fr": "Maroc"
+      },
+      "aliases": [
+        "morocco"
+      ]
+    },
+    {
+      "id": "mc",
+      "name": "Monaco",
+      "aliases": [
+        "monaco"
+      ]
+    },
+    {
+      "id": "md",
+      "name": "Moldova",
+      "labels": {
+        "fr": "Moldavie"
+      },
+      "aliases": [
+        "moldova"
+      ]
+    },
+    {
+      "id": "me",
+      "name": "Montenegro",
+      "labels": {
+        "fr": "Monténégro"
+      },
+      "aliases": [
+        "montenegro"
+      ]
+    },
+    {
+      "id": "mg",
+      "name": "Madagascar",
+      "aliases": [
+        "madagascar"
+      ]
+    },
+    {
+      "id": "mk",
+      "name": "North Macedonia",
+      "labels": {
+        "fr": "Macédoine du Nord"
+      },
+      "aliases": [
+        "northmacedonia"
+      ]
+    },
+    {
+      "id": "ml",
+      "name": "Mali",
+      "aliases": [
+        "mali"
+      ]
+    },
+    {
+      "id": "mm",
+      "name": "Myanmar (Burma)",
+      "labels": {
+        "fr": "Myanmar",
+        "en": "Myanmar"
+      },
+      "aliases": [
+        "myanmar"
+      ]
+    },
+    {
+      "id": "mn",
+      "name": "Mongolia",
+      "labels": {
+        "fr": "Mongolie"
+      },
+      "aliases": [
+        "mongolia"
+      ]
+    },
+    {
+      "id": "mo",
+      "name": "Macau, China",
+      "labels": {
+        "fr": "Macao",
+        "en": "Macao"
+      },
+      "aliases": [
+        "macau"
+      ]
+    },
+    {
+      "id": "mr",
+      "name": "Mauritania",
+      "labels": {
+        "fr": "Mauritanie"
+      },
+      "aliases": [
+        "mauritania"
+      ]
+    },
+    {
+      "id": "mt",
+      "name": "Malta",
+      "labels": {
+        "fr": "Malte"
+      },
+      "aliases": [
+        "malta"
+      ]
+    },
+    {
+      "id": "mu",
+      "name": "Mauritius",
+      "labels": {
+        "fr": "Maurice"
+      },
+      "aliases": [
+        "mauritius"
+      ]
+    },
+    {
+      "id": "mv",
+      "name": "Maldives",
+      "aliases": [
+        "maldives"
+      ]
+    },
+    {
+      "id": "mw",
+      "name": "Malawi",
+      "aliases": [
+        "malawi"
+      ]
+    },
+    {
+      "id": "mx",
+      "name": "Mexico",
+      "labels": {
+        "fr": "Mexique"
+      },
+      "aliases": [
+        "mexico"
+      ]
+    },
+    {
+      "id": "my",
+      "name": "Malaysia",
+      "labels": {
+        "fr": "Malaisie"
+      },
+      "aliases": [
+        "malaysia"
+      ]
+    },
+    {
+      "id": "mz",
+      "name": "Mozambique",
+      "aliases": [
+        "mozambique"
+      ]
+    },
+    {
+      "id": "na",
+      "name": "Namibia",
+      "labels": {
+        "fr": "Namibie"
+      },
+      "aliases": [
+        "namibia"
+      ]
+    },
+    {
+      "id": "ne",
+      "name": "Niger",
+      "aliases": [
+        "niger"
+      ]
+    },
+    {
+      "id": "ng",
+      "name": "Nigeria",
+      "labels": {
+        "fr": "Nigéria"
+      },
+      "aliases": [
+        "nigeria"
+      ]
+    },
+    {
+      "id": "ni",
+      "name": "Nicaragua",
+      "aliases": [
+        "nicaragua"
+      ]
+    },
+    {
+      "id": "nl",
+      "name": "Netherlands",
+      "labels": {
+        "fr": "Pays-Bas"
+      },
+      "aliases": [
+        "netherlands"
+      ]
+    },
+    {
+      "id": "no",
+      "name": "Norway",
+      "labels": {
+        "fr": "Norvège"
+      },
+      "aliases": [
+        "norway"
+      ]
+    },
+    {
+      "id": "np",
+      "name": "Nepal",
+      "labels": {
+        "fr": "Népal"
+      },
+      "aliases": [
+        "nepal"
+      ]
+    },
+    {
+      "id": "nr",
+      "name": "Nauru",
+      "aliases": [
+        "nauru"
+      ]
+    },
+    {
+      "id": "nz",
+      "name": "New Zealand",
+      "labels": {
+        "fr": "Nouvelle-Zélande"
+      },
+      "aliases": [
+        "newzealand"
+      ]
+    },
+    {
+      "id": "om",
+      "name": "Oman",
+      "aliases": [
+        "oman"
+      ]
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "labels": {
+        "fr": "Autre"
+      },
+      "flag": false
+    },
+    {
+      "id": "pa",
+      "name": "Panama",
+      "aliases": [
+        "panama"
+      ]
+    },
+    {
+      "id": "pe",
+      "name": "Peru",
+      "labels": {
+        "fr": "Pérou"
+      },
+      "aliases": [
+        "peru"
+      ]
+    },
+    {
+      "id": "pg",
+      "name": "Papua New Guinea",
+      "labels": {
+        "fr": "Papouasie-Nouvelle-Guinée"
+      },
+      "aliases": [
+        "papuanewguinea",
+        "papanewguinea"
+      ]
+    },
+    {
+      "id": "ph",
+      "name": "Philippines",
+      "aliases": [
+        "philippines"
+      ]
+    },
+    {
+      "id": "pk",
+      "name": "Pakistan",
+      "aliases": [
+        "pakistan"
+      ]
+    },
+    {
+      "id": "pl",
+      "name": "Poland",
+      "labels": {
+        "fr": "Pologne"
+      },
+      "aliases": [
+        "poland"
+      ]
+    },
+    {
+      "id": "pt",
+      "name": "Portugal",
+      "aliases": [
+        "portugal"
+      ]
+    },
+    {
+      "id": "pw",
+      "name": "Palau",
+      "labels": {
+        "fr": "Palaos"
+      },
+      "aliases": [
+        "palau"
+      ]
+    },
+    {
+      "id": "py",
+      "name": "Paraguay",
+      "aliases": [
+        "paraguay"
+      ]
+    },
+    {
+      "id": "qa",
+      "name": "Qatar",
+      "aliases": [
+        "qatar"
+      ]
+    },
+    {
+      "id": "ro",
+      "name": "Romania",
+      "labels": {
+        "fr": "Roumanie"
+      },
+      "aliases": [
+        "romania"
+      ]
+    },
+    {
+      "id": "rs",
+      "name": "Serbia",
+      "labels": {
+        "fr": "Serbie"
+      },
+      "aliases": [
+        "serbia"
+      ]
+    },
+    {
+      "id": "ru",
+      "name": "Russia",
+      "labels": {
+        "fr": "Russie"
+      },
+      "aliases": [
+        "russia"
+      ]
+    },
+    {
+      "id": "rw",
+      "name": "Rwanda",
+      "aliases": [
+        "rwanda"
+      ]
+    },
+    {
+      "id": "sa",
+      "name": "Saudi Arabia",
+      "labels": {
+        "fr": "Arabie saoudite"
+      },
+      "aliases": [
+        "saudiarabia"
+      ]
+    },
+    {
+      "id": "sb",
+      "name": "Solomon Islands",
+      "labels": {
+        "fr": "Îles Salomon"
+      },
+      "aliases": [
+        "solomonislands"
+      ]
+    },
+    {
+      "id": "sc",
+      "name": "Seychelles",
+      "aliases": [
+        "seychelles"
+      ]
+    },
+    {
+      "id": "sd",
+      "name": "Sudan",
+      "labels": {
+        "fr": "Soudan"
+      },
+      "aliases": [
+        "sudan"
+      ]
+    },
+    {
+      "id": "se",
+      "name": "Sweden",
+      "labels": {
+        "fr": "Suède"
+      },
+      "aliases": [
+        "sweden"
+      ]
+    },
+    {
+      "id": "sg",
+      "name": "Singapore",
+      "labels": {
+        "fr": "Singapour"
+      },
+      "aliases": [
+        "singapore"
+      ]
+    },
+    {
+      "id": "si",
+      "name": "Slovenia",
+      "labels": {
+        "fr": "Slovénie"
+      },
+      "aliases": [
+        "slovenia"
+      ]
+    },
+    {
+      "id": "sk",
+      "name": "Slovakia",
+      "labels": {
+        "fr": "Slovaquie"
+      },
+      "aliases": [
+        "slovakia"
+      ]
+    },
+    {
+      "id": "sl",
+      "name": "Sierra Leone",
+      "aliases": [
+        "sierraleone"
+      ]
+    },
+    {
+      "id": "sm",
+      "name": "San Marino",
+      "labels": {
+        "fr": "Saint-Marin"
+      },
+      "aliases": [
+        "sanmarino"
+      ]
+    },
+    {
+      "id": "sn",
+      "name": "Senegal",
+      "labels": {
+        "fr": "Sénégal"
+      },
+      "aliases": [
+        "senegal"
+      ]
+    },
+    {
+      "id": "so",
+      "name": "Somalia",
+      "labels": {
+        "fr": "Somalie"
+      },
+      "aliases": [
+        "somalia"
+      ]
+    },
+    {
+      "id": "sr",
+      "name": "Suriname",
+      "aliases": [
+        "suriname"
+      ]
+    },
+    {
+      "id": "ss",
+      "name": "South Sudan",
+      "labels": {
+        "fr": "Soudan du Sud"
+      },
+      "aliases": [
+        "southsudan"
+      ]
+    },
+    {
+      "id": "st",
+      "name": "São Tomé and Príncipe",
+      "labels": {
+        "fr": "Sao Tomé-et-Principe"
+      },
+      "aliases": [
+        "saotomeandprincipe"
+      ]
+    },
+    {
+      "id": "sv",
+      "name": "El Salvador",
+      "labels": {
+        "fr": "Salvador"
+      },
+      "aliases": [
+        "elsalvador"
+      ]
+    },
+    {
+      "id": "sy",
+      "name": "Syria",
+      "labels": {
+        "fr": "Syrie"
+      },
+      "aliases": [
+        "syria"
+      ]
+    },
+    {
+      "id": "sz",
+      "name": "Eswatini",
+      "aliases": [
+        "eswatini"
+      ]
+    },
+    {
+      "id": "td",
+      "name": "Chad",
+      "labels": {
+        "fr": "Tchad"
+      },
+      "aliases": [
+        "chad"
+      ]
+    },
+    {
+      "id": "tg",
+      "name": "Togo",
+      "aliases": [
+        "togo"
+      ]
+    },
+    {
+      "id": "th",
+      "name": "Thailand",
+      "labels": {
+        "fr": "Thaïlande"
+      },
+      "aliases": [
+        "thailand"
+      ]
+    },
+    {
+      "id": "tj",
+      "name": "Tajikistan",
+      "labels": {
+        "fr": "Tadjikistan"
+      },
+      "aliases": [
+        "tajikistan"
+      ]
+    },
+    {
+      "id": "tl",
+      "name": "East Timor (Timor-Leste)",
+      "labels": {
+        "fr": "Timor oriental",
+        "en": "Timor-Leste"
+      },
+      "aliases": [
+        "easttimor",
+        "timorleste"
+      ]
+    },
+    {
+      "id": "tm",
+      "name": "Turkmenistan",
+      "labels": {
+        "fr": "Turkménistan"
+      },
+      "aliases": [
+        "turkmenistan"
+      ]
+    },
+    {
+      "id": "tn",
+      "name": "Tunisia",
+      "labels": {
+        "fr": "Tunisie"
+      },
+      "aliases": [
+        "tunisia"
+      ]
+    },
+    {
+      "id": "to",
+      "name": "Tonga",
+      "aliases": [
+        "tonga"
+      ]
+    },
+    {
+      "id": "tr",
+      "name": "Türkiye",
+      "labels": {
+        "fr": "Turquie"
+      },
+      "aliases": [
+        "turkey"
+      ]
+    },
+    {
+      "id": "tt",
+      "name": "Trinidad and Tobago",
+      "labels": {
+        "fr": "Trinité-et-Tobago"
+      },
+      "aliases": [
+        "trinidadandtobago"
+      ]
+    },
+    {
+      "id": "tv",
+      "name": "Tuvalu",
+      "aliases": [
+        "tuvalu"
+      ]
+    },
+    {
+      "id": "tw",
+      "name": "Taiwan, China",
+      "labels": {
+        "fr": "Taïwan",
+        "en": "Taiwan"
+      },
+      "aliases": [
+        "taiwan",
+        "taipeichina"
+      ]
+    },
+    {
+      "id": "tz",
+      "name": "Tanzania",
+      "labels": {
+        "fr": "Tanzanie"
+      },
+      "aliases": [
+        "tanzania"
+      ]
+    },
+    {
+      "id": "ua",
+      "name": "Ukraine",
+      "aliases": [
+        "ukraine"
+      ]
+    },
+    {
+      "id": "ug",
+      "name": "Uganda",
+      "labels": {
+        "fr": "Ouganda"
+      },
+      "aliases": [
+        "uganda"
+      ]
+    },
+    {
+      "id": "us",
+      "name": "United States",
+      "labels": {
+        "fr": "États-Unis"
+      },
+      "aliases": [
+        "unitedstates"
+      ]
+    },
+    {
+      "id": "uy",
+      "name": "Uruguay",
+      "aliases": [
+        "uruguay"
+      ]
+    },
+    {
+      "id": "uz",
+      "name": "Uzbekistan",
+      "labels": {
+        "fr": "Ouzbékistan"
+      },
+      "aliases": [
+        "uzbekistan"
+      ]
+    },
+    {
+      "id": "va",
+      "name": "Vatican City",
+      "labels": {
+        "fr": "Vatican"
+      },
+      "aliases": [
+        "vaticancity",
+        "vatican"
+      ]
+    },
+    {
+      "id": "vc",
+      "name": "Saint Vincent and the Grenadines",
+      "labels": {
+        "fr": "Saint-Vincent-et-les-Grenadines"
+      },
+      "aliases": [
+        "saintvincentandthegrenadines",
+        "saintvincentandgrenadines"
+      ]
+    },
+    {
+      "id": "ve",
+      "name": "Venezuela",
+      "aliases": [
+        "venezuela"
+      ]
+    },
+    {
+      "id": "vn",
+      "name": "Vietnam",
+      "aliases": [
+        "vietnam"
+      ]
+    },
+    {
+      "id": "vu",
+      "name": "Vanuatu",
+      "aliases": [
+        "vanuatu"
+      ]
+    },
+    {
+      "id": "ws",
+      "name": "Samoa",
+      "aliases": [
+        "samoa"
+      ]
+    },
+    {
+      "id": "ye",
+      "name": "Yemen",
+      "labels": {
+        "fr": "Yémen"
+      },
+      "aliases": [
+        "yemen"
+      ]
+    },
+    {
+      "id": "za",
+      "name": "South Africa",
+      "labels": {
+        "fr": "Afrique du Sud"
+      },
+      "aliases": [
+        "southafrica"
+      ]
+    },
+    {
+      "id": "zm",
+      "name": "Zambia",
+      "labels": {
+        "fr": "Zambie"
+      },
+      "aliases": [
+        "zambia"
+      ]
+    },
+    {
+      "id": "zw",
+      "name": "Zimbabwe",
+      "aliases": [
+        "zimbabwe",
+        "zimbawe"
+      ]
     }
   ]
 }

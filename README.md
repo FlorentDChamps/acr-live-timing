@@ -43,8 +43,8 @@ being run; below: the same session once it is over, on each tab.</sub>
   car model.
   Stage and car names read as the game shows them (e.g. *Vallée de Munster Montée*,
   *Alfa Romeo GTA 1300 Junior*) and the current stage shows its length, all resolved
-  from an embedded content catalog; anything not in the catalog keeps
-  its wire identifier.
+  from the embedded community [content catalog](https://github.com/dminotte/assetto-corsa-rally-catalog); anything not in the catalog
+  keeps its wire identifier.
   The displayed car list follows the selected stages, preserving a driver changing
   car between stages and removing duplicate models. While a stage is running
   (Racing through Spectating, back to the stage history at Results), with
@@ -507,3 +507,8 @@ Licensed under the **GNU General Public License v3.0 or later** (GPL-3.0-or-late
 see [LICENSE](LICENSE). You may use, study, share and modify this software freely, but
 any distributed version — including modified forks — must remain open source under the
 same license. Closed-source or proprietary redistribution is not permitted.
+
+The content catalog embedded as `src/Content/acr-content.json` (stage, car, weather
+and nation names, stage lengths, flag codes) is the unmodified `data.json` of the
+[Assetto Corsa Rally – Catalog](https://github.com/dminotte/assetto-corsa-rally-catalog) by dminotte, licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

@@ -55,7 +55,7 @@ public sealed class StageInfo
 {
     public string Id { get; set; } = "";      // stable column key (UI checkboxes)
     public string Name { get; set; } = "";    // display label, e.g. "SS1 AlsaceS4Saverne"
-    public string RouteId { get; set; } = ""; // ACR level/route identifier (catalog id when known, wire string otherwise)
+    public string RouteId { get; set; } = ""; // ACR route (or level) as the game sends it
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? LengthKm { get; set; }     // route length from the content catalog (null: unknown route)
     public bool Discarded { get; set; }
@@ -1409,7 +1409,7 @@ public sealed partial class SessionMatrix
                     {
                         Id = id,
                         Name = ContentCatalog.StageLabelName(rawLabel),
-                        RouteId = ContentCatalog.CanonicalRouteId(ContentCatalog.RouteIdFromLabel(rawLabel)),
+                        RouteId = ContentCatalog.RouteIdFromLabel(rawLabel),
                         LengthKm = ContentCatalog.StageLengthKm(ContentCatalog.RouteIdFromLabel(rawLabel)),
                         Discarded = _discarded.Contains(id),
                         Group = _groups.TryGetValue(id, out int group) ? group : 0,

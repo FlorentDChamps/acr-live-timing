@@ -45,9 +45,9 @@ chaque onglet.</sub>
   d'arrivée (exacts au ms près vs l'écran en jeu, pénalités incluses), nom de la
   spéciale, drapeau de nationalité et modèle de voiture. Les noms de spéciales et de voitures
   sont ceux affichés par le jeu (ex. *Vallée de Munster Montée*, *Alfa Romeo GTA 1300
-  Junior*) et la spéciale en cours affiche sa longueur, le tout résolu depuis un
-  catalogue de contenu embarqué ; ce qui n'y figure pas garde son
-  identifiant brut. La liste de voitures affichée suit les
+  Junior*) et la spéciale en cours affiche sa longueur, le tout résolu depuis le
+  [catalogue de contenu](https://github.com/dminotte/assetto-corsa-rally-catalog) communautaire embarqué ; ce qui n'y figure pas garde
+  son identifiant brut. La liste de voitures affichée suit les
   spéciales sélectionnées : un changement de voiture entre spéciales est conservé et
   les doublons sont retirés. Pendant qu'une spéciale se court (phases Course à
   Spectateur, retour à l'historique aux résultats), avec **Hide split times**
@@ -551,3 +551,8 @@ Sous licence **GNU General Public License v3.0 ou ultérieure** (GPL-3.0-or-late
 voir [LICENSE](LICENSE). Vous pouvez librement utiliser, étudier, partager et modifier
 ce logiciel, mais toute version distribuée — forks modifiés inclus — doit rester open
 source sous la même licence. Aucune redistribution fermée ou propriétaire n'est permise.
+
+Le catalogue de contenu embarqué dans `src/Content/acr-content.json` (noms de spéciales,
+de voitures, de météo et de nationalités, longueurs des spéciales, codes de drapeaux)
+est le `data.json`, non modifié, de l'[Assetto Corsa Rally – Catalog](https://github.com/dminotte/assetto-corsa-rally-catalog) de
+dminotte, sous licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.fr).
