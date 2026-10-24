@@ -68,9 +68,21 @@ public sealed class Association
     [JsonIgnore] public string PublicServer => string.IsNullOrWhiteSpace(ServerName) ? ServerAddress.DisplayHost(Server, withPort: false) : TextSanitizer.Clean(ServerName, 200);
     [JsonIgnore] public string PublicEvent => string.IsNullOrWhiteSpace(EventName) ? TextSanitizer.Clean(EventId, 128) : TextSanitizer.Clean(EventName, 200);
 
-    /// <summary>True when the stage started after this association was made.</summary>
-    public bool StartedAfterPairing(long? stageStartTimestamp)
-        => stageStartTimestamp is long start && (PairedTimestamp is not long paired || start > paired);
+    /// <summary>True when the stage started after this association was made. A
+    /// start seen in this run of the app is ordered on the monotonic clock; a start
+    /// read from a loaded session file has only its UTC time, compared with
+    /// <see cref="PairedAt"/> — both from the Windows clock, both taken to UTC
+    /// (a DateTime comparison ignores the kind).</summary>
+    public bool StartedAfterPairing(SnapshotStage stage)
+    {
+        if (stage.StartTimestamp is long start) return PairedTimestamp is not long paired || start > paired;
+        return stage.StartedAtUtc is DateTime started && AsUtc(started) > PairedAt.UtcDateTime;
+    }
+
+    /// <summary>A time taken to UTC: a local one is converted, an unspecified one
+    /// is UTC already (every start time this app keeps is).</summary>
+    public static DateTime AsUtc(DateTime time)
+        => time.Kind == DateTimeKind.Local ? time.ToUniversalTime() : DateTime.SpecifyKind(time, DateTimeKind.Utc);
 
     public void SetToken(string token)
         => TokenProtected = Convert.ToBase64String(ProtectedData.Protect(

@@ -223,14 +223,25 @@ public sealed partial class SessionMatrix
     // When each run started (its column opened on the run-start event), and the
     // in-game start time and forecast it ran with: the board keeps only the current
     // stage's, a submission needs every stage's.
-    private sealed class ColumnStart { public DateTime Utc; public long Timestamp; public string InGame = ""; public string Weather = ""; }
+    // Timestamp: Stopwatch time of a start seen live in this run of the app; null
+    // for a start read from a file (a loaded session), which only has its Utc.
+    private sealed class ColumnStart { public DateTime Utc; public long? Timestamp; public string InGame = ""; public string Weather = ""; }
     private readonly Dictionary<string, ColumnStart> _columnStarts = [];
     // runId of each rally group, and of the "All stages" selection for this
     // session. Random, never the group number: group ids restart from 1.
     private readonly Dictionary<int, string> _groupRunIds = [];
     private string _sessionRunId = Guid.NewGuid().ToString();
+    // Receive time (UTC) of the packet being decoded, live or recorded: a stage
+    // starts when its run-start packet arrived, even one buffered before the lock
+    // and decoded later, so a session loaded from its journal gets the same start.
+    // Live markers follow the recorded time only for a file; live, the clock.
+    private DateTime _packetUtc;
+    private bool _packetRecorded;
 
     public event Action? Changed;
+    /// <summary>The organiser's choices changed (ticks, rally groups and names,
+    /// a reset): what a session file keeps besides the packets.</summary>
+    public event Action? SettingsChanged;
 
     /// <summary>Monotonic change counter, bumped on every <see cref="Changed"/>.
     /// Lets callers detect "did anything change across this call?" (replay pacing)
@@ -324,6 +335,20 @@ public sealed partial class SessionMatrix
             if (!target.Exists(existing => Math.Abs(existing - raw) < 0.01)) target.Add(raw);
     }
 
+    /// <summary>Time the packet now being decoded was received; <paramref name="recorded"/>
+    /// when it is read from a file. A live packet puts the board back on the clock.</summary>
+    public void SetPacketTime(DateTime utc, bool recorded)
+    {
+        lock (_lock)
+        {
+            _packetUtc = utc;
+            _packetRecorded = recorded;
+        }
+    }
+
+    // Caller holds _lock.
+    private DateTime Now => _packetRecorded ? _packetUtc : DateTime.UtcNow;
+
     /// <summary>Lobby FSM phase for the page header ("Racing", "Results", …).</summary>
     public void SetLobbyPhase(string phase)
     {
@@ -374,8 +399,8 @@ public sealed partial class SessionMatrix
             _currentStage = label;
             _columnStarts[id] = new ColumnStart
             {
-                Utc = DateTime.UtcNow,
-                Timestamp = Stopwatch.GetTimestamp(),
+                Utc = _packetUtc == default ? DateTime.UtcNow : _packetUtc,
+                Timestamp = _packetRecorded ? null : Stopwatch.GetTimestamp(),
                 InGame = _stageStart,
                 Weather = _stageWeather
             };
@@ -753,7 +778,7 @@ public sealed partial class SessionMatrix
                     if (car.Retired) { car.Retired = false; changed = true; }
                 }
                 if (pos > 0) car.Pos = pos;
-                car.LastSeen = DateTime.UtcNow;
+                car.LastSeen = Now;
                 car.Dist = dist;
                 if (Math.Abs(car.Dist - car.Raised) >= 20) { car.Raised = car.Dist; changed = true; }
                 // an ident-named driver enters the standings once their car has
@@ -1101,6 +1126,50 @@ public sealed partial class SessionMatrix
             else _discarded.Remove(id);
         }
         RaiseChanged();
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>The organiser's choices, for the session file.</summary>
+    public SessionSettings ExportSettings()
+    {
+        lock (_lock)
+        {
+            return new SessionSettings
+            {
+                Discarded = _columnOrder.Where(_discarded.Contains).ToList(),
+                Groups = new Dictionary<string, int>(_groups),
+                GroupNames = new Dictionary<int, string>(_groupNames),
+                GroupRunIds = new Dictionary<int, string>(_groupRunIds),
+                SessionRunId = _sessionRunId
+            };
+        }
+    }
+
+    /// <summary>Put back the organiser's choices read from a session file, once its
+    /// packets have rebuilt the stages. Choices about a stage the board does not
+    /// have are dropped.</summary>
+    public void ApplySettings(SessionSettings settings)
+    {
+        lock (_lock)
+        {
+            _discarded.Clear();
+            foreach (string id in settings.Discarded)
+                if (_columnOrder.Contains(id)) _discarded.Add(id);
+            _groups.Clear();
+            _groupNames.Clear();
+            _groupRunIds.Clear();
+            foreach (var (id, group) in settings.Groups)
+                if (group > 0 && _columnOrder.Contains(id)) _groups[id] = group;
+            foreach (int group in _groups.Values.Distinct())
+            {
+                _groupNames[group] = settings.GroupNames.TryGetValue(group, out string? name) && !string.IsNullOrWhiteSpace(name)
+                    ? name : $"Rally {group}";
+                _groupRunIds[group] = settings.GroupRunIds.TryGetValue(group, out string? runId) && !string.IsNullOrWhiteSpace(runId)
+                    ? runId : Guid.NewGuid().ToString();
+            }
+            if (!string.IsNullOrWhiteSpace(settings.SessionRunId)) _sessionRunId = settings.SessionRunId;
+        }
+        RaiseChanged();
     }
 
     /// <summary>Put the selected stage columns in one new group. Group ids are
@@ -1120,6 +1189,7 @@ public sealed partial class SessionMatrix
             RemoveUnusedGroups();
         }
         RaiseChanged();
+        SettingsChanged?.Invoke();
     }
 
     /// <summary>Set the published display name for a rally group. An empty name
@@ -1137,7 +1207,9 @@ public sealed partial class SessionMatrix
                 changed = true;
             }
         }
-        if (changed) RaiseChanged();
+        if (!changed) return;
+        RaiseChanged();
+        SettingsChanged?.Invoke();
     }
 
     /// <summary>Remove the selected stage columns from whatever groups they are in.</summary>
@@ -1149,7 +1221,9 @@ public sealed partial class SessionMatrix
             foreach (string? id in ids.Distinct()) changed |= _groups.Remove(id);
             if (changed) RemoveUnusedGroups();
         }
-        if (changed) RaiseChanged();
+        if (!changed) return;
+        RaiseChanged();
+        SettingsChanged?.Invoke();
     }
 
     // Single-stage rallies are valid too. Only clean up names whose group no
@@ -1514,7 +1588,7 @@ public sealed partial class SessionMatrix
             // replicating mid-run (player left — its actor just dies, no Retire
             // phase) would freeze on the bar: prune unless it finished.
             var progress = new List<CarProgressView>(_carsLive.Count);
-            var cutoff = DateTime.UtcNow.AddSeconds(-120);
+            var cutoff = Now.AddSeconds(-120);
             foreach (var kv in _carsLive)
             {
                 // every live car gets a marker (its POSITION is always useful);

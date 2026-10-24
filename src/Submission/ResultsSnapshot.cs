@@ -3,7 +3,8 @@ namespace ACRLiveTiming.Submission;
 public enum CellStatus { Finished, Dnf, NotStarted }
 
 /// <summary>One stage of a selection, with what is needed to describe it to a
-/// server. <see cref="StartTimestamp"/> is the Stopwatch time the run started.</summary>
+/// server. <see cref="StartTimestamp"/> is the Stopwatch time the run started, when
+/// it started during this run of the app (null for a stage of a loaded session).</summary>
 public sealed class SnapshotStage
 {
     public string ColumnId { get; init; } = "";

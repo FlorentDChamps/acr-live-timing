@@ -104,7 +104,7 @@ public sealed class SubmissionPreviewDialog : Window
         var warnings = new List<string>(snapshot.Warnings);
         foreach (var destination in destinations)
         {
-            var late = snapshot.Stages.Where(s => !destination.StartedAfterPairing(s.StartTimestamp)).ToList();
+            var late = snapshot.Stages.Where(s => !destination.StartedAfterPairing(s)).ToList();
             if (late.Count > 0)
                 warnings.Add($"{destination.Host}: {late.Count} stage(s) started before pairing ({string.Join(", ", late.Select(s => s.Label))}).");
         }

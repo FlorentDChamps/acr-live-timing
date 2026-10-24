@@ -13,6 +13,7 @@ using System.Windows.Threading;
 using ACRLiveTiming.Discord;
 using ACRLiveTiming.Model;
 using ACRLiveTiming.Net;
+using ACRLiveTiming.Session;
 using ACRLiveTiming.Tunnel;
 using ACRLiveTiming.Updates;
 using ACRLiveTiming.Web;
@@ -40,6 +41,13 @@ public partial class MainWindow : Window
     private PcapWriter? _pcap;
     private volatile bool _replaying;
     private volatile bool _stopReplay;
+    private readonly SessionJournal _journal;
+    // live packets wait here while a session file loads, then follow it
+    private readonly Lock _liveGate = new();
+    private bool _holdLive;                          // under _liveGate
+    private readonly Queue<(string ip, int port, byte[] payload, DateTime utc)> _heldLive = new();
+    private const int MaxHeldLive = 200_000;
+    private volatile bool _loadingSession;           // UI: skip per-change refreshes while loading
     private volatile bool _hideNations;    // privacy: strip nationality from the shared view
     private readonly List<OverlayWindow> _overlays = [];   // open streaming overlays
     private OverlayWindow? _tableOverlay, _progressOverlay;
@@ -60,6 +68,8 @@ public partial class MainWindow : Window
         ApplyTheme(_settings.HasTheme ? _settings.Dark : OsPrefersDark());
         _web = new WebServer(BuildStateJson,
             () => (_engine.Matrix.PageTitle, _engine.Matrix.PageDescription));
+        _journal = new SessionJournal(SessionsFolder, () => _settings.SessionsKept,
+            _engine.Matrix.ExportSettings, msg => Dispatcher.BeginInvoke(() => AppendLog(msg)));
         Loaded += OnLoaded;
         Closed += OnClosed;
         WheelScroll.Attach(this);   // the wheel keeps scrolling the panels over a text field
@@ -276,6 +286,10 @@ public partial class MainWindow : Window
         _engine.Log += msg => Dispatcher.BeginInvoke(() => AppendLog(msg));
         _engine.StateChanged += _ => Dispatcher.BeginInvoke(() => UpdateState());
         _engine.Matrix.Changed += OnMatrixChanged;
+        _engine.Fed += _journal.Write;
+        // a file loaded into a new session replays its own resets: no split then
+        _engine.ResetDone += () => _journal.OnReset(split: !_loadingSession);
+        _engine.Matrix.SettingsChanged += _journal.SaveSettings;
 
         _sniffer.Log += msg => Dispatcher.BeginInvoke(() => AppendLog(msg));
         _sniffer.Packet += OnLivePacket;
@@ -347,6 +361,7 @@ public partial class MainWindow : Window
     private void OnMatrixChanged()
     {
         _stateJson = null;   // next /state poll re-serializes
+        if (_loadingSession) return;   // refreshed once the session is loaded
         // page pulls fresh data via /state polling; just refresh the stage list
         Dispatcher.BeginInvoke(() =>
         {
@@ -683,25 +698,20 @@ public partial class MainWindow : Window
         catch (Exception ex) { AppendLog("Open URL error: " + ex.Message); }
     }
 
+    // Captures are recorded to, and replayed from, the Debug folder next to the exe.
+    private static string DebugFolder => Path.Combine(AppContext.BaseDirectory, "Debug");
+
     private void SavePcap_Checked(object sender, RoutedEventArgs e)
     {
-        var dlg = new SaveFileDialog
-        {
-            Title = "Save capture",
-            Filter = "pcap capture (*.pcap)|*.pcap",
-            FileName = $"acr_live_{DateTime.Now:yyyyMMdd_HHmmss}.pcap",
-            OverwritePrompt = true
-        };
-        if (dlg.ShowDialog(this) != true)
-        {
-            SavePcapCheck.IsChecked = false;   // user cancelled
-            return;
-        }
         try
         {
-            _pcap = new PcapWriter(dlg.FileName);
+            Directory.CreateDirectory(DebugFolder);
+            string stem = Path.Combine(DebugFolder, $"acr_live_{DateTime.Now:yyyyMMdd_HHmmss}");
+            string file = stem + ".pcap";
+            for (int n = 2; File.Exists(file); n++) file = $"{stem}_{n}.pcap";
+            _pcap = new PcapWriter(file);
             _sniffer.RawIp += _pcap.WriteIpPacket;
-            AppendLog("Recording pcap → " + dlg.FileName);
+            AppendLog("Recording pcap → " + file);
         }
         catch (Exception ex)
         {
@@ -713,16 +723,119 @@ public partial class MainWindow : Window
     private void OnLivePacket(string ip, int port, byte[] payload)
     {
         if (_replaying) return;   // ignore live traffic while replaying a file
-        _engine.OnPacket(ip, port, payload);
+        var now = DateTime.UtcNow;
+        lock (_liveGate)
+        {
+            if (_holdLive)
+            {
+                if (_heldLive.Count < MaxHeldLive) _heldLive.Enqueue((ip, port, payload, now));
+                return;
+            }
+            _engine.OnPacket(ip, port, payload, now);
+        }
+    }
+
+    // ---- sessions ----------------------------------------------------------
+
+    private static string SessionsFolder => Path.Combine(AppContext.BaseDirectory, "Sessions");
+
+    private async void LoadSessionBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_replaying || _loadingSession) return;
+        var dlg = new OpenFileDialog
+        {
+            Title = "Load a session",
+            Filter = "pcap capture (*.pcap)|*.pcap|All files (*.*)|*.*",
+            InitialDirectory = Directory.Exists(SessionsFolder) ? SessionsFolder : ""
+        };
+        if (dlg.ShowDialog(this) != true) return;
+        string file = dlg.FileName;
+        string? unreadable = PcapReplay.CheckHeader(file);
+        if (unreadable != null)
+        {
+            AppendLog($"Session not loaded: {unreadable}");
+            return;
+        }
+        if (_engine.Matrix.BuildView().AllStages.Count > 0)
+        {
+            var confirm = MessageBox.Show(this,
+                "The board is replaced by the loaded session's. The current session stays in its file.",
+                "Load a session?", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
+            if (confirm != MessageBoxResult.OK) return;
+        }
+
+        // A file of the Sessions folder goes on as it is; any other capture is
+        // copied into a new session file as it loads.
+        bool continueFile = string.Equals(Path.GetDirectoryName(Path.GetFullPath(file)),
+            Path.GetFullPath(SessionsFolder), StringComparison.OrdinalIgnoreCase);
+        var settings = SessionJournal.ReadSettings(file);
+        _loadingSession = true;
+        lock (_liveGate) _holdLive = true;
+        SetSessionButtons(false);
+        _journal.Close();
+        _journal.Paused = continueFile;
+        _engine.ManualReset();
+        AppendLog($"Loading session {file} …");
+        try
+        {
+            long count = await Task.Run(() => SessionJournal.Load(_engine, file, settings));
+            _engine.Matrix.SetPacketTime(DateTime.UtcNow, recorded: false);   // the file's moment is over
+            if (continueFile) _journal.Continue(file, settings);
+            _journal.Paused = false;
+            _journal.SaveSettings();
+            int stages = _engine.Matrix.BuildView().AllStages.Count;
+            AppendLog($"Session loaded: {count} packets, {stages} stage(s)."
+                      + (settings == null ? " No .json of the same name beside it: stage ticks and rally groups start afresh." : ""));
+        }
+        catch (Exception ex)
+        {
+            _journal.Close();
+            _journal.Paused = false;
+            AppendLog("Session not loaded: " + ex.Message);
+        }
+        finally
+        {
+            int held;
+            lock (_liveGate)
+            {
+                held = _heldLive.Count;
+                while (_heldLive.TryDequeue(out var packet))
+                    _engine.OnPacket(packet.ip, packet.port, packet.payload, packet.utc);
+                _holdLive = false;
+            }
+            if (held > 0) AppendLog($"{held} live packets received while loading, applied after it.");
+            _loadingSession = false;
+            SetSessionButtons(true);
+            OnMatrixChanged();
+        }
+    }
+
+    private void OpenSessionsFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Directory.CreateDirectory(SessionsFolder);
+            Process.Start(new ProcessStartInfo { FileName = SessionsFolder, UseShellExecute = true });
+        }
+        catch (Exception ex) { AppendLog("Open folder error: " + ex.Message); }
+    }
+
+    private void SetSessionButtons(bool enabled)
+    {
+        LoadSessionBtn.IsEnabled = enabled;
+        ResetBtn.IsEnabled = enabled;
+        ReplayBtn.IsEnabled = enabled;
     }
 
     private async void ReplayBtn_Click(object sender, RoutedEventArgs e)
     {
         if (_replaying) { _stopReplay = true; return; }   // button doubles as Stop replay
+        if (_loadingSession) return;
         var dlg = new OpenFileDialog
         {
             Title = "Replay a capture",
-            Filter = "pcap capture (*.pcap)|*.pcap|All files (*.*)|*.*"
+            Filter = "pcap capture (*.pcap)|*.pcap|All files (*.*)|*.*",
+            InitialDirectory = Directory.Exists(DebugFolder) ? DebugFolder : ""
         };
         if (dlg.ShowDialog(this) != true) return;
         string file = dlg.FileName;
@@ -730,6 +843,11 @@ public partial class MainWindow : Window
         _replaying = true;
         _stopReplay = false;
         ReplayBtn.Content = "Stop replay";
+        LoadSessionBtn.IsEnabled = false;
+        // a debug replay is not a session: the current one ends, the replay is not
+        // recorded, and live traffic after it starts a new session file
+        _journal.Close();
+        _journal.Paused = true;
         _engine.ManualReset();
 
         // Pace the replay so the evolution is visible on the page: after each
@@ -748,11 +866,11 @@ public partial class MainWindow : Window
             {
                 int c = 0;
                 var delay = TimeSpan.FromSeconds(pause);
-                foreach (var (ip, port, payload) in PcapReplay.ReadUdp(file))
+                foreach (var (ip, port, payload, utc) in PcapReplay.ReadUdp(file))
                 {
                     if (_stopReplay) { stopped = true; break; }
                     long before = _engine.Matrix.Version;
-                    _engine.OnPacket(ip, port, payload);
+                    _engine.OnPacket(ip, port, payload, utc, recorded: true);
                     c++;
                     if (pause > 0 && _engine.Matrix.Version != before) await Task.Delay(delay);
                 }
@@ -761,7 +879,15 @@ public partial class MainWindow : Window
             AppendLog(stopped ? $"Replay stopped ({count} UDP packets)." : $"Replay done ({count} UDP packets).");
         }
         catch (Exception ex) { AppendLog("Replay error: " + ex.Message); }
-        finally { _replaying = false; _stopReplay = false; ReplayBtn.Content = "Replay a .pcap…"; }
+        finally
+        {
+            _replaying = false;
+            _stopReplay = false;
+            _engine.Matrix.SetPacketTime(DateTime.UtcNow, recorded: false);
+            _journal.Paused = false;
+            ReplayBtn.Content = "Replay a .pcap…";
+            LoadSessionBtn.IsEnabled = true;
+        }
     }
 
     private void ReplayPauseStep_Click(object sender, RoutedEventArgs e)
@@ -774,6 +900,16 @@ public partial class MainWindow : Window
     }
 
     private void SavePcap_Unchecked(object sender, RoutedEventArgs e) => StopPcap();
+
+    private void OpenDebugFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Directory.CreateDirectory(DebugFolder);
+            Process.Start(new ProcessStartInfo { FileName = DebugFolder, UseShellExecute = true });
+        }
+        catch (Exception ex) { AppendLog("Open folder error: " + ex.Message); }
+    }
 
     private void HideSplits_Changed(object sender, RoutedEventArgs e) => _engine?.Matrix.HideSplits = HideSplitsCheck.IsChecked == true;
 
@@ -1269,6 +1405,7 @@ public partial class MainWindow : Window
         foreach (var overlay in _overlays.ToList()) overlay.Close();
         _timer?.Stop();
         StopPcap();
+        _journal.Close();
         _tunnel.Dispose();
         _web.Dispose();
         _sniffer.Dispose();

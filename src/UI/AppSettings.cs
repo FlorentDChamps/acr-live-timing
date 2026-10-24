@@ -36,6 +36,8 @@ public sealed class AppSettings
     public bool HideSplits { get; set; }
     public bool HideNations { get; set; }
     public double ReplayPause { get; set; } = 0;
+    // automatically named session files kept in the Sessions folder (below 1: all)
+    public int SessionsKept { get; set; } = 5;
     public bool Dark { get; set; }
     public bool HasTheme { get; set; }   // false on first run => follow the OS
     // Latest update version dismissed with the "Discard" button. A different

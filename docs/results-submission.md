@@ -313,7 +313,7 @@ The selection's stages that have data, in run order: every stage of the rally gr
 | `routeId` | Route **as the game sends it on the network** (`WelesS3HafrenNorthFullForward`), as in the game's save files. Never the catalog's normalised id. `null` when never received. |
 | `name`, `lengthKm` | From the content catalog, for display. `name` falls back to the raw id; `lengthKm` absent when unknown. |
 | `startedAfterPairing` | `true` when the stage started after **this destination's** association was made. |
-| `startedAt` | UTC start, from the Windows clock. Absent when the start was not seen. |
+| `startedAt` | UTC start, from the Windows clock when the client received it. Absent when the start was not seen. |
 | `inGameStartTime` | In-game time of day at the start, `HH:mm`, when received. |
 | `weather` | Forecast label as on the page (`Light Rain · 12°C`), when received. |
 
@@ -321,9 +321,11 @@ The selection's stages that have data, in run order: every stage of the rally gr
 start sequence that opens its column on the board; a stage joined while it was
 already being raced is never on the board). Stage starts and associations are
 ordered with a monotonic clock; an association from an earlier run of the app
-precedes every stage of this run. The value is computed per destination when the
-payload is built, never stored with the stage. A stage whose start was not seen is
-`false`.
+precedes every stage of this run. A stage the client rebuilt from a session file
+(after the app was closed or crashed) was not seen in this run: its recorded
+`startedAt` is compared with the time of the exchange instead. The value is computed
+per destination when the payload is built, never stored with the stage. A stage
+whose start was not seen is `false`.
 
 ### `participants[]`
 

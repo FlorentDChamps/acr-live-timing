@@ -34,6 +34,22 @@ being run; below: the same session once it is over, on each tab.</sub>
 
 ---
 
+**Contents**
+
+- [Features](#features)
+- [Privacy & security — what this app actually does](#privacy--security--what-this-app-actually-does)
+- [How it works](#how-it-works)
+- [Getting started](#getting-started)
+- [Sessions](#sessions)
+- [Streaming with OBS](#streaming-with-obs)
+- [Posting to Discord](#posting-to-discord)
+- [Sending results to a server](#sending-results-to-a-server)
+- [Antivirus & SmartScreen](#antivirus--smartscreen)
+- [Status & limitations](#status--limitations)
+- [Project layout](#project-layout)
+- [Support the project](#support-the-project)
+- [License](#license)
+
 ## Features
 
 - **Zero configuration** — join an ACR lobby; the game server is auto-detected by
@@ -179,7 +195,11 @@ being run; below: the same session once it is over, on each tab.</sub>
   repository's releases; if a newer build exists, a popup links to it (nothing is
   downloaded without your confirmation) and can be dismissed per version.
 - **Record & replay** — optionally record the session to a standard `.pcap` file
-  (Wireshark-compatible) and replay it later through the same decoding pipeline.
+  (Wireshark-compatible) in the `Debug` folder next to the exe, and replay it
+  later through the same decoding pipeline.
+- **Sessions saved as you play** — the game server's packets are recorded in the
+  `Sessions` folder next to the exe, so after closing the app or a crash **Load
+  session…** rebuilds the board and the session goes on. See [Sessions](#sessions).
 - **Remembers your setup** — all window state (options, page title/description, the
   Discord webhook — encrypted — and each overlay's position, size, always-on-top,
   lock and opacity) is saved to an `ACRLiveTiming.config` file next to the exe and
@@ -197,10 +217,13 @@ picture, plainly:
   Elevation is used for that single purpose.
 - **What is captured?** Inbound UDP traffic of *your own* machine, in memory. Once
   the ACR server is detected, only its packets are decoded; everything else is
-  ignored. Nothing is written to disk unless *you* enable pcap recording (and then it
-  is a local file you choose). Note that the raw socket sees **all** inbound traffic,
-  so a debug `.pcap` contains more than game packets — treat capture files as
-  sensitive and think twice before sharing one.
+  ignored. Those packets are recorded in the `Sessions` folder next to the exe (see
+  [Sessions](#sessions)): they hold what the game sends, account identifiers
+  included, so keep session files to yourself. Nothing else is written to disk
+  unless *you* enable debug pcap recording (a local file in the `Debug` folder next
+  to the exe). Note that the raw socket sees **all** inbound traffic, so a debug
+  `.pcap` contains more than game packets — treat capture files as sensitive and
+  think twice before sharing one.
 - **What is decoded?** Exactly what the game already shows in the lobby: driver
   pseudonyms, stage times, penalties, stage name, nation, car model. The game also
   replicates stable account identifiers (Steam/EOS); the app uses them only
@@ -244,8 +267,8 @@ public internet to anyone who has the link, which is a different responsibility:
 - The **"Hide nationalities (shared view)"** option (Config panel) removes the nation
   flags from the shared page; names and times still show.
 - If you publish, share the link only with people who should see it, and close the
-  app (or the tunnel) when you are done. Nothing is stored: shut it down and the
-  page is gone.
+  app (or the tunnel) when you are done. Nothing is stored online: shut it down and
+  the page is gone.
 
 ## How it works
 
@@ -312,6 +335,34 @@ publish.bat         # single-file Release exe in .\publish\
    the board between events (it keeps the decoded nations, cars and the current stage
    name so a same-stage restart is not left unlabelled). The board is never cleared
    on its own: a host migration or a server change mid-rally keeps the standings.
+9. Closed the app, or it crashed? Start it again and click **Load session…** (see
+   [Sessions](#sessions)).
+
+## Sessions
+
+Every session is recorded as it is played, in the `Sessions` folder next to the exe
+(📂 next to **Load session…** opens it): `session_20261023_201405.pcap` holds the
+game server's packets and `session_20261023_201405.json` beside it your stage ticks
+and rally groups. A session starts with the first packet of a lobby and lasts until
+the app closes or **Reset session**: the session is then kept as it was, and the
+next one starts from a copy of its packets — the game does not send nations and cars
+again, the copy still has them.
+
+To get a session back, click **Load session…** and pick its `.pcap`. The board is
+rebuilt from the packets (a few seconds for an evening), the ticks and groups come
+back from the `.json`, and the session goes on in those files: live packets received
+meanwhile are applied after. A `.pcap` without its `.json` still rebuilds the board,
+only ticks and groups start afresh. Any other `.pcap`, such as a debug capture, can
+be loaded too; it goes on in a new session file.
+
+What the game sent while the app was closed is not in the file: loaded in the middle
+of a stage, a driver who finished meanwhile can miss a split or the finish. Loaded
+between stages, nothing is lost. Each stage keeps its recorded start time, which a
+results server compares with the pairing time.
+
+The 5 most recent automatically named sessions are kept; older ones are deleted when
+a new one starts. To keep one, **rename** both its files with the same new name.
+The number is `SessionsKept` in `ACRLiveTiming.config` (0 keeps them all).
 
 ## Streaming with OBS
 
@@ -476,6 +527,7 @@ src/
              replicated property layouts of the game classes
   Net/       raw-socket sniffer, server auto-detection, pcap record & replay
   Model/     engine (state machine) + thread-safe session matrix
+  Session/   session files: recording, loading, cleanup
   Web/       embedded HTTP server (/, /state) + single-page UI
   Tunnel/    cloudflared runner (latest release, Authenticode-verified)
   Discord/   webhook publisher (alert + results messages)

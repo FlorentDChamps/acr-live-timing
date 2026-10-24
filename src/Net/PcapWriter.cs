@@ -1,13 +1,15 @@
 using System.IO;
+using System.Net;
 
 namespace ACRLiveTiming.Net;
 
 /// <summary>
-/// Minimal classic-pcap writer for debug captures. The raw socket delivers bare
-/// IPv4 packets, so we prepend a synthetic 14-byte Ethernet header (zero MACs,
-/// ethertype 0x0800) and declare LINKTYPE_ETHERNET. That keeps the file readable
-/// in Wireshark and any standard pcap tooling expecting an Ethernet frame. Each
-/// packet is flushed immediately, so a crash still leaves a valid pcap.
+/// Minimal classic-pcap writer for debug captures and session journals. The raw
+/// socket delivers bare IPv4 packets, so we prepend a synthetic 14-byte Ethernet
+/// header (zero MACs, ethertype 0x0800) and declare LINKTYPE_ETHERNET. That keeps
+/// the file readable in Wireshark and any standard pcap tooling expecting an
+/// Ethernet frame. Each packet is flushed immediately, so a crash still leaves a
+/// valid pcap.
 /// </summary>
 public sealed class PcapWriter : IDisposable
 {
@@ -29,6 +31,24 @@ public sealed class PcapWriter : IDisposable
         _fs.Flush();
     }
 
+    /// <summary>Continue a pcap this class wrote: a partial last record (left by a
+    /// crash) is cut first, so the new records follow a complete one.</summary>
+    public static PcapWriter Append(string path)
+    {
+        var (length, records) = PcapReplay.CompleteLength(path)
+                                ?? throw new InvalidDataException("Not a pcap file this app can continue.");
+        return new PcapWriter(path, length, records);
+    }
+
+    private PcapWriter(string path, long length, long records)
+    {
+        Path = path;
+        _fs = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read);
+        _fs.SetLength(length);
+        _fs.Position = length;
+        _count = records;
+    }
+
     private static void WriteGlobalHeader(FileStream fs)
     {
         byte[] h = new byte[24];
@@ -44,11 +64,37 @@ public sealed class PcapWriter : IDisposable
     }
 
     /// <summary>Append one raw IPv4 packet (as received from the raw socket).</summary>
-    public void WriteIpPacket(byte[] ipPacket)
+    public void WriteIpPacket(byte[] ipPacket) => Write(ipPacket, DateTime.UtcNow);
+
+    /// <summary>Append one UDP datagram received from <paramref name="srcIp"/>:<paramref name="srcPort"/>
+    /// at <paramref name="utc"/>, inside a synthetic IPv4/UDP header (destination
+    /// 0.0.0.0:0, no UDP checksum).</summary>
+    public void WriteUdp(string srcIp, int srcPort, byte[] payload, DateTime utc)
     {
-        var now = DateTimeOffset.UtcNow;
-        uint sec = (uint)now.ToUnixTimeSeconds();
-        uint usec = (uint)(now.UtcTicks % TimeSpan.TicksPerSecond / 10);   // real µs
+        byte[] packet = new byte[28 + payload.Length];
+        int total = packet.Length;
+        packet[0] = 0x45;                                   // IPv4, 20-byte header
+        packet[2] = (byte)(total >> 8); packet[3] = (byte)total;
+        packet[8] = 64;                                     // TTL
+        packet[9] = 17;                                     // UDP
+        IPAddress.Parse(srcIp).GetAddressBytes().CopyTo(packet, 12);
+        int sum = 0;
+        for (int i = 0; i < 20; i += 2) sum += (packet[i] << 8) | packet[i + 1];
+        while (sum > 0xFFFF) sum = (sum & 0xFFFF) + (sum >> 16);
+        packet[10] = (byte)(~sum >> 8); packet[11] = (byte)~sum;
+        int udpLength = 8 + payload.Length;
+        packet[20] = (byte)(srcPort >> 8); packet[21] = (byte)srcPort;
+        packet[24] = (byte)(udpLength >> 8); packet[25] = (byte)udpLength;
+        Buffer.BlockCopy(payload, 0, packet, 28, payload.Length);
+        Write(packet, utc);
+    }
+
+    private void Write(byte[] ipPacket, DateTime utc)
+    {
+        // pcap times are seconds since the Unix epoch, UTC
+        long ticks = (utc.Kind == DateTimeKind.Local ? utc.ToUniversalTime() : utc).Ticks - DateTime.UnixEpoch.Ticks;
+        uint sec = (uint)(ticks / TimeSpan.TicksPerSecond);
+        uint usec = (uint)(ticks % TimeSpan.TicksPerSecond / TimeSpan.TicksPerMicrosecond);
         int inclLen = EthHeader.Length + ipPacket.Length;
 
         byte[] rec = new byte[16];

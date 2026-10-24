@@ -36,6 +36,22 @@ chaque onglet.</sub>
 
 ---
 
+**Sommaire**
+
+- [Fonctionnalités](#fonctionnalités)
+- [Vie privée & sécurité — ce que fait réellement l'application](#vie-privée--sécurité--ce-que-fait-réellement-lapplication)
+- [Fonctionnement](#fonctionnement)
+- [Démarrage](#démarrage)
+- [Sessions](#sessions)
+- [Capture avec OBS](#capture-avec-obs)
+- [Publier sur Discord](#publier-sur-discord)
+- [Envoyer les résultats à un serveur](#envoyer-les-résultats-à-un-serveur)
+- [Antivirus & SmartScreen](#antivirus--smartscreen)
+- [État & limites](#état--limites)
+- [Structure du projet](#structure-du-projet)
+- [Soutenir le projet](#soutenir-le-projet)
+- [Licence](#licence)
+
 ## Fonctionnalités
 
 - **Zéro configuration** — rejoignez un lobby ACR ; le serveur de jeu est
@@ -199,8 +215,12 @@ chaque onglet.</sub>
   de ce dépôt ; si une version plus récente existe, une fenêtre pointe vers elle
   (rien n'est téléchargé sans votre confirmation) et peut être ignorée par version.
 - **Enregistrement & replay** — enregistrement optionnel de la session dans un
-  `.pcap` standard (lisible dans Wireshark), rejouable ensuite dans le même pipeline
-  de décodage.
+  `.pcap` standard (lisible dans Wireshark) du dossier `Debug` à côté de l'exe,
+  rejouable ensuite dans le même pipeline de décodage.
+- **Sessions sauvegardées en jouant** — les paquets du serveur du jeu sont enregistrés
+  dans le dossier `Sessions` à côté de l'exe : après avoir fermé l'application ou
+  après un crash, **Load session…** reconstruit le tableau et la session continue.
+  Voir [Sessions](#sessions).
 - **Mémorise votre configuration** — tout l'état de la fenêtre (options,
   titre/description de page, le webhook Discord — chiffré — et pour chaque overlay :
   position, taille, always-on-top, lock et opacité) est sauvegardé dans un fichier
@@ -218,11 +238,14 @@ tableau complet, sans détour :
   élevés. L'élévation ne sert qu'à ça.
 - **Qu'est-ce qui est capturé ?** Le trafic UDP entrant de *votre propre* machine,
   en mémoire. Une fois le serveur ACR détecté, seuls ses paquets sont décodés ; tout
-  le reste est ignoré. Rien n'est écrit sur disque sauf si *vous* activez
-  l'enregistrement pcap (fichier local que vous choisissez). Attention : le raw
-  socket voit **tout** le trafic entrant, donc un `.pcap` de debug contient plus que
-  les paquets du jeu — traitez les fichiers de capture comme sensibles et
-  réfléchissez avant d'en partager un.
+  le reste est ignoré. Ces paquets sont enregistrés dans le dossier `Sessions` à
+  côté de l'exe (voir [Sessions](#sessions)) : ils contiennent ce que le jeu envoie,
+  identifiants de compte compris, gardez donc les fichiers de session pour vous. Rien
+  d'autre n'est écrit sur disque sauf si *vous* activez l'enregistrement pcap de debug
+  (fichier local dans le dossier `Debug` à côté de l'exe). Attention : le raw socket
+  voit **tout** le trafic entrant, donc un `.pcap` de debug contient plus que les
+  paquets du jeu — traitez les fichiers de capture comme sensibles et réfléchissez
+  avant d'en partager un.
 - **Qu'est-ce qui est décodé ?** Exactement ce que le jeu affiche déjà dans le
   lobby : pseudos, temps de spéciale, pénalités, nom de la spéciale, nationalité,
   modèle de voiture. Le jeu réplique aussi des identifiants de compte stables
@@ -273,8 +296,8 @@ expose sur l'internet public à quiconque a le lien — une responsabilité diff
 - L'option **« Hide nationalities (shared view) »** (panneau Config) retire les
   drapeaux de nationalité de la page partagée ; pseudos et temps restent affichés.
 - Si vous publiez, ne partagez le lien qu'avec les personnes concernées, et fermez
-  l'application (ou le tunnel) une fois terminé. Rien n'est stocké : à la fermeture,
-  la page disparaît.
+  l'application (ou le tunnel) une fois terminé. Rien n'est stocké en ligne : à la
+  fermeture, la page disparaît.
 
 ## Fonctionnement
 
@@ -347,6 +370,37 @@ publish.bat         # exe Release monofichier dans .\publish\
    spéciale en cours pour qu'un redémarrage de la même spéciale ne reste pas sans nom).
    Le tableau ne se vide jamais seul : une migration d'hôte ou un changement de serveur
    en cours de rallye conserve le classement.
+9. Application fermée, ou plantée ? Relancez-la et cliquez **Load session…** (voir
+   [Sessions](#sessions)).
+
+## Sessions
+
+Chaque session est enregistrée au fil du jeu, dans le dossier `Sessions` à côté de
+l'exe (📂 à côté de **Load session…** l'ouvre) : `session_20261023_201405.pcap`
+contient les paquets du serveur du jeu et `session_20261023_201405.json` à côté vos
+spéciales cochées et vos rallyes. Une session commence au premier paquet d'un lobby
+et dure jusqu'à la fermeture de l'application ou jusqu'à **Reset session** : la
+session est alors conservée telle quelle, et la suivante part d'une copie de ses
+paquets — le jeu ne renvoie pas les nations et les voitures, la copie les garde.
+
+Pour retrouver une session, cliquez **Load session…** et choisissez son `.pcap`. Le
+tableau est reconstruit à partir des paquets (quelques secondes pour une soirée), les
+coches et les rallyes reviennent du `.json`, et la session continue dans ces
+fichiers : les paquets live reçus pendant le chargement sont appliqués ensuite. Un
+`.pcap` sans son `.json` reconstruit quand même le tableau, seuls les coches et les
+rallyes repartent de zéro. Tout autre `.pcap`, une capture de debug par exemple, peut
+aussi être chargé ; il continue alors dans un nouveau fichier de session.
+
+Ce que le jeu a envoyé pendant que l'application était fermée n'est pas dans le
+fichier : chargée au milieu d'une spéciale, un pilote arrivé entre-temps peut perdre
+un intermédiaire ou son arrivée. Chargée entre deux spéciales, rien n'est perdu.
+Chaque spéciale garde son heure de départ enregistrée, qu'un serveur de résultats
+compare à l'heure de l'association.
+
+Les 5 sessions les plus récentes au nom automatique sont conservées ; les plus
+anciennes sont supprimées quand une nouvelle commence. Pour en garder une,
+**renommez** ses deux fichiers avec le même nouveau nom. Le nombre est
+`SessionsKept` dans `ACRLiveTiming.config` (0 les garde toutes).
 
 ## Capture avec OBS
 
@@ -520,6 +574,7 @@ src/
              drapeaux) et layouts de propriétés répliquées des classes du jeu
   Net/       sniffer raw socket, auto-détection serveur, enregistrement & replay pcap
   Model/     engine (machine à états) + matrice de session thread-safe
+  Session/   fichiers de session : enregistrement, chargement, nettoyage
   Web/       serveur HTTP embarqué (/, /state) + interface single-page
   Tunnel/    lanceur cloudflared (dernière release, signature Authenticode vérifiée)
   Discord/   éditeur webhook (messages d'alerte + résultats)

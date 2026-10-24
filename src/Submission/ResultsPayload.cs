@@ -51,7 +51,7 @@ public static class ResultsPayload
                 if (stage.RouteId != null) w.WriteString("routeId", stage.RouteId); else w.WriteNull("routeId");
                 w.WriteString("name", stage.Name);
                 if (stage.LengthKm is double km) w.WriteNumber("lengthKm", Math.Round(km, 3));
-                if (destination != null) w.WriteBoolean("startedAfterPairing", destination.StartedAfterPairing(stage.StartTimestamp));
+                if (destination != null) w.WriteBoolean("startedAfterPairing", destination.StartedAfterPairing(stage));
                 if (stage.StartedAtUtc is DateTime started) w.WriteString("startedAt", Iso(started));
                 if (stage.InGameStartTime != null) w.WriteString("inGameStartTime", stage.InGameStartTime);
                 if (stage.Weather != null) w.WriteString("weather", stage.Weather);
@@ -122,5 +122,5 @@ public static class ResultsPayload
     }
 
     private static string Iso(DateTime utc)
-        => DateTime.SpecifyKind(utc, DateTimeKind.Utc).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
+        => Association.AsUtc(utc).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
 }

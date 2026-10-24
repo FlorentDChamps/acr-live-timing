@@ -568,19 +568,27 @@
             <StackPanel x:Name="StagesPanel">
               <TextBlock Text="(no stage yet)" Foreground="{DynamicResource Brush.Muted}"/>
             </StackPanel>
-            <Grid Margin="0,8,0,0">
+            <WrapPanel Margin="0,8,0,0">
+              <Button x:Name="StageSelectAllBtn" Content="Select all" Click="StageSelectAll_Click" Margin="0,0,4,0"/>
+              <Button Content="Group" Click="GroupStages_Click" Margin="0,0,4,0"/>
+              <Button Content="Ungroup" Click="UngroupStages_Click"/>
+            </WrapPanel>
+            <!-- whole-session actions: both replace the board -->
+            <Grid Margin="0,6,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <WrapPanel Grid.Column="0">
-                <Button x:Name="StageSelectAllBtn" Content="Select all" Click="StageSelectAll_Click" Margin="0,0,4,0"/>
-                <Button Content="Group" Click="GroupStages_Click" Margin="0,0,4,0"/>
-                <Button Content="Ungroup" Click="UngroupStages_Click"/>
-              </WrapPanel>
+              <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button x:Name="LoadSessionBtn" Content="Load session…" Click="LoadSessionBtn_Click"
+                        ToolTip="Load a session saved in the Sessions folder (or any .pcap): the board is rebuilt from its packets, with the stage ticks and rally groups saved beside it, and the session goes on from there."/>
+                <Button Content="📂" FontFamily="Segoe UI Emoji" FontSize="14" Padding="8,0"
+                        Margin="4,0,0,0" Click="OpenSessionsFolder_Click"
+                        ToolTip="Open the Sessions folder: every session is recorded there as it is played."/>
+              </StackPanel>
               <Button x:Name="ResetBtn" Grid.Column="1" Content="Reset session" Margin="12,0,0,0"
-                      HorizontalAlignment="Right" Click="ResetBtn_Click"
-                      ToolTip="Clear the whole session (all stages and times)."/>
+                      HorizontalAlignment="Right" VerticalAlignment="Top" Click="ResetBtn_Click"
+                      ToolTip="Clear the board and start a new session (all stages and times). The current one stays in the Sessions folder."/>
             </Grid>
           </StackPanel>
         </GroupBox>
@@ -806,10 +814,19 @@
 
         <GroupBox Header="Debug">
           <StackPanel>
-            <CheckBox x:Name="SavePcapCheck" Content="Save .pcap capture"
-                      VerticalAlignment="Center"
-                      Checked="SavePcap_Checked" Unchecked="SavePcap_Unchecked"
-                      ToolTip="Record every captured packet to a .pcap file, openable in Wireshark and replayable in this app. For troubleshooting only."/>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <CheckBox x:Name="SavePcapCheck" Content="Save .pcap capture"
+                        VerticalAlignment="Center"
+                        Checked="SavePcap_Checked" Unchecked="SavePcap_Unchecked"
+                        ToolTip="Record every captured packet to a .pcap file in the Debug folder, openable in Wireshark and replayable in this app. For troubleshooting only."/>
+              <Button Grid.Column="1" Content="📂" FontFamily="Segoe UI Emoji" FontSize="14" Padding="8,0"
+                      Click="OpenDebugFolder_Click"
+                      ToolTip="Open the Debug folder: the recorded .pcap captures."/>
+            </Grid>
             <Grid Margin="0,8,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>

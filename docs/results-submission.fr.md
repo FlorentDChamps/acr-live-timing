@@ -322,7 +322,7 @@ Les spéciales de la sélection qui ont des données, dans l'ordre de course : t
 | `routeId` | Le parcours **tel que le jeu l'envoie sur le réseau** (`WelesS3HafrenNorthFullForward`), comme dans les sauvegardes du jeu. Jamais l'identifiant normalisé du catalogue. `null` s'il n'a jamais été reçu. |
 | `name`, `lengthKm` | Tirés du catalogue de contenu, pour l'affichage. `name` vaut l'identifiant brut à défaut ; `lengthKm` absent si inconnu. |
 | `startedAfterPairing` | `true` si la spéciale a démarré après l'association **de cette destination**. |
-| `startedAt` | Départ en UTC, d'après l'horloge Windows. Absent si le départ n'a pas été vu. |
+| `startedAt` | Départ en UTC, d'après l'horloge Windows au moment où le client l'a reçu. Absent si le départ n'a pas été vu. |
 | `inGameStartTime` | Heure du jeu au départ, `HH:mm`, si reçue. |
 | `weather` | Libellé météo comme sur la page (`Light Rain · 12°C`), si reçu. |
 
@@ -330,9 +330,12 @@ Les spéciales de la sélection qui ont des données, dans l'ordre de course : t
 séquence de départ qui ouvre sa colonne sur le tableau ; une spéciale rejointe en
 cours de route n'est jamais sur le tableau). Départs et associations sont ordonnés
 avec une horloge monotone ; une association faite lors d'un lancement précédent de
-l'application précède toutes les spéciales du lancement actuel. La valeur est
-calculée par destination à la construction de l'envoi, jamais stockée avec la
-spéciale. Une spéciale dont le départ n'a pas été vu vaut `false`.
+l'application précède toutes les spéciales du lancement actuel. Une spéciale que le
+client a reconstruite depuis un fichier de session (après une fermeture ou un crash
+de l'application) n'a pas été vue lors de ce lancement : son `startedAt` enregistré
+est alors comparé à l'heure de l'échange. La valeur est calculée par destination à
+la construction de l'envoi, jamais stockée avec la spéciale. Une spéciale dont le
+départ n'a pas été vu vaut `false`.
 
 ### `participants[]`
 

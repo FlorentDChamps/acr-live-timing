@@ -39,7 +39,7 @@ public sealed class Engine
     // (ManualReset, Tick's timeout path): the trackers and detector keep plain
     // Dictionary/HashSet state and must never be mutated concurrently.
     private readonly Lock _sync = new();
-    private readonly Queue<(string ip, int port, byte[] payload)> _preBuffer = new();
+    private readonly Queue<(string ip, int port, byte[] payload, DateTime utc, bool recorded)> _preBuffer = new();
     // layout-driven replication decoder: participants (nation, car), player
     // states (identity, display name, their car components), race states (timer,
     // phase, position, distance), sector records, the rally result arrays and the
@@ -69,10 +69,18 @@ public sealed class Engine
     private bool _provisional;
     private string? _lastServerIp;
     private int _lastServerPort;
-    private DateTime _lastPacketUtc = DateTime.UtcNow;
+    private DateTime _lastPacketUtc = DateTime.UtcNow;   // wall clock: Tick's silence check
+    private DateTime _lastServerPacketAt;                 // packet time: a server change inside a file
 
     public event Action<string>? Log;
     public event Action<SnifferState>? StateChanged;
+    /// <summary>Each packet given to the decoder — the locked server's, including
+    /// the ones buffered before the lock — with its arrival time. Raised under the
+    /// engine lock, in decoding order: what a session journal records.</summary>
+    public event Action<string, int, byte[], DateTime>? Fed;
+    /// <summary>Raised under the engine lock by <see cref="ManualReset"/>, between
+    /// the packets decoded before and after it.</summary>
+    public event Action? ResetDone;
 
     public Engine()
     {
@@ -80,32 +88,51 @@ public sealed class Engine
         _detector.SuspectedEncrypted += msg => Log?.Invoke(msg);
     }
 
-    public void OnPacket(string srcIp, int srcPort, byte[] payload)
+    /// <summary>One inbound UDP datagram. <paramref name="utc"/> is when it was
+    /// received: now for live traffic, the capture time for a file.
+    /// <paramref name="recorded"/> marks a packet read from a file, whose stage
+    /// starts the app did not see happen in this run.</summary>
+    public void OnPacket(string srcIp, int srcPort, byte[] payload, DateTime utc, bool recorded = false)
     {
         lock (_sync)
         {
+            // A file has no Tick: its own clock tells when the locked server went
+            // silent while another one talks (a server change inside a session).
+            if (State == SnifferState.Connected && (srcIp != ServerIp || srcPort != ServerPort)
+                && (utc - _lastServerPacketAt).TotalSeconds > ConnectTimeoutSec)
+            {
+                LoseConnection();
+            }
+
             if (State == SnifferState.Sniffing)
             {
                 // Buffer pre-lock packets: the stage-name FString and the first
                 // finishers are emitted at map load, before the detector has locked
                 // on (it needs a few signature packets). Without this they'd be
                 // dropped and the column would stay "?" with the first run missing.
-                _preBuffer.Enqueue((srcIp, srcPort, payload));
+                _preBuffer.Enqueue((srcIp, srcPort, payload, utc, recorded));
                 if (_preBuffer.Count > PreBufferMax) _preBuffer.Dequeue();
 
                 if (_detector.Feed(srcIp, srcPort, payload, out string? ip, out int port))
-                    Connect(ip, port);
+                    Connect(ip, port, utc);
                 return;
             }
 
             // Connected: only the locked server's packets drive the classification.
             if (srcIp != ServerIp || srcPort != ServerPort) return;
             _lastPacketUtc = DateTime.UtcNow;
-            Feed(payload);
+            Feed(srcIp, srcPort, payload, utc, recorded);
         }
     }
 
-    private void Connect(string ip, int port)
+    private void LoseConnection()
+    {
+        Log?.Invoke("Server connection lost — back to searching (web view kept).");
+        _detector.Reset();
+        SetState(SnifferState.Sniffing);
+    }
+
+    private void Connect(string ip, int port, DateTime utc)
     {
         if (ip != _lastServerIp || port != _lastServerPort)
         {
@@ -125,15 +152,16 @@ public sealed class Engine
         _lastServerIp = ip;
         _lastServerPort = port;
         _lastPacketUtc = DateTime.UtcNow;
+        _lastServerPacketAt = utc;
         Matrix.ServerLabel = $"{ip}:{port}";
         SetState(SnifferState.Connected);
 
         // Replay the buffered packets from this server through the decoder, in
         // order, so nothing emitted before the lock is lost (stage name, run 1).
-        foreach (var (bufferedIp, bufferedPort, bufferedPayload) in _preBuffer)
+        foreach (var (bufferedIp, bufferedPort, bufferedPayload, bufferedUtc, bufferedRecorded) in _preBuffer)
         {
             if (bufferedIp == ip && bufferedPort == port)
-                Feed(bufferedPayload);
+                Feed(bufferedIp, bufferedPort, bufferedPayload, bufferedUtc, bufferedRecorded);
         }
 
         _preBuffer.Clear();
@@ -147,15 +175,17 @@ public sealed class Engine
             if (State == SnifferState.Connected
                 && (DateTime.UtcNow - _lastPacketUtc).TotalSeconds > ConnectTimeoutSec)
             {
-                Log?.Invoke("Server connection lost — back to searching (web view kept).");
-                _detector.Reset();
-                SetState(SnifferState.Sniffing);
+                LoseConnection();
             }
         }
     }
 
-    private void Feed(byte[] payload)
+    private void Feed(string ip, int port, byte[] payload, DateTime utc, bool recorded)
     {
+        _lastServerPacketAt = utc;
+        Matrix.SetPacketTime(utc, recorded);
+        Fed?.Invoke(ip, port, payload, utc);
+
         // Structural decode of this packet's replicated properties. Guarded: this
         // runs on the packet thread (sniffer callback), so a throw on a malformed
         // packet must not kill the feed — the packet is simply skipped.
@@ -571,6 +601,7 @@ public sealed class Engine
             if (keepIdentity) Matrix.ResetKeepIdentity();
             else Matrix.Reset();
             ResetRunState(keepIdentity);
+            ResetDone?.Invoke();
         }
         Log?.Invoke(keepIdentity ? "Manual reset (identities kept)." : "Manual reset.");
     }
