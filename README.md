@@ -182,7 +182,8 @@ being run; below: the same session once it is over, on each tab.</sub>
   10 % steps). Resize to zoom them, then float them straight over the game as an
   on-screen overlay while you race. For OBS, capture them as **Browser Sources**
   instead — the *Overlays* panel has a *Copy OBS source URL* button per widget (see
-  [Streaming with OBS](#streaming-with-obs)). (Start the local web server first —
+  [Streaming with OBS](#streaming-with-obs)); a streamer who does not run the app
+  copies them from the public link's gear panel. (Start the local web server first —
   overlays load from it. A borderless / windowed-fullscreen game is required for a
   desktop overlay to sit on top; exclusive fullscreen can't be covered.) Each
   overlay stays where you put it, even when a fullscreen game in another resolution
@@ -396,6 +397,16 @@ server has to be running.
 The copied URL carries the widget's background opacity (`?bg=`, from the Overlays
 panel — `bg=0` is fully transparent). Nation flags load from the internet.
 
+### Streaming without running the app
+
+A streamer in the lobby can show the widgets without running the app: once the host
+has clicked **Publish**, open the public link, click the **gear** button, set the
+background opacity and click **Copy classification URL** or **Copy progress URL**,
+then add it in OBS as above. The widget shows the host's setup, not the gear panel's
+own settings. The public link changes every time the host publishes it again (a new
+Cloudflare quick tunnel), so the URL in OBS has to be replaced too. On the LAN, the
+same panel gives the LAN address.
+
 ## Posting to Discord
 
 The Discord panel posts to any channel through a **webhook** — no bot to install, no
@@ -504,7 +515,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*) of the driver's own car, exact to the ms, streamed live; the game's per-driver session result then confirms it or overrides it (DNF/DQ) |
 | DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; the replicated results' retirement and disqualification flags are decoded too, so even a zero-split quit is listed as DNF and a disqualification stands even after the line |
 | Live stage progression | ✅ horizontal track above the board, fixed range behind the leader by default (leader↔tail auto-fit as an option); markers named at spawn (PlayerState identity block), first-split fallback — can be partial during the first stage after lock-on |
-| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config |
+| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config; the OBS widget URLs to copy |
 | Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names; independent per-rally classification and championship points, shared with every viewer |
 | Result exports | ✅ copy / CSV / PNG buttons on the page; host-side Discord webhook (live alert, standings board, rally results) |
 | Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header |

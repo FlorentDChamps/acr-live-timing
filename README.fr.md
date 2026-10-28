@@ -200,8 +200,9 @@ chaque onglet.</sub>
   et **opacité du fond** (par pas de 10 %). Redimensionner = zoomer, puis posez-les
   directement par-dessus le jeu en overlay à l'écran pendant que vous roulez. Pour
   OBS, capturez-les plutôt en **Browser Source** — le panneau *Overlays* a un bouton
-  *Copy OBS source URL* par widget (voir [Capture avec OBS](#capture-avec-obs)).
-  (Lancez d'abord le serveur web local — les overlays s'y chargent. Un jeu en fenêtré /
+  *Copy OBS source URL* par widget (voir [Capture avec OBS](#capture-avec-obs)) ;
+  un streamer qui ne lance pas l'outil les copie depuis la roue crantée du lien
+  public. (Lancez d'abord le serveur web local — les overlays s'y chargent. Un jeu en fenêtré /
   plein écran fenêtré est requis pour qu'un overlay bureau passe devant ; le plein
   écran exclusif ne peut pas être recouvert.) Chaque overlay reste là où vous l'avez
   placé, même quand un jeu plein écran dans une autre résolution que le bureau (jeu
@@ -437,6 +438,17 @@ doit tourner.
 L'URL copiée embarque l'opacité du fond du widget (`?bg=`, depuis le panneau *Overlays*
 — `bg=0` = totalement transparent). Les drapeaux se chargent depuis internet.
 
+### Streamer sans lancer l'outil
+
+Un streamer du lobby peut afficher les widgets sans lancer l'outil : une fois que
+l'hôte a cliqué **Publish**, ouvrez le lien public, cliquez la **roue crantée**,
+réglez l'opacité du fond et cliquez **Copy classification URL** ou
+**Copy progress URL**, puis ajoutez-la dans OBS comme ci-dessus. Le widget affiche
+la configuration de l'hôte, pas les réglages du panneau de la roue crantée. Le lien
+public change à chaque nouvelle publication par l'hôte (nouveau tunnel rapide
+Cloudflare) : l'URL dans OBS doit alors être remplacée aussi. En réseau local, le
+même panneau donne l'adresse locale.
+
 ## Publier sur Discord
 
 Le panneau Discord poste dans n'importe quel salon via un **webhook** — aucun bot à
@@ -550,7 +562,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*) de la voiture du pilote lui-même, exacte à la ms, streamée en direct ; le résultat de session du jeu, par pilote, la confirme ensuite ou l'annule (DNF/DQ) |
 | Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; les drapeaux d'abandon et de disqualification des résultats répliqués sont décodés aussi, donc même un abandon à zéro split est listé DNF et une disqualification tient même après la ligne |
 | Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
-| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic |
+| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic ; les URL des widgets OBS à copier |
 | Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
 | Exports de résultats | ✅ boutons copie / CSV / PNG sur la page ; webhook Discord côté hôte (alerte live, tableau des points, résultats de rallye) |
 | Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page |

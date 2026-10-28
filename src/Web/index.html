@@ -405,12 +405,18 @@
               border-radius: 8px; font: inherit; }
   #cfgreset:hover:not(:disabled) { border-color: var(--sub); color: var(--sub); }
   #cfgreset:disabled { opacity: .45; cursor: default; color: var(--dim); }
+  #obssec { margin-top: 12px; }
+  .cfgurl { width: 100%; box-sizing: border-box; background: var(--bg); color: var(--txt);
+            border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
+            font: inherit; font-size: 11px; }
   body.overlay #cfgbtn, body.overlay #themebtn, body.overlay #cfgpanel { display: none !important; }
   body.view-classification .groupfilter { display: none !important; }
   /* A browser-saved page is a static final result: live status, current stage
      and the live progression have no useful meaning once it is offline. */
   body.saved-page #connectionstatus, body.saved-page .stagebar,
   body.saved-page .progwrap { display: none !important; }
+  /* a saved page has no server behind it to load a widget from */
+  body.saved-page #obssec { display: none !important; }
 
   /* narrow screens (phones): shrink columns, tighten spacing, drop Diff 1st so
      the pinned block (#, Driver, Total) stays within the viewport. Scoped to the
@@ -475,6 +481,20 @@
     </div>
     </div>
     <button id="cfgreset" disabled>Reset to host config</button>
+    <div class="cfgsec" id="obssec">
+      <h3>Stream overlay (OBS)</h3>
+      <p class="cfgnote">Copy a widget's URL and paste it in an OBS <em>Browser</em> source.
+        It shows the host's setup, not the settings above. A new link from the host
+        means a new URL.</p>
+      <div class="cfgrow" title="Background opacity of the widget: 0 is fully transparent.">
+        <label for="obsBg">Background opacity %</label>
+        <input type="number" id="obsBg" min="0" max="100" step="5" value="80" /></div>
+      <div class="cfgactions">
+        <button type="button" id="obsCopyClassification">Copy classification URL</button>
+        <button type="button" id="obsCopyProgress">Copy progress URL</button>
+      </div>
+      <input type="text" id="obsUrl" class="cfgurl" readonly hidden aria-label="Overlay URL" />
+    </div>
   </div>
   <main class="page-content" id="pageContent">
   <header>
@@ -1297,6 +1317,38 @@ function initPanel() {
     groupSelection.clear(); seenStageIds.clear(); sortKey = "total";
     reRender();
   });
+  initObsLinks();
+}
+
+// Stream overlay URLs, built from the address this page was opened at: the public
+// link for a streamer who does not run the app, the LAN address on the network.
+// The URL stays shown and selected, to copy by hand where the clipboard is refused.
+function initObsLinks() {
+  const bg = document.getElementById("obsBg"), box = document.getElementById("obsUrl");
+  const flash = (button, text) => {
+    button.dataset.label ??= button.textContent;
+    button.textContent = text;
+    clearTimeout(button.flashTimer);
+    button.flashTimer = setTimeout(() => { button.textContent = button.dataset.label; }, 1400);
+  };
+  const copy = async (view, button) => {
+    const n = Math.round(parseFloat(bg.value));
+    const opacity = isNaN(n) ? 80 : Math.max(0, Math.min(100, n));
+    const url = `${location.origin}/?view=${view}&bg=${opacity}`;
+    box.value = url; box.hidden = false;
+    try {
+      await copyText(url);
+      flash(button, "✓ Copied");
+    } catch {
+      box.focus(); box.select();
+      flash(button, "Press Ctrl+C");
+    }
+  };
+  document.getElementById("obsCopyClassification")
+    .addEventListener("click", e => copy("classification", e.currentTarget));
+  document.getElementById("obsCopyProgress")
+    .addEventListener("click", e => copy("progress", e.currentTarget));
+  box.addEventListener("focus", () => box.select());
 }
 const collapsedGroups = new Set();
 function buildStages(v) {
