@@ -20,6 +20,9 @@ public class ContentCatalogTests
         Assert.Equal("Vallée de Munster Montée", ContentCatalog.StageName("AlsaceS2MunsterFullForward"));
         Assert.Equal("Hyundai i20 Rally2", ContentCatalog.CarName("Hyundaii20NRally2"));
         Assert.Equal("Hyundai i20 Rally2", ContentCatalog.CarName("HyundaiI20NRally2"));
+        Assert.Equal("Vargåsvägen East", ContentCatalog.StageName("SwedenS1VargasenCut1Forward"));
+        Assert.Equal("swedens3fredriksberg", ContentCatalog.TrackOfRoute("SwedenS3FredriksbergCut2Reverse"));
+        Assert.Equal("Lancia Delta S4", ContentCatalog.CarName("LanciaDeltaS4"));
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "gameVersion": "0.6.0",
+  "gameVersion": "0.7.0",
   "locations": [
     {
       "id": "alsace",
@@ -53,6 +53,17 @@
       "surfaces": {
         "gravel": 79,
         "tarmac": 21
+      }
+    },
+    {
+      "id": "sweden",
+      "name": "Sweden",
+      "labels": {
+        "fr": "Suède"
+      },
+      "country": "se",
+      "surfaces": {
+        "snow": 100
       }
     }
   ],
@@ -120,6 +131,16 @@
       "id": "greeces4loutraki",
       "location": "greece",
       "name": "Loutraki"
+    },
+    {
+      "id": "swedens1vargasen",
+      "location": "sweden",
+      "name": "Vargåsen"
+    },
+    {
+      "id": "swedens3fredriksberg",
+      "location": "sweden",
+      "name": "Fredriksberg"
     }
   ],
   "stages": [
@@ -469,6 +490,123 @@
         "fr": "Aghii Theodori inversé"
       },
       "lengthKm": 5.7
+    },
+    {
+      "id": "swedens1vargasenfullforward",
+      "track": "swedens1vargasen",
+      "name": "Vargåsvägen",
+      "lengthKm": 18.8
+    },
+    {
+      "id": "swedens1vargasenfullreverse",
+      "track": "swedens1vargasen",
+      "name": "Ransbysätter",
+      "lengthKm": 18.8
+    },
+    {
+      "id": "swedens1vargasencut1forward",
+      "track": "swedens1vargasen",
+      "name": "Vargåsvägen East",
+      "labels": {
+        "fr": "Vargåsvägen Est"
+      },
+      "lengthKm": 12.2
+    },
+    {
+      "id": "swedens1vargasencut1reverse",
+      "track": "swedens1vargasen",
+      "name": "Ransbysätter East",
+      "labels": {
+        "fr": "Ransbysätter Est"
+      },
+      "lengthKm": 12.1
+    },
+    {
+      "id": "swedens1vargasencut2forward",
+      "track": "swedens1vargasen",
+      "name": "Vargåsvägen West",
+      "labels": {
+        "fr": "Vargåsvägen Ouest"
+      },
+      "lengthKm": 11.9
+    },
+    {
+      "id": "swedens1vargasencut2reverse",
+      "track": "swedens1vargasen",
+      "name": "Ransbysätter West",
+      "labels": {
+        "fr": "Ransbysätter Ouest"
+      },
+      "lengthKm": 12.1
+    },
+    {
+      "id": "swedens1vargasencut3forward",
+      "track": "swedens1vargasen",
+      "name": "Vargåsvägen South",
+      "labels": {
+        "fr": "Vargåsvägen Sud"
+      },
+      "lengthKm": 10.6
+    },
+    {
+      "id": "swedens1vargasencut3reverse",
+      "track": "swedens1vargasen",
+      "name": "Ransbysätter South",
+      "labels": {
+        "fr": "Ransbysätter Sud"
+      },
+      "lengthKm": 10.6
+    },
+    {
+      "id": "swedens3fredriksbergfullforward",
+      "track": "swedens3fredriksberg",
+      "name": "Yxtjärnshöjden",
+      "lengthKm": 12.2
+    },
+    {
+      "id": "swedens3fredriksbergfullreverse",
+      "track": "swedens3fredriksberg",
+      "name": "Gravendal",
+      "lengthKm": 12.2
+    },
+    {
+      "id": "swedens3fredriksbergcut1forward",
+      "track": "swedens3fredriksberg",
+      "name": "Yxtjärnshöjden West",
+      "labels": {
+        "fr": "Yxtjärnshöjden Ouest"
+      },
+      "lengthKm": 7.2
+    },
+    {
+      "id": "swedens3fredriksbergcut1reverse",
+      "track": "swedens3fredriksberg",
+      "name": "Gravendal West",
+      "labels": {
+        "fr": "Gravendal Ouest"
+      },
+      "lengthKm": 7.2,
+      "aliases": [
+        "swedens3fredriksbergcu1reverse"
+      ]
+    },
+    {
+      "id": "swedens3fredriksbergcut2forward",
+      "track": "swedens3fredriksberg",
+      "name": "Yxtjärnshöjden East",
+      "labels": {
+        "fr": "Yxtjärnshöjden Est"
+      },
+      "lengthKm": 6.7
+    },
+    {
+      "id": "swedens3fredriksbergcut2reverse",
+      "track": "swedens3fredriksberg",
+      "name": "Gravendal East",
+      "labels": {
+        "fr": "Gravendal Est"
+      },
+      "lengthKm": 6.6
     }
   ],
   "surfaces": [
@@ -517,7 +655,10 @@
       "name": "Lancia Rally 037 Evoluzione 2",
       "class": "b2",
       "group": "groupb",
-      "drivetrain": "RWD"
+      "drivetrain": "RWD",
+      "aliases": [
+        "lancia037"
+      ]
     },
     {
       "id": "hyundaii20nrally2",
@@ -573,7 +714,10 @@
       "name": "Fiat 124 Abarth Rally 16V",
       "class": "h2",
       "group": "group24",
-      "drivetrain": "RWD"
+      "drivetrain": "RWD",
+      "aliases": [
+        "fiatabarth124rally"
+      ]
     },
     {
       "id": "alpinea110",
@@ -589,7 +733,10 @@
       "name": "Lancia Fulvia Coupé HF",
       "class": "h3",
       "group": "group24",
-      "drivetrain": "FWD"
+      "drivetrain": "FWD",
+      "aliases": [
+        "lanciafulviacoupehf16"
+      ]
     },
     {
       "id": "skodafabiarsrally2",
@@ -605,7 +752,10 @@
       "name": "Peugeot 306 II Maxi",
       "class": "k11",
       "group": "groupa",
-      "drivetrain": "FWD"
+      "drivetrain": "FWD",
+      "aliases": [
+        "peugeot306iimaxikit"
+      ]
     },
     {
       "id": "subaruimprezas3",
@@ -637,6 +787,28 @@
       "name": "Peugeot 206 WRC",
       "class": "wr20evo1",
       "group": "groupwr",
+      "drivetrain": "4WD",
+      "aliases": [
+        "peugeot206wrc"
+      ]
+    },
+    {
+      "id": "lanciadeltas4",
+      "manufacturer": "Lancia",
+      "name": "Lancia Delta S4",
+      "class": "b1",
+      "group": "groupb",
+      "drivetrain": "4WD",
+      "aliases": [
+        "lanciadeltas4groupb"
+      ]
+    },
+    {
+      "id": "lanciadeltas4evo2",
+      "manufacturer": "Lancia",
+      "name": "Lancia Delta S4 Evo2 Italtecnica",
+      "class": "s",
+      "group": "groups",
       "drivetrain": "4WD"
     }
   ],
@@ -692,9 +864,19 @@
       "name": "WR Evo1"
     },
     {
+      "id": "b1",
+      "group": "groupb",
+      "name": "B1"
+    },
+    {
       "id": "b2",
       "group": "groupb",
       "name": "B2"
+    },
+    {
+      "id": "s",
+      "group": "groups",
+      "name": "S"
     }
   ],
   "groups": [
@@ -731,6 +913,13 @@
       "name": "Group B",
       "labels": {
         "fr": "Groupe B"
+      }
+    },
+    {
+      "id": "groups",
+      "name": "Group S",
+      "labels": {
+        "fr": "Groupe S"
       }
     }
   ],
@@ -2711,6 +2900,4070 @@
         "zimbabwe",
         "zimbawe"
       ]
+    }
+  ],
+  "challengeGroups": [
+    {
+      "id": "Location_Saverne",
+      "kind": "sites",
+      "name": "Découvrez Saverne",
+      "shortName": "Saverne",
+      "labels": {
+        "en": "Discover Saverne"
+      },
+      "shortLabels": {
+        "en": "Saverne"
+      }
+    },
+    {
+      "id": "Location_HafrenSouth",
+      "kind": "sites",
+      "name": "Découvrez Hafren South",
+      "shortName": "Hafren South",
+      "labels": {
+        "en": "Discover Hafren South"
+      },
+      "shortLabels": {
+        "en": "Hafren South"
+      }
+    },
+    {
+      "id": "Location_HafrenNorth",
+      "kind": "sites",
+      "name": "Découvrez Hafren North",
+      "shortName": "Hafren North",
+      "labels": {
+        "en": "Discover Hafren North"
+      },
+      "shortLabels": {
+        "en": "Hafren North"
+      }
+    },
+    {
+      "id": "Location_Munster",
+      "kind": "sites",
+      "name": "Découvrez la vallée de Munster",
+      "shortName": "Vallée de Munster",
+      "labels": {
+        "en": "Discover Vallée de Munster"
+      },
+      "shortLabels": {
+        "en": "Vallée de Munster"
+      }
+    },
+    {
+      "id": "Location_Livigno",
+      "kind": "sites",
+      "name": "Découvrez Livigno",
+      "shortName": "Livigno",
+      "labels": {
+        "en": "Discover Livigno"
+      },
+      "shortLabels": {
+        "en": "Livigno"
+      }
+    },
+    {
+      "id": "Location_Sisteron",
+      "kind": "sites",
+      "name": "Découvrez Sisteron",
+      "shortName": "Sisteron",
+      "labels": {
+        "en": "Discover Sisteron"
+      },
+      "shortLabels": {
+        "en": "Sisteron"
+      }
+    },
+    {
+      "id": "Location_Bollene",
+      "kind": "sites",
+      "name": "Découvrir le col de Turini",
+      "shortName": "Col de Turini",
+      "labels": {
+        "en": "Discover Col de Turini"
+      },
+      "shortLabels": {
+        "en": "Col de Turini"
+      }
+    },
+    {
+      "id": "Location_Elatia",
+      "kind": "sites",
+      "name": "Découvrir Elatia",
+      "shortName": "Elatia",
+      "labels": {
+        "en": "Discover Elatia"
+      },
+      "shortLabels": {
+        "en": "Elatia"
+      }
+    },
+    {
+      "id": "Location_Loutraki",
+      "kind": "sites",
+      "name": "Découvrir Loutraki",
+      "shortName": "Loutraki",
+      "labels": {
+        "en": "Discover Loutraki"
+      },
+      "shortLabels": {
+        "en": "Loutraki"
+      }
+    },
+    {
+      "id": "Car_MiniCooperS",
+      "kind": "voitures",
+      "name": "La Mini Cooper S",
+      "shortName": "La Cooper S",
+      "labels": {
+        "en": "The Mini Cooper S"
+      },
+      "shortLabels": {
+        "en": "The Cooper S"
+      }
+    },
+    {
+      "id": "Car_FulviaCoupeHF",
+      "kind": "voitures",
+      "name": "La Lancia Fulvia Coupé HF",
+      "shortName": "La Fulvia Coupé HF",
+      "labels": {
+        "en": "The Lancia Fulvia Coupé HF"
+      },
+      "shortLabels": {
+        "en": "The Fulvia Coupé HF"
+      }
+    },
+    {
+      "id": "Car_Fiat124Abarth",
+      "kind": "voitures",
+      "name": "La Fiat 124 Abarth Rally 16V",
+      "shortName": "La 124 Abarth",
+      "labels": {
+        "en": "The Fiat 124 Abarth Rally 16V"
+      },
+      "shortLabels": {
+        "en": "The 124 Abarth"
+      }
+    },
+    {
+      "id": "Car_Peugeot208Rally4",
+      "kind": "voitures",
+      "name": "La Peugeot 208 Rally4",
+      "shortName": "La 208 Rally4",
+      "labels": {
+        "en": "The Peugeot 208 Rally4"
+      },
+      "shortLabels": {
+        "en": "The 208 Rally4"
+      }
+    },
+    {
+      "id": "Car_AlfaRomeoGTA1300",
+      "kind": "voitures",
+      "name": "L'Alfa Romeo GTA 1300 Junior",
+      "shortName": "La GTA 1300 Junior",
+      "labels": {
+        "en": "The Alfa Romeo GTA 1300 Junior"
+      },
+      "shortLabels": {
+        "en": "The GTA 1300 Junior"
+      }
+    },
+    {
+      "id": "Car_AlpineA110",
+      "kind": "voitures",
+      "name": "L'Alpine A110 1.8",
+      "shortName": "L'A110 1.8",
+      "labels": {
+        "en": "The Alpine A110 1.8"
+      },
+      "shortLabels": {
+        "en": "The A110 1.8"
+      }
+    },
+    {
+      "id": "Car_HyundaiI20NRally2",
+      "kind": "voitures",
+      "name": "La Hyundai i20 Rally2",
+      "shortName": "La i20 Rally2",
+      "labels": {
+        "en": "The Hyundai i20 Rally2"
+      },
+      "shortLabels": {
+        "en": "The i20 Rally2"
+      }
+    },
+    {
+      "id": "Car_LanciaDeltaIntegraleEvo",
+      "kind": "voitures",
+      "name": "La Lancia Delta Integrale Evo",
+      "shortName": "La Delta Integrale",
+      "labels": {
+        "en": "The Lancia Delta Integrale Evo"
+      },
+      "shortLabels": {
+        "en": "The Delta Integrale"
+      }
+    },
+    {
+      "id": "Car_Fiat131Abarth",
+      "kind": "voitures",
+      "name": "La Fiat 131 Abarth",
+      "shortName": "La 131 Abarth",
+      "labels": {
+        "en": "The Fiat 131 Abarth"
+      },
+      "shortLabels": {
+        "en": "The 131 Abarth"
+      }
+    },
+    {
+      "id": "Car_LanciaStratosHF",
+      "kind": "voitures",
+      "name": "La Lancia Stratos HF",
+      "shortName": "La Stratos HF",
+      "labels": {
+        "en": "The Lancia Stratos HF"
+      },
+      "shortLabels": {
+        "en": "The Stratos HF"
+      }
+    },
+    {
+      "id": "Car_CitroenXsaraWRC",
+      "kind": "voitures",
+      "name": "La Citroën Xsara WRC",
+      "shortName": "La Xsara WRC",
+      "labels": {
+        "en": "The Citroën Xsara WRC"
+      },
+      "shortLabels": {
+        "en": "The Xsara WRC"
+      }
+    },
+    {
+      "id": "Car_Lancia037Evo2",
+      "kind": "voitures",
+      "name": "La Lancia Rally 037 Evoluzione 2",
+      "shortName": "La 037 Evoluzione 2",
+      "labels": {
+        "en": "The Lancia Rally 037 Evoluzione 2"
+      },
+      "shortLabels": {
+        "en": "The 037 Evoluzione 2"
+      }
+    },
+    {
+      "id": "Car_SkodaFabiaRSRally2",
+      "kind": "voitures",
+      "name": "La Škoda Fabia RS Rally2",
+      "shortName": "La Fabia RS Rally2",
+      "labels": {
+        "en": "The Škoda Fabia RS Rally2"
+      },
+      "shortLabels": {
+        "en": "The Fabia RS Rally2"
+      }
+    },
+    {
+      "id": "Car_Peugeot306IIMaxi",
+      "kind": "voitures",
+      "name": "La Peugeot 306 II Maxi",
+      "shortName": "La 306 II Maxi",
+      "labels": {
+        "en": "The Peugeot 306 II Maxi"
+      },
+      "shortLabels": {
+        "en": "The 306 II Maxi"
+      }
+    },
+    {
+      "id": "Car_SubaruImpresaS3",
+      "kind": "voitures",
+      "name": "La Subaru Impreza S3",
+      "shortName": "L'Impreza S3",
+      "labels": {
+        "en": "The Subaru Impreza S3"
+      },
+      "shortLabels": {
+        "en": "The Impreza S3"
+      }
+    },
+    {
+      "id": "Car_VWPoloGTIR5",
+      "kind": "voitures",
+      "name": "La Volkswagen Polo GTI R5",
+      "shortName": "La Polo GTI R5",
+      "labels": {
+        "en": "The Volkswagen Polo GTI R5"
+      },
+      "shortLabels": {
+        "en": "The Polo GTI R5"
+      }
+    },
+    {
+      "id": "Car_Peugeot206",
+      "kind": "voitures",
+      "name": "La Peugeot 206 WRC",
+      "shortName": "La 206 WRC",
+      "labels": {
+        "en": "The Peugeot 206 WRC"
+      },
+      "shortLabels": {
+        "en": "The 206 WRC"
+      }
+    },
+    {
+      "id": "Car_AudiQuattroGr4",
+      "kind": "voitures",
+      "name": "L’Audi Quattro Gr.4",
+      "shortName": "La Quattro Gr.4",
+      "labels": {
+        "en": "The Audi Quattro Gr.4"
+      },
+      "shortLabels": {
+        "en": "The Quattro Gr.4"
+      }
+    },
+    {
+      "id": "Rally_FWD",
+      "kind": "rallye",
+      "name": "Défis d'adhérence 2x4 avant",
+      "shortName": "Adhérence 2x4 avant",
+      "labels": {
+        "en": "FWD Traction Challenges"
+      },
+      "shortLabels": {
+        "en": "FWD Traction"
+      }
+    },
+    {
+      "id": "Rally_RWD",
+      "kind": "rallye",
+      "name": "Défis d'adhérence 2x4 arrière",
+      "shortName": "Adhérence 2x4 arrière",
+      "labels": {
+        "en": "RWD Traction Challenges"
+      },
+      "shortLabels": {
+        "en": "RWD Traction"
+      }
+    },
+    {
+      "id": "Rally_4WD",
+      "kind": "rallye",
+      "name": "Défis d'adhérence pour intégrales",
+      "shortName": "Défis d'adhérence 4x4",
+      "labels": {
+        "en": "4WD Traction Challenges"
+      },
+      "shortLabels": {
+        "en": "4WD Traction"
+      }
+    },
+    {
+      "id": "FIA_2026",
+      "kind": "rallye",
+      "name": "FIA Esports Global Rally Tour",
+      "shortName": "FIA Esports Global Rally Tour",
+      "labels": {
+        "en": "FIA Esports Global Rally Tour"
+      },
+      "shortLabels": {
+        "en": "FIA Esports Global Rally Tour"
+      }
+    }
+  ],
+  "challenges": [
+    {
+      "id": "Saverne_PART1_F",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Forêt de Saverne : partie I",
+      "labels": {
+        "en": "Forêt de Saverne Part I"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "19:00",
+      "gold": 157,
+      "silver": 181,
+      "bronze": 203
+    },
+    {
+      "id": "Saverne_Full_F",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Forêt de Saverne : intégralité",
+      "labels": {
+        "en": "Forêt de Saverne Complete"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 292,
+      "silver": 337,
+      "bronze": 379
+    },
+    {
+      "id": "Saverne_Full_F_Night",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Forêt de Saverne : nuit",
+      "labels": {
+        "en": "Forêt de Saverne At night"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 295,
+      "silver": 340,
+      "bronze": 384
+    },
+    {
+      "id": "Saverne_Full_F_Rain",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Forêt de Saverne : pluie",
+      "labels": {
+        "en": "Forêt de Saverne with rain"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "peugeot208rally4",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 346,
+      "silver": 396,
+      "bronze": 465
+    },
+    {
+      "id": "Saverne_Full_F_SS",
+      "group": "Location_Saverne",
+      "type": "position",
+      "name": "Forêt de Saverne : étape spéciale",
+      "labels": {
+        "en": "Forêt de Saverne Special stage"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "17:00"
+    },
+    {
+      "id": "Saverne_Full_F_Snow",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Forêt de Saverne sous la neige",
+      "labels": {
+        "en": "Forêt de Saverne with Snow"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "peugeot208rally4",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 327,
+      "silver": 375,
+      "bronze": 440
+    },
+    {
+      "id": "Saverne_PART1_R",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Steigenbach : partie I",
+      "labels": {
+        "en": "Steigenbach Part I"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 173,
+      "silver": 199,
+      "bronze": 224
+    },
+    {
+      "id": "Saverne_Full_R",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Steigenbach : intégralité",
+      "labels": {
+        "en": "Steigenbach Complete"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 315,
+      "silver": 363,
+      "bronze": 408
+    },
+    {
+      "id": "Saverne_Full_R_Night",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Steigenbach : nuit",
+      "labels": {
+        "en": "Steigenbach At night"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 318,
+      "silver": 366,
+      "bronze": 414
+    },
+    {
+      "id": "Saverne_Full_R_Rain",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Steigenbach : pluie",
+      "labels": {
+        "en": "Steigenbach with rain"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "heavyrain",
+      "startTime": "18:00",
+      "gold": 373,
+      "silver": 427,
+      "bronze": 501
+    },
+    {
+      "id": "Saverne_Full_R_SS",
+      "group": "Location_Saverne",
+      "type": "position",
+      "name": "Steigenbach : étape spéciale",
+      "labels": {
+        "en": "Steigenbach Special Stage"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "12:00"
+    },
+    {
+      "id": "Saverne_Full_R_Snow",
+      "group": "Location_Saverne",
+      "type": "time",
+      "name": "Steigenbach sous la neige",
+      "labels": {
+        "en": "Steigenbach with Snow"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 353,
+      "silver": 404,
+      "bronze": 474
+    },
+    {
+      "id": "HafrenSouth_Full_R",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Severn - Afon Bidno : intégralité",
+      "labels": {
+        "en": "Severn - Afon Bidno Complete"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "09:00",
+      "gold": 189,
+      "silver": 218,
+      "bronze": 245
+    },
+    {
+      "id": "HafrenSouth_Full_R_Night",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Severn - Afon Bidno : nuit",
+      "labels": {
+        "en": "Severn - Afon at Night"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 190,
+      "silver": 219,
+      "bronze": 248
+    },
+    {
+      "id": "HafrenSouth_Full_R_Rain",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Severn - Afon Bidno : pluie",
+      "labels": {
+        "en": "Severn - Afon with Rain"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "heavyrain",
+      "startTime": "13:00",
+      "gold": 211,
+      "silver": 244,
+      "bronze": 274
+    },
+    {
+      "id": "HafrenSouth_Full_R_SS",
+      "group": "Location_HafrenSouth",
+      "type": "position",
+      "name": "Severn - Afon Bidno : étape spéciale",
+      "labels": {
+        "en": "Severn - Afon Special Stage"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "15:00"
+    },
+    {
+      "id": "HafrenSouth_Full_R_Snow",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Afon Bidno - Severn sous la neige",
+      "labels": {
+        "en": "Afon Bidno - Severn with Snow"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 211,
+      "silver": 242,
+      "bronze": 284
+    },
+    {
+      "id": "HafrenSouth_Full_F",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Afon Bidno - Severn : intégralité",
+      "labels": {
+        "en": "Afon Bidno - Severn Complete"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 215,
+      "silver": 248,
+      "bronze": 279
+    },
+    {
+      "id": "HafrenSouth_Full_F_Night",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Afon Bidno - Severn : nuit",
+      "labels": {
+        "en": "Afon Bidno - Severn at Night"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 217,
+      "silver": 250,
+      "bronze": 283
+    },
+    {
+      "id": "HafrenSouth_Full_F_Rain",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Afon Bidno - Severn : pluie",
+      "labels": {
+        "en": "Afon Bidno - Severn with Rain"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "minicoopers1275",
+      "weather": "heavyrain",
+      "startTime": "10:00",
+      "gold": 245,
+      "silver": 283,
+      "bronze": 318
+    },
+    {
+      "id": "HafrenSouth_Full_F_SS",
+      "group": "Location_HafrenSouth",
+      "type": "position",
+      "name": "Afon Bidno - Severn : étape spéciale",
+      "labels": {
+        "en": "Afon Bidno - Severn Special Stage"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "16:30"
+    },
+    {
+      "id": "HafrenSouth_Full_F_Snow",
+      "group": "Location_HafrenSouth",
+      "type": "time",
+      "name": "Severn - Afon sous la neige",
+      "labels": {
+        "en": "Severn - Afon with Snow"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "minicoopers1275",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 241,
+      "silver": 276,
+      "bronze": 324
+    },
+    {
+      "id": "HafrenNorth_PART1_F",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Cwmbiga - Afon Biga : partie I",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga Part I"
+      },
+      "stage": "weless3hafrennorthcut1forward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 255,
+      "silver": 295,
+      "bronze": 331
+    },
+    {
+      "id": "HafrenNorth_PART2_F",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Cwmbiga - Afon Biga : partie II",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga Part II"
+      },
+      "stage": "weless3hafrennorthcut2forward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "13:00",
+      "gold": 227,
+      "silver": 261,
+      "bronze": 294
+    },
+    {
+      "id": "HafrenNorth_Full_F",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Cwmbiga - Afon Biga : intégralité",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga Complete"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 475,
+      "silver": 548,
+      "bronze": 617
+    },
+    {
+      "id": "HafrenNorth_Full_F_Night",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Cwmbiga - Afon Biga : nuit",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga at Night"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 480,
+      "silver": 553,
+      "bronze": 626
+    },
+    {
+      "id": "HafrenNorth_Full_F_Rain",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Cwmbiga - Afon Biga : pluie",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga with Rain"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "fiat131abarth",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 542,
+      "silver": 625,
+      "bronze": 703
+    },
+    {
+      "id": "HafrenNorth_Full_F_SS",
+      "group": "Location_HafrenNorth",
+      "type": "position",
+      "name": "Cwmbiga - Afon Biga : étape spéciale",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga Special Stage"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "13:00"
+    },
+    {
+      "id": "HafrenNorth_Full_F_Snow",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Cwmbiga - Afon Biga sous la neige",
+      "labels": {
+        "en": "Cwmbiga - Afon Biga with Snow"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "fiat131abarth",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 533,
+      "silver": 610,
+      "bronze": 716
+    },
+    {
+      "id": "HafrenNorth_PART1_R",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Afon Biga - Cwmbiga : partie I",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga Part I"
+      },
+      "stage": "weless3hafrennorthcut2reverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "08:50",
+      "gold": 214,
+      "silver": 246,
+      "bronze": 277
+    },
+    {
+      "id": "HafrenNorth_PART2_R",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Afon Biga - Cwmbiga : partie II",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga Part II"
+      },
+      "stage": "weless3hafrennorthcut1reverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "14:00",
+      "gold": 235,
+      "silver": 271,
+      "bronze": 305
+    },
+    {
+      "id": "HafrenNorth_Full_R",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Afon Biga - Cwmbiga : intégralité",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga Complete"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 437,
+      "silver": 504,
+      "bronze": 567
+    },
+    {
+      "id": "HafrenNorth_Full_R_Night",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Afon Biga - Cwmbiga : nuit",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga at Night"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 441,
+      "silver": 508,
+      "bronze": 575
+    },
+    {
+      "id": "HafrenNorth_Full_R_Rain",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Afon Biga - Cwmbiga : pluie",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga with Rain"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "heavyrain",
+      "startTime": "10:00",
+      "gold": 489,
+      "silver": 564,
+      "bronze": 634
+    },
+    {
+      "id": "HafrenNorth_Full_R_SS",
+      "group": "Location_HafrenNorth",
+      "type": "position",
+      "name": "Afon Biga - Cwmbiga : étape spéciale",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga Special Stage"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "14:30"
+    },
+    {
+      "id": "HafrenNorth_Full_R_Snow",
+      "group": "Location_HafrenNorth",
+      "type": "time",
+      "name": "Afon Biga - Cwmbiga sous la neige",
+      "labels": {
+        "en": "Afon Biga - Cwmbiga with Snow"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 489,
+      "silver": 560,
+      "bronze": 658
+    },
+    {
+      "id": "Munster_PART1_R",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Descente : partie I",
+      "labels": {
+        "en": "Vallée de Munster Descente Part I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 189,
+      "silver": 217,
+      "bronze": 245
+    },
+    {
+      "id": "Munster_PART2_R",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Descente : partie II",
+      "labels": {
+        "en": "Vallée de Munster Descente Part II"
+      },
+      "stage": "alsaces2munstershort1reverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "07:30",
+      "gold": 242,
+      "silver": 280,
+      "bronze": 315
+    },
+    {
+      "id": "Munster_Full_R",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Descente : intégralité",
+      "labels": {
+        "en": "Vallée de Munster Descente Complete"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 358,
+      "silver": 413,
+      "bronze": 464
+    },
+    {
+      "id": "Munster_Full_R_Night",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Descente : nuit",
+      "labels": {
+        "en": "Vallée de Munster Descente at Night"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 361,
+      "silver": 416,
+      "bronze": 471
+    },
+    {
+      "id": "Munster_Full_R_Rain",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Descente : pluie",
+      "labels": {
+        "en": "Vallée de Munster Descente with Rain"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "fiat124abarth",
+      "weather": "heavyrain",
+      "startTime": "09:30",
+      "gold": 424,
+      "silver": 485,
+      "bronze": 570
+    },
+    {
+      "id": "Munster_Full_R_SS",
+      "group": "Location_Munster",
+      "type": "position",
+      "name": "Vallée de Munster - Descente : étape spéciale",
+      "labels": {
+        "en": "Vallée de Munster Descente Special Stage"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "06:30"
+    },
+    {
+      "id": "Munster_PART1_F",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Montée : partie I",
+      "labels": {
+        "en": "Vallée de Munster Montée Part I"
+      },
+      "stage": "alsaces2munstershort1forward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 226,
+      "silver": 260,
+      "bronze": 293
+    },
+    {
+      "id": "Munster_PART2_F",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Montée : partie II",
+      "labels": {
+        "en": "Vallée de Munster Montée Part II"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "11:00",
+      "gold": 161,
+      "silver": 186,
+      "bronze": 209
+    },
+    {
+      "id": "Munster_Full_F_Snow",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster Montée sous la neige",
+      "labels": {
+        "en": "Vallée de Munster Montée with Snow"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 361,
+      "silver": 413,
+      "bronze": 485
+    },
+    {
+      "id": "Munster_Full_F",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Montée : intégralité",
+      "labels": {
+        "en": "Vallée de Munster Montée Complete"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "17:00",
+      "gold": 322,
+      "silver": 371,
+      "bronze": 418
+    },
+    {
+      "id": "Munster_Full_F_Night",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Montée : nuit",
+      "labels": {
+        "en": "Vallée de Munster Montée At night"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 325,
+      "silver": 374,
+      "bronze": 424
+    },
+    {
+      "id": "Munster_Full_F_Rain",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster - Montée : pluie",
+      "labels": {
+        "en": "Vallée de Munster Montée with rain"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 381,
+      "silver": 437,
+      "bronze": 513
+    },
+    {
+      "id": "Munster_Full_F_SS",
+      "group": "Location_Munster",
+      "type": "position",
+      "name": "Vallée de Munster - Montée : étape spéciale",
+      "labels": {
+        "en": "Vallée de Munster Montée Special stage"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "18:00"
+    },
+    {
+      "id": "Munster_Full_R_Snow",
+      "group": "Location_Munster",
+      "type": "time",
+      "name": "Vallée de Munster Descente sous la neige",
+      "labels": {
+        "en": "Vallée de Munster Descente with Snow"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "fiat124abarth",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 401,
+      "silver": 459,
+      "bronze": 539
+    },
+    {
+      "id": "Livigno_Full_F",
+      "group": "Location_Livigno",
+      "type": "time",
+      "name": "Circuit de Livigno",
+      "labels": {
+        "en": "Main Circuit"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "alpinea110",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 54,
+      "silver": 62,
+      "bronze": 70
+    },
+    {
+      "id": "Livigno_Full_F_Night",
+      "group": "Location_Livigno",
+      "type": "time",
+      "name": "Circuit de Livigno : nuit",
+      "labels": {
+        "en": "Main Circuit at Night"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "alpinea110",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 54,
+      "silver": 62,
+      "bronze": 71
+    },
+    {
+      "id": "Livigno_Full_F_Snow",
+      "group": "Location_Livigno",
+      "type": "time",
+      "name": "Circuit de Livigno : neige",
+      "labels": {
+        "en": "Main Circuit with Snow"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "alpinea110",
+      "weather": "heavysnow",
+      "startTime": "16:00",
+      "gold": 63,
+      "silver": 73,
+      "bronze": 82
+    },
+    {
+      "id": "Livigno_Full_R",
+      "group": "Location_Livigno",
+      "type": "time",
+      "name": "Circuit de Livigno : inversé",
+      "labels": {
+        "en": "Main Circuit Reverse"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "13:00",
+      "gold": 50,
+      "silver": 57,
+      "bronze": 64
+    },
+    {
+      "id": "Livigno_Full_R_Night",
+      "group": "Location_Livigno",
+      "type": "time",
+      "name": "Circuit de Livigno : inversé de nuit",
+      "labels": {
+        "en": "Main Circuit Reverse at Night"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 50,
+      "silver": 58,
+      "bronze": 65
+    },
+    {
+      "id": "Livigno_Full_R_Snow",
+      "group": "Location_Livigno",
+      "type": "time",
+      "name": "Circuit de Livigno : inversé sur neige",
+      "labels": {
+        "en": "Main Circuit Reverse with Snow"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "hyundaii20nrally2",
+      "weather": "heavysnow",
+      "startTime": "08:00",
+      "gold": 59,
+      "silver": 68,
+      "bronze": 76
+    },
+    {
+      "id": "Sisteron_PART1_F",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "Sisteron - St Geniez - Première partie",
+      "labels": {
+        "en": "Sisteron - St. Geniez Part I"
+      },
+      "stage": "montecarlos2sisteroncut1forward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 282,
+      "silver": 325,
+      "bronze": 366
+    },
+    {
+      "id": "Sisteron_PART1_R",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "St Geniez - Sisteron - Première partie",
+      "labels": {
+        "en": "St. Geniez - Sisteron Part I"
+      },
+      "stage": "montecarlos2sisteroncut2reverse",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 176,
+      "silver": 203,
+      "bronze": 228
+    },
+    {
+      "id": "Sisteron_PART2_F",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "Sisteron - St Geniez - Deuxième partie",
+      "labels": {
+        "en": "Sisteron - St. Geniez Part II"
+      },
+      "stage": "montecarlos2sisteroncut2forward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 154,
+      "silver": 178,
+      "bronze": 200
+    },
+    {
+      "id": "Sisteron_PART2_R",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "St Geniez - Sisteron - Deuxième partie",
+      "labels": {
+        "en": "St. Geniez - Sisteron Part II"
+      },
+      "stage": "montecarlos2sisteroncut1reverse",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 315,
+      "silver": 364,
+      "bronze": 409
+    },
+    {
+      "id": "Sisteron_Full_F",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "Sisteron - St Geniez - Intégrale",
+      "labels": {
+        "en": "Sisteron - St. Geniez Complete"
+      },
+      "stage": "montecarlos2sisteronfullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 455,
+      "silver": 525,
+      "bronze": 590
+    },
+    {
+      "id": "Sisteron_Full_R",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "St Geniez - Sisteron - Intégrale",
+      "labels": {
+        "en": "St. Geniez - Sisteron Complete"
+      },
+      "stage": "montecarlos2sisteronfullreverse",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 521,
+      "silver": 601,
+      "bronze": 676
+    },
+    {
+      "id": "Sisteron_Full_F_Night",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "Sisteron - St Geniez - Nuit",
+      "labels": {
+        "en": "Sisteron - St. Geniez at Night"
+      },
+      "stage": "montecarlos2sisteronfullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 459,
+      "silver": 529,
+      "bronze": 599
+    },
+    {
+      "id": "Sisteron_Full_R_Night",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "St Geniez - Sisteron - Nuit",
+      "labels": {
+        "en": "St. Geniez - Sisteron at Night"
+      },
+      "stage": "montecarlos2sisteronfullreverse",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 526,
+      "silver": 606,
+      "bronze": 686
+    },
+    {
+      "id": "Sisteron_Full_F_Rain",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "Sisteron - St Geniez - Pluie",
+      "labels": {
+        "en": "Sisteron - St. Geniez with Rain"
+      },
+      "stage": "montecarlos2sisteronfullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "heavyrain",
+      "startTime": "10:00",
+      "gold": 539,
+      "silver": 617,
+      "bronze": 724
+    },
+    {
+      "id": "Sisteron_Full_R_Rain",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "St Geniez - Sisteron - Pluie",
+      "labels": {
+        "en": "St. Geniez - Sisteron with Rain"
+      },
+      "stage": "montecarlos2sisteronfullreverse",
+      "car": "lanciafulviahf",
+      "weather": "heavyrain",
+      "startTime": "10:00",
+      "gold": 617,
+      "silver": 707,
+      "bronze": 830
+    },
+    {
+      "id": "Sisteron_Full_F_SS",
+      "group": "Location_Sisteron",
+      "type": "position",
+      "name": "Sisteron - St Geniez - Étape spéciale",
+      "labels": {
+        "en": "Sisteron - St. Geniez Special Stage"
+      },
+      "stage": "montecarlos2sisteronfullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "17:00"
+    },
+    {
+      "id": "Sisteron_Full_R_SS",
+      "group": "Location_Sisteron",
+      "type": "position",
+      "name": "St Geniez - Sisteron - Étape spéciale",
+      "labels": {
+        "en": "St. Geniez - Sisteron Special Stage"
+      },
+      "stage": "montecarlos2sisteronfullreverse",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "17:00"
+    },
+    {
+      "id": "Sisteron_Full_F_Snow",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "Sisteron - St Geniez - Neige",
+      "labels": {
+        "en": "Sisteron - St. Geniez with Snow"
+      },
+      "stage": "montecarlos2sisteronfullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 510,
+      "silver": 584,
+      "bronze": 686
+    },
+    {
+      "id": "Sisteron_Full_R_Snow",
+      "group": "Location_Sisteron",
+      "type": "time",
+      "name": "St Geniez - Sisteron - Neige",
+      "labels": {
+        "en": "St. Geniez - Sisteron with Snow"
+      },
+      "stage": "montecarlos2sisteronfullreverse",
+      "car": "lanciafulviahf",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 584,
+      "silver": 669,
+      "bronze": 786
+    },
+    {
+      "id": "Bollene_PART1_F",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "La Bollène-Vésubie - Turini - Première partie",
+      "labels": {
+        "en": "La Bollène-Vésubie - Turini Part I"
+      },
+      "stage": "montecarlos1bollenecut1forward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 562,
+      "silver": 644,
+      "bronze": 756
+    },
+    {
+      "id": "Bollene_PART2_F",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Turini - Peïra Cava - Deuxième partie",
+      "labels": {
+        "en": "Turini - Peïra Cava Part II"
+      },
+      "stage": "montecarlos1bollenecut2forward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 238,
+      "silver": 272,
+      "bronze": 320
+    },
+    {
+      "id": "Bollene_Full_F",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "La Bollène-Vésubie - Peïra Cava - Intrégrale",
+      "labels": {
+        "en": "La Bollène-Vésubie - Peïra Cava Complete"
+      },
+      "stage": "montecarlos1bollenefullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 807,
+      "silver": 925,
+      "bronze": 1086
+    },
+    {
+      "id": "Bollene_Full_F_Night",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "La Bollène-Vésubie - Peïra Cava - Nuit",
+      "labels": {
+        "en": "La Bollène-Vésubie - Peïra at Night"
+      },
+      "stage": "montecarlos1bollenefullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 822,
+      "silver": 939,
+      "bronze": 1101
+    },
+    {
+      "id": "Bollene_Full_F_Rain",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "La Bollène-Vésubie - Peïra Cava - Pluie",
+      "labels": {
+        "en": "La Bollène-Vésubie - Peïra with Rain"
+      },
+      "stage": "montecarlos1bollenefullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "heavyrain",
+      "startTime": "10:00",
+      "gold": 920,
+      "silver": 1054,
+      "bronze": 1238
+    },
+    {
+      "id": "Bollene_Full_F_SS",
+      "group": "Location_Bollene",
+      "type": "position",
+      "name": "La Bollène-Vésubie - Peïra Cava - Étape spéciale",
+      "labels": {
+        "en": "La Bollène-Vésubie - Peïra Special Stage"
+      },
+      "stage": "montecarlos1bollenefullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "17:00"
+    },
+    {
+      "id": "Bollene_Full_F_Snow",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "La Bollène-Vésubie - Peïra Cava - Neige",
+      "labels": {
+        "en": "La Bollène-Vésubie - Peïra Cava with Snow"
+      },
+      "stage": "montecarlos1bollenefullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 856,
+      "silver": 980,
+      "bronze": 1151
+    },
+    {
+      "id": "Bollene_PART1_R",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Peïra Cava - Turini - Première partie",
+      "labels": {
+        "en": "Peïra Cava - Turini Part I"
+      },
+      "stage": "montecarlos1bollenecut2reverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 230,
+      "silver": 263,
+      "bronze": 309
+    },
+    {
+      "id": "Bollene_PART2_R",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Descente de Turini - Deuxième partie",
+      "labels": {
+        "en": "Turini Descente Part II"
+      },
+      "stage": "montecarlos1bollenecut1reverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 549,
+      "silver": 629,
+      "bronze": 739
+    },
+    {
+      "id": "Bollene_Full_R",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Peïra Cava - La Bollène-Vésubie - Intégrale",
+      "labels": {
+        "en": "Peïra Cava - La Bollène-Vésubie Complete"
+      },
+      "stage": "montecarlos1bollenefullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 763,
+      "silver": 873,
+      "bronze": 1026
+    },
+    {
+      "id": "Bollene_Full_R_Night",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Peïra Cava - La Bollène-Vésubie - Nuit",
+      "labels": {
+        "en": "Peïra Cava - La Bollène-Vésubie at Night"
+      },
+      "stage": "montecarlos1bollenefullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 776,
+      "silver": 887,
+      "bronze": 1040
+    },
+    {
+      "id": "Bollene_Full_R_Rain",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Peïra Cava - La Bollène-Vésubie - Pluie",
+      "labels": {
+        "en": "Peïra Cava - La Bollène-Vésubie with Rain"
+      },
+      "stage": "montecarlos1bollenefullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "heavyrain",
+      "startTime": "10:00",
+      "gold": 854,
+      "silver": 978,
+      "bronze": 1149
+    },
+    {
+      "id": "Bollene_Full_R_SS",
+      "group": "Location_Bollene",
+      "type": "position",
+      "name": "Peïra Cava - La Bollène-Vésubie - Étape spéciale",
+      "labels": {
+        "en": "Peïra Cava - La Bollène-Vésubie Special Stage"
+      },
+      "stage": "montecarlos1bollenefullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "17:00"
+    },
+    {
+      "id": "Bollene_Full_R_Snow",
+      "group": "Location_Bollene",
+      "type": "time",
+      "name": "Peïra Cava - La Bollène-Vésubie - Neige",
+      "labels": {
+        "en": "Peïra Cava - La Bollène-Vésubie with Snow"
+      },
+      "stage": "montecarlos1bollenefullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "lightsnow",
+      "startTime": "10:00",
+      "gold": 808,
+      "silver": 926,
+      "bronze": 1087
+    },
+    {
+      "id": "Elatia_PART1_F",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Elatia Partie I",
+      "labels": {
+        "en": "Elatia Part I"
+      },
+      "stage": "greeces3elatiacut1forward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 225,
+      "silver": 260,
+      "bronze": 293
+    },
+    {
+      "id": "Elatia_PART2_F",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Zeli Partie II",
+      "labels": {
+        "en": "Zeli Part II"
+      },
+      "stage": "greeces3elatiacut2forward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "11:00",
+      "gold": 178,
+      "silver": 205,
+      "bronze": 230
+    },
+    {
+      "id": "Elatia_Full_F",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Elatia - Zeli complète",
+      "labels": {
+        "en": "Elatia - Zeli Complete"
+      },
+      "stage": "greeces3elatiafullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "17:00",
+      "gold": 385,
+      "silver": 444,
+      "bronze": 499
+    },
+    {
+      "id": "Elatia_Full_F_Night",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Elatia - Zeli de nuit",
+      "labels": {
+        "en": "Elatia - Zeli at Night"
+      },
+      "stage": "greeces3elatiafullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 389,
+      "silver": 448,
+      "bronze": 507
+    },
+    {
+      "id": "Elatia_Full_F_Rain",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Elatia - Zeli sous la pluie",
+      "labels": {
+        "en": "Elatia - Zeli with Rain"
+      },
+      "stage": "greeces3elatiafullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 431,
+      "silver": 497,
+      "bronze": 559
+    },
+    {
+      "id": "Elatia_Full_F_SS",
+      "group": "Location_Elatia",
+      "type": "position",
+      "name": "Elatia - Zeli spéciale",
+      "labels": {
+        "en": "Elatia - Zeli Special Stage"
+      },
+      "stage": "greeces3elatiafullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "18:00"
+    },
+    {
+      "id": "Elatia_PART1_R",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Zeli inversé Partie I",
+      "labels": {
+        "en": "Zeli Reverse Part I"
+      },
+      "stage": "greeces3elatiacut2reverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 177,
+      "silver": 204,
+      "bronze": 230
+    },
+    {
+      "id": "Elatia_PART2_R",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Elatia inversé Partie II",
+      "labels": {
+        "en": "Elatia Reverse Part II"
+      },
+      "stage": "greeces3elatiacut1reverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "07:30",
+      "gold": 215,
+      "silver": 248,
+      "bronze": 279
+    },
+    {
+      "id": "Elatia_Full_R",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Zeli - Elatia complète",
+      "labels": {
+        "en": "Zeli - Elatia Complete"
+      },
+      "stage": "greeces3elatiafullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 390,
+      "silver": 450,
+      "bronze": 506
+    },
+    {
+      "id": "Elatia_Full_R_Night",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Zeli - Elatia de nuit",
+      "labels": {
+        "en": "Zeli - Elatia at Night"
+      },
+      "stage": "greeces3elatiafullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 394,
+      "silver": 453,
+      "bronze": 513
+    },
+    {
+      "id": "Elatia_Full_R_Rain",
+      "group": "Location_Elatia",
+      "type": "time",
+      "name": "Zeli - Elatia sous la pluie",
+      "labels": {
+        "en": "Zeli - Elatia with Rain"
+      },
+      "stage": "greeces3elatiafullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "heavyrain",
+      "startTime": "09:30",
+      "gold": 437,
+      "silver": 504,
+      "bronze": 566
+    },
+    {
+      "id": "Elatia_Full_R_SS",
+      "group": "Location_Elatia",
+      "type": "position",
+      "name": "Zeli - Elatia spéciale",
+      "labels": {
+        "en": "Zeli - Elatia Special Stage"
+      },
+      "stage": "greeces3elatiafullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "06:30"
+    },
+    {
+      "id": "Loutraki_PART1_F",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Nouveau Loutraki Partie I",
+      "labels": {
+        "en": "New Loutraki Part I"
+      },
+      "stage": "greeces4loutrakicut1forward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 196,
+      "silver": 226,
+      "bronze": 254
+    },
+    {
+      "id": "Loutraki_PART2_F",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Aghii Theodori Partie II",
+      "labels": {
+        "en": "Aghii Theodori Part II"
+      },
+      "stage": "greeces4loutrakicut2forward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "11:00",
+      "gold": 235,
+      "silver": 271,
+      "bronze": 305
+    },
+    {
+      "id": "Loutraki_Full_F",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Loutraki - Aghii Theodori complète",
+      "labels": {
+        "en": "Loutraki - Aghii Theodori Complete"
+      },
+      "stage": "greeces4loutrakifullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "17:00",
+      "gold": 404,
+      "silver": 466,
+      "bronze": 524
+    },
+    {
+      "id": "Loutraki_Full_F_Night",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Loutraki - Aghii Theodori de nuit",
+      "labels": {
+        "en": "Loutraki - Aghii Theodori at Night"
+      },
+      "stage": "greeces4loutrakifullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 408,
+      "silver": 470,
+      "bronze": 532
+    },
+    {
+      "id": "Loutraki_Full_F_Rain",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Loutraki - Aghii Theodori sous la pluie",
+      "labels": {
+        "en": "Loutraki - Aghii Theodori with Rain"
+      },
+      "stage": "greeces4loutrakifullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 452,
+      "silver": 522,
+      "bronze": 587
+    },
+    {
+      "id": "Loutraki_Full_F_SS",
+      "group": "Location_Loutraki",
+      "type": "position",
+      "name": "Loutraki - Aghii Theodori spéciale",
+      "labels": {
+        "en": "Loutraki - Aghii Theodori Special Stage"
+      },
+      "stage": "greeces4loutrakifullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "18:00"
+    },
+    {
+      "id": "Loutraki_PART1_R",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Aghii Theodori inversé Partie I",
+      "labels": {
+        "en": "Aghii Theodori Reverse Part I"
+      },
+      "stage": "greeces4loutrakicut2reverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 232,
+      "silver": 268,
+      "bronze": 301
+    },
+    {
+      "id": "Loutraki_PART2_R",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Nouveau Loutraki inversé Partie II",
+      "labels": {
+        "en": "New Loutraki Reverse Part II"
+      },
+      "stage": "greeces4loutrakicut1reverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "07:30",
+      "gold": 192,
+      "silver": 222,
+      "bronze": 250
+    },
+    {
+      "id": "Loutraki_Full_R",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Aghii Theodori - Loutraki complète",
+      "labels": {
+        "en": "Aghii Theodori - Loutraki Complete"
+      },
+      "stage": "greeces4loutrakifullreverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 400,
+      "silver": 461,
+      "bronze": 519
+    },
+    {
+      "id": "Loutraki_Full_R_Night",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Aghii Theodori - Loutraki de nuit",
+      "labels": {
+        "en": "Aghii Theodori - Loutraki at Night"
+      },
+      "stage": "greeces4loutrakifullreverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 404,
+      "silver": 465,
+      "bronze": 527
+    },
+    {
+      "id": "Loutraki_Full_R_Rain",
+      "group": "Location_Loutraki",
+      "type": "time",
+      "name": "Aghii Theodori - Loutraki sous la pluie",
+      "labels": {
+        "en": "Aghii Theodori - Loutraki with Rain"
+      },
+      "stage": "greeces4loutrakifullreverse",
+      "car": "subaruimprezas3",
+      "weather": "heavyrain",
+      "startTime": "09:30",
+      "gold": 448,
+      "silver": 517,
+      "bronze": 581
+    },
+    {
+      "id": "Loutraki_Full_R_SS",
+      "group": "Location_Loutraki",
+      "type": "position",
+      "name": "Aghii Theodori - Loutraki spéciale",
+      "labels": {
+        "en": "Aghii Theodori - Loutraki Special Stage"
+      },
+      "stage": "greeces4loutrakifullreverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "06:30"
+    },
+    {
+      "id": "MiniCooperS_Tarmac_Test1",
+      "group": "Car_MiniCooperS",
+      "type": "time",
+      "name": "Mini Cooper S - Test sur asphalte I",
+      "labels": {
+        "en": "Mini Cooper S - Tarmac Test I"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "09:00",
+      "gold": 393,
+      "silver": 453,
+      "bronze": 510
+    },
+    {
+      "id": "MiniCooperS_Gravel_Test1",
+      "group": "Car_MiniCooperS",
+      "type": "time",
+      "name": "Mini Cooper S - Test sur terre I",
+      "labels": {
+        "en": "Mini Cooper S - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthcut1reverse",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "15:00",
+      "gold": 271,
+      "silver": 313,
+      "bronze": 352
+    },
+    {
+      "id": "MiniCooperS_Night_Test1",
+      "group": "Car_MiniCooperS",
+      "type": "time",
+      "name": "Mini Cooper S - Test nocturne I",
+      "labels": {
+        "en": "Mini Cooper S - Night Test I"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 179,
+      "silver": 207,
+      "bronze": 234
+    },
+    {
+      "id": "MiniCooperS_Rain_Test1",
+      "group": "Car_MiniCooperS",
+      "type": "time",
+      "name": "Mini Cooper S - Test sous la pluie I",
+      "labels": {
+        "en": "Mini Cooper S - Rain Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "minicoopers1275",
+      "weather": "heavyrain",
+      "startTime": "11:30",
+      "gold": 230,
+      "silver": 263,
+      "bronze": 309
+    },
+    {
+      "id": "MiniCooperS_Race_Test1",
+      "group": "Car_MiniCooperS",
+      "type": "position",
+      "name": "Mini Cooper S - Test de course I",
+      "labels": {
+        "en": "Mini Cooper S - Race Test I"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "17:00"
+    },
+    {
+      "id": "MiniCooperS_Snow_Test1",
+      "group": "Car_MiniCooperS",
+      "type": "time",
+      "name": "Mini Cooper S - Test sur neige I",
+      "labels": {
+        "en": "Mini Cooper S - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "minicoopers1275",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 58,
+      "silver": 66,
+      "bronze": 75
+    },
+    {
+      "id": "FulviaCoupeHF_Tarmac_Test1",
+      "group": "Car_FulviaCoupeHF",
+      "type": "time",
+      "name": "Fulvia Coupé HF - Test sur asphalte I",
+      "labels": {
+        "en": "Fulvia Coupé HF - Tarmac Test I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 185,
+      "silver": 214,
+      "bronze": 241
+    },
+    {
+      "id": "FulviaCoupeHF_Gravel_Test1",
+      "group": "Car_FulviaCoupeHF",
+      "type": "time",
+      "name": "Fulvia coupé HF - Test sur terre I",
+      "labels": {
+        "en": "Fulvia Coupé HF - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthcut2forward",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 230,
+      "silver": 265,
+      "bronze": 298
+    },
+    {
+      "id": "FulviaCoupeHF_Night_Test1",
+      "group": "Car_FulviaCoupeHF",
+      "type": "time",
+      "name": "Fulvia Coupé HF - Test nocturne I",
+      "labels": {
+        "en": "Fulvia Coupé HF - Night Test I"
+      },
+      "stage": "alsaces2munstershort1forward",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 261,
+      "silver": 301,
+      "bronze": 340
+    },
+    {
+      "id": "FulviaCoupeHF_Rain_Test1",
+      "group": "Car_FulviaCoupeHF",
+      "type": "time",
+      "name": "Fulvia Coupé HF - Test sous la pluie I",
+      "labels": {
+        "en": "Fulvia Coupé HF - Rain Test I"
+      },
+      "stage": "montecarlos1bollenecut3forward",
+      "car": "lanciafulviahf",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 298,
+      "silver": 342,
+      "bronze": 401
+    },
+    {
+      "id": "FulviaCoupeHF_Race_Test1",
+      "group": "Car_FulviaCoupeHF",
+      "type": "position",
+      "name": "Fulvia Coupé HF - Test de course I",
+      "labels": {
+        "en": "Fulvia Coupé HF - Race Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "lanciafulviahf",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "FulviaCoupeHF_Snow_Test1",
+      "group": "Car_FulviaCoupeHF",
+      "type": "time",
+      "name": "Fulvia Coupé HF - Test sur neige I",
+      "labels": {
+        "en": "Fulvia Coupé HF - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "lanciafulviahf",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 62,
+      "silver": 71,
+      "bronze": 80
+    },
+    {
+      "id": "Fiat124Abarth_Tarmac_Test1",
+      "group": "Car_Fiat124Abarth",
+      "type": "time",
+      "name": "Fiat 124 Abarth Rally 16V - Test sur asphalte I",
+      "labels": {
+        "en": "Fiat 124 Abarth Rally 16V - Tarmac Test I"
+      },
+      "stage": "alsaces2munstershort1forward",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "09:30",
+      "gold": 263,
+      "silver": 303,
+      "bronze": 341
+    },
+    {
+      "id": "Fiat124Abarth_Gravel_Test1",
+      "group": "Car_Fiat124Abarth",
+      "type": "time",
+      "name": "Fiat 124 Abarth Rally 16V - Test sur terre I",
+      "labels": {
+        "en": "Fiat 124 Abarth Rally 16V - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "14:30",
+      "gold": 219,
+      "silver": 252,
+      "bronze": 284
+    },
+    {
+      "id": "Fiat124Abarth_Night_Test1",
+      "group": "Car_Fiat124Abarth",
+      "type": "time",
+      "name": "Fiat 124 Abarth Rally 16V - Test nocturne I",
+      "labels": {
+        "en": "Fiat 124 Abarth Rally 16V - Night Test I"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 171,
+      "silver": 197,
+      "bronze": 223
+    },
+    {
+      "id": "Fiat124Abarth_Rain_Test1",
+      "group": "Car_Fiat124Abarth",
+      "type": "time",
+      "name": "Fiat 124 Abarth Rally 16V - Test sous la pluie I",
+      "labels": {
+        "en": "Fiat 124 Abarth Rally 16V - Rain Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "fiat124abarth",
+      "weather": "heavyrain",
+      "startTime": "12:00",
+      "gold": 217,
+      "silver": 249,
+      "bronze": 292
+    },
+    {
+      "id": "Fiat124Abarth_Race_Test1",
+      "group": "Car_Fiat124Abarth",
+      "type": "position",
+      "name": "Fiat 124 Abarth Rally 16V - Test de course I",
+      "labels": {
+        "en": "Fiat 124 Abarth Rally 16V - Race Test I"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "16:00"
+    },
+    {
+      "id": "Fiat124Abarth_Snow_Test1",
+      "group": "Car_Fiat124Abarth",
+      "type": "time",
+      "name": "Fiat 124 Abarth Rally 16V - Test sur neige I",
+      "labels": {
+        "en": "Fiat 124 Abarth Rally 16V - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "fiat124abarth",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 58,
+      "silver": 67,
+      "bronze": 75
+    },
+    {
+      "id": "Peugeot204Rally4_Tarmac_Test1",
+      "group": "Car_Peugeot208Rally4",
+      "type": "time",
+      "name": "Peugeot 208 Rally4 - Test sur asphalte I",
+      "labels": {
+        "en": "Peugeot 208 Rally4 - Tarmac Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "08:30",
+      "gold": 176,
+      "silver": 203,
+      "bronze": 228
+    },
+    {
+      "id": "Peugeot204Rally4_Gravel_Test1",
+      "group": "Car_Peugeot208Rally4",
+      "type": "time",
+      "name": "Peugeot 208 Rally4 - Test sur terre I",
+      "labels": {
+        "en": "Peugeot 208 Rally4 - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "12:50",
+      "gold": 466,
+      "silver": 537,
+      "bronze": 605
+    },
+    {
+      "id": "Peugeot204Rally4_Night_Test1",
+      "group": "Car_Peugeot208Rally4",
+      "type": "time",
+      "name": "Peugeot 208 Rally4 - Test nocturne I",
+      "labels": {
+        "en": "Peugeot 208 Rally4 - Night Test I"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 293,
+      "silver": 337,
+      "bronze": 382
+    },
+    {
+      "id": "Peugeot204Rally4_Rain_Test1",
+      "group": "Car_Peugeot208Rally4",
+      "type": "time",
+      "name": "Peugeot 208 Rally4 - Test sous la pluie I",
+      "labels": {
+        "en": "Peugeot 208 Rally4 - Rain Test I"
+      },
+      "stage": "alsaces2munstershort1reverse",
+      "car": "peugeot208rally4",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 264,
+      "silver": 302,
+      "bronze": 355
+    },
+    {
+      "id": "Peugeot204Rally4_Race_Test1",
+      "group": "Car_Peugeot208Rally4",
+      "type": "position",
+      "name": "Peugeot 208 Rally4 - Test de course I",
+      "labels": {
+        "en": "Peugeot 208 Rally4 - Race Test I"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "17:20"
+    },
+    {
+      "id": "Peugeot204Rally4_Snow_Test1",
+      "group": "Car_Peugeot208Rally4",
+      "type": "time",
+      "name": "Peugeot 208 Rally4 - Test sur neige I",
+      "labels": {
+        "en": "Peugeot 208 Rally4 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "peugeot208rally4",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 57,
+      "silver": 65,
+      "bronze": 73
+    },
+    {
+      "id": "AlfaRomeoGTA1300_Tarmac_Test1",
+      "group": "Car_AlfaRomeoGTA1300",
+      "type": "time",
+      "name": "Alfa Romeo GTA 1300 Junior - Test sur asphalte I",
+      "labels": {
+        "en": "Alfa Romeo GTA 1300 Junior - Tarmac Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 183,
+      "silver": 211,
+      "bronze": 237
+    },
+    {
+      "id": "AlfaRomeoGTA1300_Gravel_Test1",
+      "group": "Car_AlfaRomeoGTA1300",
+      "type": "time",
+      "name": "Alfa Romeo GTA 1300 Junior - Test sur terre I",
+      "labels": {
+        "en": "Alfa Romeo GTA 1300 Junior - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 216,
+      "silver": 249,
+      "bronze": 280
+    },
+    {
+      "id": "AlfaRomeoGTA1300_Night_Test1",
+      "group": "Car_AlfaRomeoGTA1300",
+      "type": "time",
+      "name": "Alfa Romeo GTA 1300 Junior - Test nocturne I",
+      "labels": {
+        "en": "Alfa Romeo GTA 1300 Junior - Night Test I"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 175,
+      "silver": 201,
+      "bronze": 228
+    },
+    {
+      "id": "AlfaRomeoGTA1300_Rain_Test1",
+      "group": "Car_AlfaRomeoGTA1300",
+      "type": "time",
+      "name": "Alfa Romeo GTA 1300 Junior - Test nocturne I",
+      "labels": {
+        "en": "Alfa Romeo GTA 1300 Junior - Rain Test I"
+      },
+      "stage": "alsaces2munstershort1reverse",
+      "car": "alfaromeogta1300",
+      "weather": "heavyrain",
+      "startTime": "14:00",
+      "gold": 283,
+      "silver": 324,
+      "bronze": 381
+    },
+    {
+      "id": "AlfaRomeoGTA1300_Race_Test1",
+      "group": "Car_AlfaRomeoGTA1300",
+      "type": "position",
+      "name": "Alfa Romeo GTA 1300 Junior - Test de course I",
+      "labels": {
+        "en": "Alfa Romeo GTA 1300 Junior - Race Test I"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "06:30"
+    },
+    {
+      "id": "AlfaRomeoGTA1300_Snow_Test1",
+      "group": "Car_AlfaRomeoGTA1300",
+      "type": "time",
+      "name": "Alfa Romeo GTA 1300 Junior - Test sur neige I",
+      "labels": {
+        "en": "Alfa Romeo GTA 1300 Junior - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "alfaromeogta1300",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 57,
+      "silver": 65,
+      "bronze": 73
+    },
+    {
+      "id": "AlpineA110_Tarmac_Test1",
+      "group": "Car_AlpineA110",
+      "type": "time",
+      "name": "Alpine A110 1.8 - Test sur asphalte I",
+      "labels": {
+        "en": "Alpine A110 1.8 - Tarmac Test I"
+      },
+      "stage": "alsaces2munstershort1forward",
+      "car": "alpinea110",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 237,
+      "silver": 274,
+      "bronze": 308
+    },
+    {
+      "id": "AlpineA110_Gravel_Test1",
+      "group": "Car_AlpineA110",
+      "type": "time",
+      "name": "Alpine A110 1.8 - Test sur terre I",
+      "labels": {
+        "en": "Alpine A110 1.8 - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthcut2forward",
+      "car": "alpinea110",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 220,
+      "silver": 254,
+      "bronze": 286
+    },
+    {
+      "id": "AlpineA110_Night_Test1",
+      "group": "Car_AlpineA110",
+      "type": "time",
+      "name": "Alpine A110 1.8 - Test nocturne I",
+      "labels": {
+        "en": "Alpine A110 1.8 - Night Test I"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "alpinea110",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 155,
+      "silver": 178,
+      "bronze": 202
+    },
+    {
+      "id": "AlpineA110_Rain_Test1",
+      "group": "Car_AlpineA110",
+      "type": "time",
+      "name": "Alpine A110 1.8 - Test sous la pluie I",
+      "labels": {
+        "en": "Alpine A110 1.8 - Rain Test I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "alpinea110",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 202,
+      "silver": 232,
+      "bronze": 272
+    },
+    {
+      "id": "AlpineA110_Race_Test1",
+      "group": "Car_AlpineA110",
+      "type": "position",
+      "name": "Alpine A110 1.8 - Test de course I",
+      "labels": {
+        "en": "Alpine A110 1.8 - Race Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "alpinea110",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "AlpineA110_Snow_Test1",
+      "group": "Car_AlpineA110",
+      "type": "time",
+      "name": "Alpine A110 1.8 - Test sur neige I",
+      "labels": {
+        "en": "Alpine A110 1.8 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "alpinea110",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 56,
+      "silver": 65,
+      "bronze": 73
+    },
+    {
+      "id": "i20Rally2_Tarmac_Test1",
+      "group": "Car_HyundaiI20NRally2",
+      "type": "time",
+      "name": "Hyundai i20 Rally2 - Test sur asphalte I",
+      "labels": {
+        "en": "Hyundai i20 Rally2 - Tarmac Test I"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 271,
+      "silver": 312,
+      "bronze": 351
+    },
+    {
+      "id": "i20Rally2_Gravel_Test1",
+      "group": "Car_HyundaiI20NRally2",
+      "type": "time",
+      "name": "Hyundai i20 Rally2 - Test sur terre I",
+      "labels": {
+        "en": "Hyundai i20 Rally2 - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 187,
+      "silver": 216,
+      "bronze": 243
+    },
+    {
+      "id": "i20Rally2_Night_Test1",
+      "group": "Car_HyundaiI20NRally2",
+      "type": "time",
+      "name": "Hyundai i20 Rally2 - Test nocturne I",
+      "labels": {
+        "en": "Hyundai i20 Rally2 - Night Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 163,
+      "silver": 187,
+      "bronze": 212
+    },
+    {
+      "id": "i20Rally2_Rain_Test1",
+      "group": "Car_HyundaiI20NRally2",
+      "type": "time",
+      "name": "Hyundai i20 Rally2 - Test sous la pluie I",
+      "labels": {
+        "en": "Hyundai i20 Rally2 - Rain Test I"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "hyundaii20nrally2",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 172,
+      "silver": 197,
+      "bronze": 231
+    },
+    {
+      "id": "i20Rally2_Race_Test1",
+      "group": "Car_HyundaiI20NRally2",
+      "type": "position",
+      "name": "Hyundai i20 Rally2 - Test de course I",
+      "labels": {
+        "en": "Hyundai i20 Rally2 - Race Test I"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "18:00"
+    },
+    {
+      "id": "i20Rally2_Snow_Test1",
+      "group": "Car_HyundaiI20NRally2",
+      "type": "time",
+      "name": "Hyundai i20 Rally2 - Test sur Neige I",
+      "labels": {
+        "en": "Hyundai i20 Rally2 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 53,
+      "silver": 61,
+      "bronze": 68
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo_Tarmac_Test1",
+      "group": "Car_LanciaDeltaIntegraleEvo",
+      "type": "time",
+      "name": "Lancia Delta Integrale Evoluzione - Test sur asphalte I",
+      "labels": {
+        "en": "Lancia Delta Integrale Evoluzione - Tarmac Test I"
+      },
+      "stage": "alsaces2munstershort1reverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "07:00",
+      "gold": 225,
+      "silver": 260,
+      "bronze": 292
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo_Gravel_Test1",
+      "group": "Car_LanciaDeltaIntegraleEvo",
+      "type": "time",
+      "name": "Lancia Delta Integrale Evoluzione - Test sur terre I",
+      "labels": {
+        "en": "Lancia Delta Integrale Evoluzione - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "09:00",
+      "gold": 189,
+      "silver": 218,
+      "bronze": 245
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo_Night_Test1",
+      "group": "Car_LanciaDeltaIntegraleEvo",
+      "type": "time",
+      "name": "Lancia Delta Integrale Evoluzione - Test nocturne I",
+      "labels": {
+        "en": "Lancia Delta Integrale Evoluzione - Night Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 276,
+      "silver": 318,
+      "bronze": 360
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo_Rain_Test1",
+      "group": "Car_LanciaDeltaIntegraleEvo",
+      "type": "time",
+      "name": "Lancia Delta Integrale Evoluzione - Test sous la pluie I",
+      "labels": {
+        "en": "Lancia Delta Integrale Evoluzione - Rain Test I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 194,
+      "silver": 222,
+      "bronze": 261
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo_Race_Test1",
+      "group": "Car_LanciaDeltaIntegraleEvo",
+      "type": "position",
+      "name": "Lancia Delta Integrale Evoluzione - Test de course I",
+      "labels": {
+        "en": "Lancia Delta Integrale Evoluzione - Race Test I"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "12:00"
+    },
+    {
+      "id": "LanciaDeltaIntegraleEvo_Snow_Test1",
+      "group": "Car_LanciaDeltaIntegraleEvo",
+      "type": "time",
+      "name": "Lancia Delta Integrale Evoluzione - Test sur neige I",
+      "labels": {
+        "en": "Lancia Delta Integrale Evoluzione - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 54,
+      "silver": 62,
+      "bronze": 69
+    },
+    {
+      "id": "Fiat131Abarth_Tarmac_Test1",
+      "group": "Car_Fiat131Abarth",
+      "type": "time",
+      "name": "Fiat 131 Abarth - Test sur asphalte I",
+      "labels": {
+        "en": "Fiat 131 Abarth - Tarmac Test I"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 167,
+      "silver": 192,
+      "bronze": 216
+    },
+    {
+      "id": "Fiat131Abarth_Gravel_Test1",
+      "group": "Car_Fiat131Abarth",
+      "type": "time",
+      "name": "Fiat 131 Abarth - Test sur terre I",
+      "labels": {
+        "en": "Fiat 131 Abarth - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "14:00",
+      "gold": 205,
+      "silver": 237,
+      "bronze": 266
+    },
+    {
+      "id": "Fiat131Abarth_Night_Test1",
+      "group": "Car_Fiat131Abarth",
+      "type": "time",
+      "name": "Fiat 131 Abarth - Test nocturne I",
+      "labels": {
+        "en": "Fiat 131 Abarth - Night Test I"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 168,
+      "silver": 193,
+      "bronze": 219
+    },
+    {
+      "id": "Fiat131Abarth_Rain_Test1",
+      "group": "Car_Fiat131Abarth",
+      "type": "time",
+      "name": "Fiat 131 Abarth - Test sous la pluie I",
+      "labels": {
+        "en": "Fiat 131 Abarth - Rain Test I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "fiat131abarth",
+      "weather": "heavyrain",
+      "startTime": "08:30",
+      "gold": 218,
+      "silver": 249,
+      "bronze": 293
+    },
+    {
+      "id": "Fiat131Abarth_Race_Test1",
+      "group": "Car_Fiat131Abarth",
+      "type": "position",
+      "name": "Fiat 131 Abarth - Test de course I",
+      "labels": {
+        "en": "Fiat 131 Abarth- Race Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "11:00"
+    },
+    {
+      "id": "Fiat131Abarth_Snow_Test1",
+      "group": "Car_Fiat131Abarth",
+      "type": "time",
+      "name": "Fiat 131 Abarth - Test sur neige I",
+      "labels": {
+        "en": "Fiat 131 Abarth- Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "fiat131abarth",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 56,
+      "silver": 65,
+      "bronze": 73
+    },
+    {
+      "id": "LanciaStratosHF_Tarmac_Test1",
+      "group": "Car_LanciaStratosHF",
+      "type": "time",
+      "name": "Lancia Stratos HF - Test sur asphalte I",
+      "labels": {
+        "en": "Lancia Stratos HF - Tarmac Test I"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "lanciastratoshf",
+      "weather": "clear",
+      "startTime": "18:00",
+      "gold": 158,
+      "silver": 183,
+      "bronze": 205
+    },
+    {
+      "id": "LanciaStratosHF_Gravel_Test1",
+      "group": "Car_LanciaStratosHF",
+      "type": "time",
+      "name": "Lancia Stratos HF - Test sur terre I",
+      "labels": {
+        "en": "Lancia Stratos HF - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthcut1reverse",
+      "car": "lanciastratoshf",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 258,
+      "silver": 298,
+      "bronze": 335
+    },
+    {
+      "id": "LanciaStratosHF_Night_Test1",
+      "group": "Car_LanciaStratosHF",
+      "type": "time",
+      "name": "Lancia Stratos HF - Test nocturne I",
+      "labels": {
+        "en": "Lancia Stratos HF - Night Test I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "lanciastratoshf",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 177,
+      "silver": 204,
+      "bronze": 231
+    },
+    {
+      "id": "LanciaStratosHF_Rain_Test1",
+      "group": "Car_LanciaStratosHF",
+      "type": "time",
+      "name": "Lancia Stratos HF - Test sous la pluie I",
+      "labels": {
+        "en": "Lancia Stratos HF - Rain Test I"
+      },
+      "stage": "alsaces2munstershort1forward",
+      "car": "lanciastratoshf",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 294,
+      "silver": 336,
+      "bronze": 395
+    },
+    {
+      "id": "LanciaStratosHF_Race_Test1",
+      "group": "Car_LanciaStratosHF",
+      "type": "position",
+      "name": "Lancia Stratos HF - Test de course I",
+      "labels": {
+        "en": "Lancia Stratos HF - Race Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "lanciastratoshf",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "LanciaStratosHF_Snow_Test1",
+      "group": "Car_LanciaStratosHF",
+      "type": "time",
+      "name": "Lancia Stratos HF - Test sur neige I",
+      "labels": {
+        "en": "Lancia Stratos HF - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "lanciastratoshf",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 57,
+      "silver": 65,
+      "bronze": 73
+    },
+    {
+      "id": "CitroenXsaraWRC_Tarmac_Test1",
+      "group": "Car_CitroenXsaraWRC",
+      "type": "time",
+      "name": "Citroën Xsara WRC - Test sur asphalte I",
+      "labels": {
+        "en": "Citroën Xsara WRC - Tarmac Test I"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "09:30",
+      "gold": 317,
+      "silver": 366,
+      "bronze": 411
+    },
+    {
+      "id": "CitroenXsaraWRC_Gravel_Test1",
+      "group": "Car_CitroenXsaraWRC",
+      "type": "time",
+      "name": "Citroën Xsara WRC - Test sur terre I",
+      "labels": {
+        "en": "Citroën Xsara WRC - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "10:00",
+      "gold": 194,
+      "silver": 224,
+      "bronze": 251
+    },
+    {
+      "id": "CitroenXsaraWRC_Night_Test1",
+      "group": "Car_CitroenXsaraWRC",
+      "type": "time",
+      "name": "Citroën Xsara WRC - Test nocturne I",
+      "labels": {
+        "en": "Citroën Xsara WRC - Night Test I"
+      },
+      "stage": "alsaces2munstershort2reverse",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 165,
+      "silver": 190,
+      "bronze": 215
+    },
+    {
+      "id": "CitroenXsaraWRC_Rain_Test1",
+      "group": "Car_CitroenXsaraWRC",
+      "type": "time",
+      "name": "Citroën Xsara WRC - Test sous la pluie I",
+      "labels": {
+        "en": "Citroën Xsara WRC - Rain Test I"
+      },
+      "stage": "alsaces2munstershort1reverse",
+      "car": "citroenxsarawrc",
+      "weather": "heavyrain",
+      "startTime": "17:00",
+      "gold": 255,
+      "silver": 292,
+      "bronze": 343
+    },
+    {
+      "id": "CitroenXsaraWRC_Race_Test1",
+      "group": "Car_CitroenXsaraWRC",
+      "type": "position",
+      "name": "Citroën Xsara WRC - Test de course I",
+      "labels": {
+        "en": "Citroën Xsara WRC - Race Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "12:00"
+    },
+    {
+      "id": "CitroenXsaraWRC_Snow_Test1",
+      "group": "Car_CitroenXsaraWRC",
+      "type": "time",
+      "name": "Citroën Xsara WRC - Test sur neige I",
+      "labels": {
+        "en": "Citroën Xsara WRC - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "citroenxsarawrc",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 53,
+      "silver": 61,
+      "bronze": 68
+    },
+    {
+      "id": "Lancia037Evo2_Tarmac_Test1",
+      "group": "Car_Lancia037Evo2",
+      "type": "time",
+      "name": "Lancia Rally 037 Evoluzione 2 - Test sur asphalte I",
+      "labels": {
+        "en": "Lancia Rally 037 Evoluzione 2 - Tarmac Test I"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "lanciarally037evo2",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 154,
+      "silver": 177,
+      "bronze": 199
+    },
+    {
+      "id": "Lancia037Evo2_Gravel_Test1",
+      "group": "Car_Lancia037Evo2",
+      "type": "time",
+      "name": "Lancia Rally 037 Evoluzione 2 - Test sur terre I",
+      "labels": {
+        "en": "Lancia Rally 037 Evoluzione 2 - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthcut2forward",
+      "car": "lanciarally037evo2",
+      "weather": "clear",
+      "startTime": "09:00",
+      "gold": 228,
+      "silver": 263,
+      "bronze": 296
+    },
+    {
+      "id": "Lancia037Evo2_Night_Test1",
+      "group": "Car_Lancia037Evo2",
+      "type": "time",
+      "name": "Lancia Rally 037 Evoluzione 2 - Test nocturne I",
+      "labels": {
+        "en": "Lancia Rally 037 Evoluzione 2 - Night Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "lanciarally037evo2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 170,
+      "silver": 196,
+      "bronze": 221
+    },
+    {
+      "id": "Lancia037Evo2_Rain_Test1",
+      "group": "Car_Lancia037Evo2",
+      "type": "time",
+      "name": "Lancia Rally 037 Evoluzione 2 - Test sous la pluie I",
+      "labels": {
+        "en": "Lancia Rally 037 Evoluzione 2 - Rain Test I"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "lanciarally037evo2",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 409,
+      "silver": 468,
+      "bronze": 550
+    },
+    {
+      "id": "Lancia037Evo2_Race_Test1",
+      "group": "Car_Lancia037Evo2",
+      "type": "position",
+      "name": "Lancia Rally 037 Evoluzione 2 - Test de course I",
+      "labels": {
+        "en": "Lancia Rally 037 Evoluzione 2 - Race Test I"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "lanciarally037evo2",
+      "weather": "clear",
+      "startTime": "08:00"
+    },
+    {
+      "id": "Lancia037Evo2_Snow_Test1",
+      "group": "Car_Lancia037Evo2",
+      "type": "time",
+      "name": "Lancia Rally 037 Evoluzione 2 - Test sur neige I",
+      "labels": {
+        "en": "Lancia Rally 037 Evoluzione 2 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "lanciarally037evo2",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 57,
+      "silver": 66,
+      "bronze": 74
+    },
+    {
+      "id": "SkodaFabiaRSRally2_Tarmac_Test1",
+      "group": "Car_SkodaFabiaRSRally2",
+      "type": "time",
+      "name": "Fabia RS Rally2 - Test sur asphalte I",
+      "labels": {
+        "en": "Fabia RS Rally2 - Tarmac Test I"
+      },
+      "stage": "montecarlos2sisteroncut2reverse",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 155,
+      "silver": 178,
+      "bronze": 201
+    },
+    {
+      "id": "SkodaFabiaRSRally2_Gravel_Test1",
+      "group": "Car_SkodaFabiaRSRally2",
+      "type": "time",
+      "name": "Fabia RS Rally2 - Test sur terre I",
+      "labels": {
+        "en": "Fabia RS Rally2 - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 182,
+      "silver": 210,
+      "bronze": 236
+    },
+    {
+      "id": "SkodaFabiaRSRally2_Night_Test1",
+      "group": "Car_SkodaFabiaRSRally2",
+      "type": "time",
+      "name": "Fabia RS Rally2 - Test nocturne I",
+      "labels": {
+        "en": "Fabia RS Rally2 - Night Test I"
+      },
+      "stage": "montecarlos1bollenecut1forward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 539,
+      "silver": 616,
+      "bronze": 722
+    },
+    {
+      "id": "SkodaFabiaRSRally2_Rain_Test1",
+      "group": "Car_SkodaFabiaRSRally2",
+      "type": "time",
+      "name": "Fabia RS Rally2 - Test sous la pluie I",
+      "labels": {
+        "en": "Fabia RS Rally2 - Rain Test I"
+      },
+      "stage": "weless3hafrennorthcut1forward",
+      "car": "skodafabiarsrally2",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 256,
+      "silver": 295,
+      "bronze": 332
+    },
+    {
+      "id": "SkodaFabiaRSRally2_Race_Test1",
+      "group": "Car_SkodaFabiaRSRally2",
+      "type": "position",
+      "name": "Fabia RS Rally2 - Test de course I",
+      "labels": {
+        "en": "Fabia RS Rally2 - Race Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "skodafabiarsrally2",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "SkodaFabiaRSRally2_Snow_Test1",
+      "group": "Car_SkodaFabiaRSRally2",
+      "type": "time",
+      "name": "Fabia RS Rally2 - Test sur neige I",
+      "labels": {
+        "en": "Fabia RS Rally2 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "skodafabiarsrally2",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 57,
+      "silver": 66,
+      "bronze": 74
+    },
+    {
+      "id": "Peugeot306IIMaxi_Tarmac_Test1",
+      "group": "Car_Peugeot306IIMaxi",
+      "type": "time",
+      "name": "Peugeot 306 II Maxi - Test sur asphalte I",
+      "labels": {
+        "en": "Peugeot 306 II Maxi - Tarmac Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 270,
+      "silver": 312,
+      "bronze": 351
+    },
+    {
+      "id": "Peugeot306IIMaxi_Gravel_Test1",
+      "group": "Car_Peugeot306IIMaxi",
+      "type": "time",
+      "name": "Peugeot 306 II Maxi - Test sur terre I",
+      "labels": {
+        "en": "Peugeot 306 II Maxi - Gravel Test I"
+      },
+      "stage": "weless3hafrennorthcut1forward",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 236,
+      "silver": 272,
+      "bronze": 306
+    },
+    {
+      "id": "Peugeot306IIMaxi_Night_Test1",
+      "group": "Car_Peugeot306IIMaxi",
+      "type": "time",
+      "name": "Peugeot 306 II Maxi - Test nocturne I",
+      "labels": {
+        "en": "Peugeot 306 II Maxi - Night Test I"
+      },
+      "stage": "montecarlos1bollenecut1reverse",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 517,
+      "silver": 596,
+      "bronze": 674
+    },
+    {
+      "id": "Peugeot306IIMaxi_Rain_Test1",
+      "group": "Car_Peugeot306IIMaxi",
+      "type": "time",
+      "name": "Peugeot 306 II Maxi - Test sous la pluie I",
+      "labels": {
+        "en": "Peugeot 306 II Maxi - Rain Test I"
+      },
+      "stage": "weless3hafrennorthcut2forward",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 240,
+      "silver": 277,
+      "bronze": 312
+    },
+    {
+      "id": "Peugeot306IIMaxi_Race_Test1",
+      "group": "Car_Peugeot306IIMaxi",
+      "type": "position",
+      "name": "Peugeot 306 II Maxi - Test de course I",
+      "labels": {
+        "en": "Peugeot 306 II Maxi - Race Test I"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "Peugeot306IIMaxi_Snow_Test1",
+      "group": "Car_Peugeot306IIMaxi",
+      "type": "time",
+      "name": "Peugeot 306 II Maxi - Test sur neige I",
+      "labels": {
+        "en": "Peugeot 306 II Maxi - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 62,
+      "silver": 71,
+      "bronze": 80
+    },
+    {
+      "id": "SubaruImprezaS3_Tarmac_Test1",
+      "group": "Car_SubaruImpresaS3",
+      "type": "time",
+      "name": "Subaru Impreza S3 - Test sur asphalte I",
+      "labels": {
+        "en": "Subaru Impreza S3 - Tarmac Test I"
+      },
+      "stage": "montecarlos2sisteronfullforward",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 477,
+      "silver": 550,
+      "bronze": 619
+    },
+    {
+      "id": "SubaruImprezaS3_Gravel_Test1",
+      "group": "Car_SubaruImpresaS3",
+      "type": "time",
+      "name": "Subaru Impreza S3 - Test sur terre I",
+      "labels": {
+        "en": "Subaru Impreza S3 - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 190,
+      "silver": 219,
+      "bronze": 246
+    },
+    {
+      "id": "SubaruImprezaS3_Night_Test1",
+      "group": "Car_SubaruImpresaS3",
+      "type": "time",
+      "name": "Subaru Impreza S3 - Test nocturne I",
+      "labels": {
+        "en": "Subaru Impreza S3 - Night Test I"
+      },
+      "stage": "montecarlos1bollenecut3reverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 228,
+      "silver": 263,
+      "bronze": 297
+    },
+    {
+      "id": "SubaruImprezaS3_Rain_Test1",
+      "group": "Car_SubaruImpresaS3",
+      "type": "time",
+      "name": "Subaru Impreza S3 - Test sous la pluie I",
+      "labels": {
+        "en": "Subaru Impreza S3 - Rain Test I"
+      },
+      "stage": "alsaces4savernefullreverse",
+      "car": "subaruimprezas3",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 329,
+      "silver": 376,
+      "bronze": 442
+    },
+    {
+      "id": "SubaruImprezaS3_Race_Test1",
+      "group": "Car_SubaruImpresaS3",
+      "type": "position",
+      "name": "Subaru Impreza S3 - Test de course I",
+      "labels": {
+        "en": "Subaru Impreza S3 - Race Test I"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "subaruimprezas3",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "SubaruImprezaS3_Snow_Test1",
+      "group": "Car_SubaruImpresaS3",
+      "type": "time",
+      "name": "Subaru Impreza S3 - Test sur neige I",
+      "labels": {
+        "en": "Subaru Impreza S3 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "subaruimprezas3",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 59,
+      "silver": 68,
+      "bronze": 77
+    },
+    {
+      "id": "VWPoloGTIR5_Tarmac_Test1",
+      "group": "Car_VWPoloGTIR5",
+      "type": "time",
+      "name": "Volkswagen Polo GTI R5 - Test sur asphalte I",
+      "labels": {
+        "en": "Volkswagen Polo GTI R5 - Tarmac Test I"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "vwpologtir5",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 282,
+      "silver": 326,
+      "bronze": 366
+    },
+    {
+      "id": "VWPoloGTIR5_Gravel_Test1",
+      "group": "Car_VWPoloGTIR5",
+      "type": "time",
+      "name": "Volkswagen Polo GTI R5 - Test sur gravier I",
+      "labels": {
+        "en": "Volkswagen Polo GTI R5 - Gravel Test I"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "vwpologtir5",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 191,
+      "silver": 220,
+      "bronze": 248
+    },
+    {
+      "id": "VWPoloGTIR5_Night_Test1",
+      "group": "Car_VWPoloGTIR5",
+      "type": "time",
+      "name": "Volkswagen Polo GTI R5 - Test de nuit I",
+      "labels": {
+        "en": "Volkswagen Polo GTI R5 - Night Test I"
+      },
+      "stage": "greeces3elatiafullreverse",
+      "car": "vwpologtir5",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 382,
+      "silver": 441,
+      "bronze": 499
+    },
+    {
+      "id": "VWPoloGTIR5_Rain_Test1",
+      "group": "Car_VWPoloGTIR5",
+      "type": "time",
+      "name": "Volkswagen Polo GTI R5 - Test sous la pluie I",
+      "labels": {
+        "en": "Volkswagen Polo GTI R5 - Rain Test I"
+      },
+      "stage": "weless3hafrennorthcut1forward",
+      "car": "vwpologtir5",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 259,
+      "silver": 299,
+      "bronze": 336
+    },
+    {
+      "id": "VWPoloGTIR5_Race_Test1",
+      "group": "Car_VWPoloGTIR5",
+      "type": "position",
+      "name": "Volkswagen Polo GTI R5 - Test de course I",
+      "labels": {
+        "en": "Volkswagen Polo GTI R5 - Race Test I"
+      },
+      "stage": "greeces4loutrakifullreverse",
+      "car": "vwpologtir5",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "VWPoloGTIR5_Snow_Test1",
+      "group": "Car_VWPoloGTIR5",
+      "type": "time",
+      "name": "Volkswagen Polo GTI R5 - Test sur neige I",
+      "labels": {
+        "en": "Volkswagen Polo GTI R5 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "vwpologtir5",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 55,
+      "silver": 64,
+      "bronze": 71
+    },
+    {
+      "id": "Peugeot206_Tarmac_Test1",
+      "group": "Car_Peugeot206",
+      "type": "time",
+      "name": "Peugeot 206 WRC - Test sur asphalte I",
+      "labels": {
+        "en": "Peugeot 206 WRC - Tarmac Test I"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "peugeot206",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 320,
+      "silver": 370,
+      "bronze": 416
+    },
+    {
+      "id": "Peugeot206_Gravel_Test1",
+      "group": "Car_Peugeot206",
+      "type": "time",
+      "name": "Peugeot 206 WRC - Test sur gravier I",
+      "labels": {
+        "en": "Peugeot 206 WRC - Gravel Test I"
+      },
+      "stage": "greeces4loutrakifullforward",
+      "car": "peugeot206",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 411,
+      "silver": 474,
+      "bronze": 534
+    },
+    {
+      "id": "Peugeot206_Night_Test1",
+      "group": "Car_Peugeot206",
+      "type": "time",
+      "name": "Peugeot 206 WRC - Test de nuit I",
+      "labels": {
+        "en": "Peugeot 206 WRC - Night Test I"
+      },
+      "stage": "weless3hafrennorthcut1reverse",
+      "car": "peugeot206",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 237,
+      "silver": 273,
+      "bronze": 309
+    },
+    {
+      "id": "Peugeot206_Rain_Test1",
+      "group": "Car_Peugeot206",
+      "type": "time",
+      "name": "Peugeot 206 WRC - Test sous la pluie I",
+      "labels": {
+        "en": "Peugeot 206 WRC - Rain Test I"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "peugeot206",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 176,
+      "silver": 201,
+      "bronze": 236
+    },
+    {
+      "id": "Peugeot206_Race_Test1",
+      "group": "Car_Peugeot206",
+      "type": "position",
+      "name": "Peugeot 206 WRC - Test de course I",
+      "labels": {
+        "en": "Peugeot 206 WRC - Race Test I"
+      },
+      "stage": "montecarlos2sisteroncut2reverse",
+      "car": "peugeot206",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "Peugeot206_Snow_Test1",
+      "group": "Car_Peugeot206",
+      "type": "time",
+      "name": "Peugeot 206 WRC - Test sur neige I",
+      "labels": {
+        "en": "Peugeot 206 WRC - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "peugeot206",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 58,
+      "silver": 67,
+      "bronze": 75
+    },
+    {
+      "id": "AudiQuattroGr4_Tarmac_Test1",
+      "group": "Car_AudiQuattroGr4",
+      "type": "time",
+      "name": "Audi Quattro Gr.4 - Test sur asphalte I",
+      "labels": {
+        "en": "Audi Quattro Gr.4 - Tarmac Test I"
+      },
+      "stage": "montecarlos1bollenecut1forward",
+      "car": "audiquattrogr4",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 548,
+      "silver": 632,
+      "bronze": 711
+    },
+    {
+      "id": "AudiQuattroGr4_Gravel_Test1",
+      "group": "Car_AudiQuattroGr4",
+      "type": "time",
+      "name": "Audi Quattro Gr.4 - Test sur gravier I",
+      "labels": {
+        "en": "Audi Quattro Gr.4 - Gravel Test I"
+      },
+      "stage": "greeces3elatiafullreverse",
+      "car": "audiquattrogr4",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 403,
+      "silver": 465,
+      "bronze": 523
+    },
+    {
+      "id": "AudiQuattroGr4_Night_Test1",
+      "group": "Car_AudiQuattroGr4",
+      "type": "time",
+      "name": "Audi Quattro Gr.4 - Test de nuit I",
+      "labels": {
+        "en": "Audi Quattro Gr.4 - Night Test I"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "audiquattrogr4",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 164,
+      "silver": 189,
+      "bronze": 214
+    },
+    {
+      "id": "AudiQuattroGr4_Rain_Test1",
+      "group": "Car_AudiQuattroGr4",
+      "type": "time",
+      "name": "Audi Quattro Gr.4 - Test sous la pluie I",
+      "labels": {
+        "en": "Audi Quattro Gr.4 - Rain Test I"
+      },
+      "stage": "greeces4loutrakicut1forward",
+      "car": "audiquattrogr4",
+      "weather": "heavyrain",
+      "startTime": "11:00",
+      "gold": 235,
+      "silver": 271,
+      "bronze": 304
+    },
+    {
+      "id": "AudiQuattroGr4_Race_Test1",
+      "group": "Car_AudiQuattroGr4",
+      "type": "position",
+      "name": "Audi Quattro Gr.4 - Test de course I",
+      "labels": {
+        "en": "Audi Quattro Gr.4 - Race Test I"
+      },
+      "stage": "montecarlos1bollenecut3reverse",
+      "car": "audiquattrogr4",
+      "weather": "clear",
+      "startTime": "14:50"
+    },
+    {
+      "id": "AudiQuattroGr4_Snow_Test1",
+      "group": "Car_AudiQuattroGr4",
+      "type": "time",
+      "name": "Audi Quattro Gr.4 - Test sur neige I",
+      "labels": {
+        "en": "Audi Quattro Gr.4 - Snow Test I"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "audiquattrogr4",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 60,
+      "silver": 69,
+      "bronze": 77
+    },
+    {
+      "id": "FWD_Event_0",
+      "group": "Rally_FWD",
+      "type": "time",
+      "name": "Test sur asphalte 2x4 avant - Mini Cooper S",
+      "labels": {
+        "en": "FWD Tarmac Test - Mini Cooper S"
+      },
+      "stage": "alsaces2munstershort1forward",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "18:00",
+      "gold": 280,
+      "silver": 323,
+      "bronze": 364
+    },
+    {
+      "id": "FWD_Event_1",
+      "group": "Rally_FWD",
+      "type": "time",
+      "name": "Test sur terre 2x4 avant - Mini Cooper S",
+      "labels": {
+        "en": "FWD Gravel Test - Mini Cooper S"
+      },
+      "stage": "weless3hafrennorthcut1forward",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 268,
+      "silver": 309,
+      "bronze": 347
+    },
+    {
+      "id": "FWD_Event_2",
+      "group": "Rally_FWD",
+      "type": "time",
+      "name": "Test sous la pluie 2x4 avant Peugeot 208 Rally4",
+      "labels": {
+        "en": "FWD Rain Test - Peugeot 208 Rally 4"
+      },
+      "stage": "alsaces4saverneshort1forward",
+      "car": "peugeot208rally4",
+      "weather": "heavyrain",
+      "startTime": "15:00",
+      "gold": 186,
+      "silver": 213,
+      "bronze": 250
+    },
+    {
+      "id": "FWD_Event_3",
+      "group": "Rally_FWD",
+      "type": "time",
+      "name": "Test sur terre 2x4 avant - Peugeot 208 Rally4",
+      "labels": {
+        "en": "FWD Gravel Test - Peugeot 208 Rally 4"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "22:00",
+      "gold": 213,
+      "silver": 245,
+      "bronze": 277
+    },
+    {
+      "id": "FWD_Event_4",
+      "group": "Rally_FWD",
+      "type": "position",
+      "name": "Test sur asphalte 2x4 avant - Peugeot 208 Rally4",
+      "labels": {
+        "en": "FWD Tarmac Test - Peugeot 208 Rally 4"
+      },
+      "stage": "alsaces2munsterfullreverse",
+      "car": "peugeot208rally4",
+      "weather": "clear",
+      "startTime": "07:00"
+    },
+    {
+      "id": "FWD_Event_5",
+      "group": "Rally_FWD",
+      "type": "time",
+      "name": "Test sur neige 2x4 avant - Mini Cooper S",
+      "labels": {
+        "en": "FWD Snow Test - Mini Cooper S"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "minicoopers1275",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 55,
+      "silver": 63,
+      "bronze": 71
+    },
+    {
+      "id": "FWD_Event_6",
+      "group": "Rally_FWD",
+      "type": "time",
+      "name": "Test en conditions mixtes à traction avant - Peugeot 306 II Maxi",
+      "labels": {
+        "en": "FWD Mixed Conditions Test - Peugeot 306 II Maxi"
+      },
+      "stage": "montecarlos1bollenefullreverse",
+      "car": "peugeot306iimaxikitcar",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 809,
+      "silver": 927,
+      "bronze": 1088
+    },
+    {
+      "id": "RWD_Event_0",
+      "group": "Rally_RWD",
+      "type": "time",
+      "name": "Test sur terre 2x4 arrière - Alfa GTA 1300 Junior",
+      "labels": {
+        "en": "RWD Gravel Test - Alfa Romeo GTA 1300 Junior"
+      },
+      "stage": "weless4hafrensouthfullforward",
+      "car": "alfaromeogta1300",
+      "weather": "clear",
+      "startTime": "08:00",
+      "gold": 210,
+      "silver": 242,
+      "bronze": 272
+    },
+    {
+      "id": "RWD_Event_1",
+      "group": "Rally_RWD",
+      "type": "position",
+      "name": "Test sur terre 2x4 arrière - Fiat 124 Abarth 16V",
+      "labels": {
+        "en": "RWD Gravel Test - Fiat 124 Abarth Rally 16V"
+      },
+      "stage": "weless3hafrennorthcut1reverse",
+      "car": "fiat124abarth",
+      "weather": "clear",
+      "startTime": "11:00"
+    },
+    {
+      "id": "RWD_Event_2",
+      "group": "Rally_RWD",
+      "type": "time",
+      "name": "Test sur asphalte 2x4 arrière - Fiat 131 Abarth",
+      "labels": {
+        "en": "RWD Tarmac Test - Fiat 131 Abarth"
+      },
+      "stage": "alsaces2munstershort2forward",
+      "car": "fiat131abarth",
+      "weather": "clear",
+      "startTime": "16:00",
+      "gold": 179,
+      "silver": 206,
+      "bronze": 232
+    },
+    {
+      "id": "RWD_Event_3",
+      "group": "Rally_RWD",
+      "type": "position",
+      "name": "Test sur asphalte 2x4 arrière - Lancia Stratos HF",
+      "labels": {
+        "en": "RWD Tarmac Test - Lancia Stratos HF"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "lanciastratoshf",
+      "weather": "clear",
+      "startTime": "19:00"
+    },
+    {
+      "id": "RWD_Event_4",
+      "group": "Rally_RWD",
+      "type": "position",
+      "name": "Test sur asphalte 2x4 arrière - Lancia 037 Evo 2",
+      "labels": {
+        "en": "RWD Tarmac Test - Lancia Rally 037 Evoluzione 2"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "lanciarally037evo2",
+      "weather": "clear",
+      "startTime": "12:00"
+    },
+    {
+      "id": "RWD_Event_5",
+      "group": "Rally_RWD",
+      "type": "time",
+      "name": "Test sur neige 2x4 arrière - Alpine A110 1.8",
+      "labels": {
+        "en": "RWD Snow Test - Alpine A110 1.8"
+      },
+      "stage": "livignotesttrack01fullreverse",
+      "car": "alpinea110",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 60,
+      "silver": 68,
+      "bronze": 80
+    },
+    {
+      "id": "RWD_Event_6",
+      "group": "Rally_RWD",
+      "type": "time",
+      "name": "Test en conditions mixtes à propulsion - Fiat 131 Abarth",
+      "labels": {
+        "en": "RWD Mixed Conditions Test - Fiat 131 Abarth"
+      },
+      "stage": "montecarlos2sisteronfullreverse",
+      "car": "fiat131abarth",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 571,
+      "silver": 653,
+      "bronze": 767
+    },
+    {
+      "id": "4WD_Event_0",
+      "group": "Rally_4WD",
+      "type": "position",
+      "name": "Test sur asphalte 4x4 - Hyundai i20 Rally2",
+      "labels": {
+        "en": "4WD Tarmac Test - Hyundai i20 Rally2"
+      },
+      "stage": "alsaces4savernefullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "18:00"
+    },
+    {
+      "id": "4WD_Event_1",
+      "group": "Rally_4WD",
+      "type": "time",
+      "name": "Test sur terre 4x4 - Hyundai i20 Rally2",
+      "labels": {
+        "en": "4WD Gravel Test - Hyundai i20 Rally2"
+      },
+      "stage": "weless4hafrensouthfullreverse",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "06:30",
+      "gold": 191,
+      "silver": 220,
+      "bronze": 248
+    },
+    {
+      "id": "4WD_Event_2",
+      "group": "Rally_4WD",
+      "type": "position",
+      "name": "Test sur terre 4x4 - Lancia Delta Integrale Evo",
+      "labels": {
+        "en": "4WD Gravel Test - Lancia Delta Integrale Evoluzione"
+      },
+      "stage": "weless3hafrennorthfullreverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "clear",
+      "startTime": "13:00"
+    },
+    {
+      "id": "4WD_Event_3",
+      "group": "Rally_4WD",
+      "type": "time",
+      "name": "Test sous la pluie 4x4 - Lancia Delta Integrale Evo",
+      "labels": {
+        "en": "4WD Rain Test - Lancia Delta Integrale Evoluzione"
+      },
+      "stage": "alsaces4saverneshort1reverse",
+      "car": "lanciadeltaintegraleevo",
+      "weather": "heavyrain",
+      "startTime": "09:30",
+      "gold": 174,
+      "silver": 199,
+      "bronze": 234
+    },
+    {
+      "id": "4WD_Event_4",
+      "group": "Rally_4WD",
+      "type": "time",
+      "name": "Test sur asphalte 4x4 - Citroën Xsara WRC",
+      "labels": {
+        "en": "4WD Tarmac Test - Citroën Xsara WRC"
+      },
+      "stage": "alsaces2munsterfullforward",
+      "car": "citroenxsarawrc",
+      "weather": "clear",
+      "startTime": "17:30",
+      "gold": 323,
+      "silver": 373,
+      "bronze": 419
+    },
+    {
+      "id": "4WD_Event_5",
+      "group": "Rally_4WD",
+      "type": "time",
+      "name": "Test sur neige 4x4 - Citroën Xsara WRC",
+      "labels": {
+        "en": "4WD Snow Test - Citroën Xsara WRC"
+      },
+      "stage": "livignotesttrack01fullforward",
+      "car": "citroenxsarawrc",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 57,
+      "silver": 65,
+      "bronze": 77
+    },
+    {
+      "id": "4WD_Event_6",
+      "group": "Rally_4WD",
+      "type": "time",
+      "name": "Test en conditions mixtes à transmission intégrale - Subaru Impreza S3",
+      "labels": {
+        "en": "4WD Mixed Conditions Test - Subaru Impreza S3"
+      },
+      "stage": "montecarlos1bollenefullforward",
+      "car": "subaruimprezas3",
+      "weather": "lightsnow",
+      "startTime": "08:00",
+      "gold": 840,
+      "silver": 962,
+      "bronze": 1129
+    },
+    {
+      "id": "FIA_2026_Qualifier",
+      "group": "FIA_2026",
+      "type": "time",
+      "name": "Qualification ouverte en ligne",
+      "labels": {
+        "en": "Online Open Qualification"
+      },
+      "stage": "weless3hafrennorthfullforward",
+      "car": "hyundaii20nrally2",
+      "weather": "clear",
+      "startTime": "12:00",
+      "gold": 411,
+      "silver": 411,
+      "bronze": 411
     }
   ]
 }
