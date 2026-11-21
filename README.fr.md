@@ -469,11 +469,10 @@ serveur) :
 > n'importe quoi dans ce salon. En cas de fuite, supprimez le webhook dans Discord
 > (ou *régénérez* son URL) — l'ancien lien meurt aussitôt.
 
-**Personnalisez le messager.** Le nom et l'avatar affichés sur les messages sont ceux
-du **webhook lui-même** — l'application ne les remplace jamais. Renommez-le (au nom
-de votre communauté ou de votre championnat) et donnez-lui votre logo directement
-dans les réglages du webhook côté Discord ; chaque message reste discrètement signé
-*ACR Live Timing* dans l'en-tête de l'embed, avec un lien vers ce projet.
+**Qui poste.** Les messages sont toujours postés au nom d'*ACR Live Timing*, avec
+le logo de l'application, quels que soient le nom et l'avatar du webhook dans
+Discord. L'en-tête de l'embed porte aussi *ACR Live Timing*, avec un lien vers ce
+projet.
 
 **Trois messages en un clic :**
 

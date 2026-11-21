@@ -426,11 +426,9 @@ app to authorise, nothing to run on a server.
 > channel. If it leaks, delete the webhook in Discord (or *Regenerate* its URL) —
 > the old link dies instantly.
 
-**Customise the messenger.** The name and avatar shown on the messages are those of
-the **webhook itself** — the app never overrides them. Rename it (e.g. after your
-community or championship) and give it your own logo straight in Discord's webhook
-settings; each message is still discreetly signed *ACR Live Timing* in the embed
-header, with a link to this project.
+**Who posts.** The messages are always posted as *ACR Live Timing*, with the
+app's logo, whatever the webhook's name and avatar are in Discord. The embed
+header also carries *ACR Live Timing*, with a link to this project.
 
 **Three one-click messages:**
 

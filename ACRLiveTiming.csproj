@@ -9,7 +9,8 @@
     <RootNamespace>ACRLiveTiming</RootNamespace>
     <AssemblyName>ACRLiveTiming</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- Multi-size .ico built from assets/icon.svg (+ icon-16.svg simplified variant). -->
+    <!-- Multi-size .ico built from assets/icon.svg (+ icon-16.svg simplified variant);
+         assets/icon-256.png is its 256 px frame, the Discord avatar. -->
     <ApplicationIcon>assets\icon.ico</ApplicationIcon>
     <LangVersion>latest</LangVersion>
     <!-- [LibraryImport] generates its P/Invoke marshalling as unsafe code. -->

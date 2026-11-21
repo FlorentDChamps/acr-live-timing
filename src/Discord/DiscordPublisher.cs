@@ -13,9 +13,15 @@ namespace ACRLiveTiming.Discord;
 public static class DiscordPublisher
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
+    private const string AppName = "ACR Live Timing";
     private const string LogoAttachment = "attachment://acr-live-timing.png";
     private static readonly JsonSerializerOptions Json = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
     private static readonly Lazy<byte[]?> LogoPng = new(CreateLogoPng);
+    // Discord fetches a webhook avatar by URL only (an attachment cannot be one): the
+    // app's logo as the public repository serves it, null when that is not GitHub.
+    private static readonly string? AvatarUrl = AppInfo.RepositoryUrl.StartsWith("https://github.com/", StringComparison.Ordinal)
+        ? AppInfo.RepositoryUrl.Replace("https://github.com/", "https://raw.githubusercontent.com/") + "/main/assets/icon-256.png"
+        : null;
 
     public static async Task SendLiveAlertAsync(string webhook, string publicUrl, string title, string description)
     {
@@ -95,6 +101,11 @@ public static class DiscordPublisher
 
     private sealed class WebhookPayload
     {
+        // override the webhook's own name and avatar, whatever they are in Discord
+        [JsonPropertyName("username")]
+        public string Username { get; } = AppName;
+        [JsonPropertyName("avatar_url")]
+        public string? Avatar { get; } = AvatarUrl;
         [JsonPropertyName("embeds")]
         public IReadOnlyList<Embed> Embeds { get; init; } = [];
     }
@@ -110,6 +121,6 @@ public static class DiscordPublisher
         [JsonPropertyName("image")]
         public object? Image => ImageUrl == null ? null : new { url = ImageUrl };
         [JsonPropertyName("author")]
-        public object Author => new { name = "ACR Live Timing", url = AppInfo.RepositoryUrl, icon_url = AuthorIconUrl };
+        public object Author => new { name = AppName, url = AppInfo.RepositoryUrl, icon_url = AuthorIconUrl };
     }
 }
