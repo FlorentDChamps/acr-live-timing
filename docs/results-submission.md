@@ -223,7 +223,7 @@ A **Servers** panel, next to the Discord one.
 - **Send**: a selector with *All stages* and each rally group (as for Discord) and
   one button: **Send…** when at least one association is ▶, **Save…** (JSON
   file, § 7) when none is. Both open the preview first. A folder button opens the
-  `Results` folder.
+  `results` folder.
 
 Every send and its answer are also written to the activity log (status and
 message, never the token or the payload). UI strings are English, like the rest of
@@ -430,7 +430,7 @@ text, control characters removed, 300 characters at most. An acknowledgement mea
 Results are always available as files, with or without a server.
 
 - **Copy of every send.** Each payload sent is also written, byte for byte, to the
-  `Results` folder next to the settings file, whatever the answer:
+  `results` folder next to the settings file, whatever the answer:
   `yyyyMMdd-HHmmss_<host>_<eventId>.json` (characters invalid in a file name
   replaced by `_`). The panel has a button to open the folder. Files are never
   deleted by the app. A file that cannot be written does not stop the send; the

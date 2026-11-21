@@ -3,11 +3,11 @@ using System.Text;
 
 namespace ACRLiveTiming.Submission;
 
-/// <summary>The Results folder next to the settings file: a byte-for-byte copy of
+/// <summary>The results folder next to the settings file: a byte-for-byte copy of
 /// every payload sent. Files are never deleted by the app.</summary>
 public static class ResultFiles
 {
-    public static string Folder => Path.Combine(AppContext.BaseDirectory, "Results");
+    public static string Folder => Path.Combine(AppContext.BaseDirectory, "results");
 
     /// <summary>Writes the copy of one send; returns its path, or throws.</summary>
     public static string SaveCopy(byte[] body, Association destination, DateTime localTime)

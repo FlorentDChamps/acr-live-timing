@@ -23,7 +23,8 @@ public sealed class OverlayState
 /// <summary>
 /// Whole-IHM state saved next to the exe as a plain JSON .config, so options,
 /// the page text and the overlay layout survive a restart. Best-effort: a missing
-/// or corrupt file just yields defaults, and a write failure is swallowed.
+/// file yields defaults, an unreadable one is set aside before defaults replace it,
+/// and a write failure is swallowed.
 /// </summary>
 public sealed class AppSettings
 {
@@ -36,7 +37,7 @@ public sealed class AppSettings
     public bool HideSplits { get; set; }
     public bool HideNations { get; set; }
     public double ReplayPause { get; set; } = 0;
-    // automatically named session files kept in the Sessions folder (below 1: all)
+    // automatically named session files kept in the sessions folder (below 1: all)
     public int SessionsKept { get; set; } = 5;
     public bool Dark { get; set; }
     public bool HasTheme { get; set; }   // false on first run => follow the OS
@@ -90,20 +91,61 @@ public sealed class AppSettings
     public static string Path =>
         System.IO.Path.Combine(AppContext.BaseDirectory, "ACRLiveTiming.config");
 
+    /// <summary>Why the saved settings could not be used, for the log; null when
+    /// they loaded or there were none yet.</summary>
+    [JsonIgnore]
+    public string? LoadProblem { get; private set; }
+    // the file could not be read nor set aside: never write over it this session
+    private bool _keepFile;
+
     public static AppSettings Load()
     {
+        if (!File.Exists(Path)) return new AppSettings();
         try
         {
-            if (File.Exists(Path))
-                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(Path)) ?? new AppSettings();
+            return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(Path))
+                ?? throw new JsonException("the file holds no settings");
         }
-        catch { /* corrupt / unreadable -> defaults */ }
-        return new AppSettings();
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
+        {
+            // Defaults for this session, but never at the cost of the saved file:
+            // the next save would overwrite it. Keep a copy, or keep the file itself.
+            var settings = new AppSettings();
+            string kept = System.IO.Path.Combine(AppContext.BaseDirectory,
+                $"ACRLiveTiming.unreadable-{DateTime.Now:yyyyMMdd-HHmmss}.config");
+            try
+            {
+                File.Copy(Path, kept);
+                settings.LoadProblem = $"Settings could not be read ({ex.Message}); defaults are used and the old file is kept as {System.IO.Path.GetFileName(kept)}.";
+            }
+            catch (Exception copyError) when (copyError is IOException or UnauthorizedAccessException)
+            {
+                settings._keepFile = true;
+                settings.LoadProblem = $"Settings could not be read ({ex.Message}); defaults are used and this session will not save over them.";
+            }
+            return settings;
+        }
     }
 
     public void Save()
     {
-        try { File.WriteAllText(Path, JsonSerializer.Serialize(this, Opts)); }
-        catch { /* read-only dir / locked -> skip, non-fatal */ }
+        if (_keepFile) return;
+        // Written beside it, then swapped in: a crash or a power cut mid-write
+        // leaves the previous file whole instead of a truncated one.
+        string temp = Path + ".tmp";
+        try
+        {
+            using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                JsonSerializer.Serialize(stream, this, Opts);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temp, Path, overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException)
+        {
+            // read-only dir / locked / a value JSON cannot hold -> skip, non-fatal
+            try { File.Delete(temp); } catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException) { }
+        }
     }
 }

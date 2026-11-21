@@ -196,10 +196,10 @@ being run; below: the same session once it is over, on each tab.</sub>
   repository's releases; if a newer build exists, a popup links to it (nothing is
   downloaded without your confirmation) and can be dismissed per version.
 - **Record & replay** — optionally record the session to a standard `.pcap` file
-  (Wireshark-compatible) in the `Debug` folder next to the exe, and replay it
+  (Wireshark-compatible) in the `debug` folder next to the exe, and replay it
   later through the same decoding pipeline.
 - **Sessions saved as you play** — the game server's packets are recorded in the
-  `Sessions` folder next to the exe, so after closing the app or a crash **Load
+  `sessions` folder next to the exe, so after closing the app or a crash **Load
   session…** rebuilds the board and the session goes on. See [Sessions](#sessions).
 - **Remembers your setup** — all window state (options, page title/description, the
   Discord webhook — encrypted — and each overlay's position, size, always-on-top,
@@ -218,10 +218,10 @@ picture, plainly:
   Elevation is used for that single purpose.
 - **What is captured?** Inbound UDP traffic of *your own* machine, in memory. Once
   the ACR server is detected, only its packets are decoded; everything else is
-  ignored. Those packets are recorded in the `Sessions` folder next to the exe (see
+  ignored. Those packets are recorded in the `sessions` folder next to the exe (see
   [Sessions](#sessions)): they hold what the game sends, account identifiers
   included, so keep session files to yourself. Nothing else is written to disk
-  unless *you* enable debug pcap recording (a local file in the `Debug` folder next
+  unless *you* enable debug pcap recording (a local file in the `debug` folder next
   to the exe). Note that the raw socket sees **all** inbound traffic, so a debug
   `.pcap` contains more than game packets — treat capture files as sensitive and
   think twice before sharing one.
@@ -341,7 +341,7 @@ publish.bat         # single-file Release exe in .\publish\
 
 ## Sessions
 
-Every session is recorded as it is played, in the `Sessions` folder next to the exe
+Every session is recorded as it is played, in the `sessions` folder next to the exe
 (📂 next to **Load session…** opens it): `session_20261023_201405.pcap` holds the
 game server's packets and `session_20261023_201405.json` beside it your stage ticks
 and rally groups. A session starts with the first packet of a lobby and lasts until
@@ -460,7 +460,7 @@ Timing knows no server of its own and contacts none until you pair.
 
 What is sent is raw facts — each driver's status, time, penalty, sectors and car
 per stage, with their pseudonym and **SteamID/EOS ID** — never a classification:
-the server builds its own. A copy of every send is kept in the `Results` folder
+the server builds its own. A copy of every send is kept in the `results` folder
 next to the app (📂 opens it), and with no server on ▶ the button becomes **Save…** to write
 the same results to a JSON file. The pairing token is stored encrypted for your
 Windows account.

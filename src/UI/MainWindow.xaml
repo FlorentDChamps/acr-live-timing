@@ -581,14 +581,14 @@
               </Grid.ColumnDefinitions>
               <StackPanel Grid.Column="0" Orientation="Horizontal">
                 <Button x:Name="LoadSessionBtn" Content="Load session…" Click="LoadSessionBtn_Click"
-                        ToolTip="Load a session saved in the Sessions folder (or any .pcap): the board is rebuilt from its packets, with the stage ticks and rally groups saved beside it, and the session goes on from there."/>
+                        ToolTip="Load a session saved in the sessions folder (or any .pcap): the board is rebuilt from its packets, with the stage ticks and rally groups saved beside it, and the session goes on from there."/>
                 <Button Content="📂" FontFamily="Segoe UI Emoji" FontSize="14" Padding="8,0"
                         Margin="4,0,0,0" Click="OpenSessionsFolder_Click"
-                        ToolTip="Open the Sessions folder: every session is recorded there as it is played."/>
+                        ToolTip="Open the sessions folder: every session is recorded there as it is played."/>
               </StackPanel>
               <Button x:Name="ResetBtn" Grid.Column="1" Content="Reset session" Margin="12,0,0,0"
                       HorizontalAlignment="Right" VerticalAlignment="Top" Click="ResetBtn_Click"
-                      ToolTip="Clear the board and start a new session (all stages and times). The current one stays in the Sessions folder."/>
+                      ToolTip="Clear the board and start a new session (all stages and times). The current one stays in the sessions folder."/>
             </Grid>
           </StackPanel>
         </GroupBox>
@@ -719,7 +719,7 @@
                       ToolTip="Send the selection to the servers set to ▶, or save it as a JSON file when none is. A preview opens first."/>
               <Button Grid.Column="2" Content="📂" FontFamily="Segoe UI Emoji" FontSize="14" Padding="8,4"
                       Margin="6,0,0,0" Click="OpenResultsFolder_Click"
-                      ToolTip="Open the Results folder: a copy of every send."/>
+                      ToolTip="Open the results folder: a copy of every send."/>
             </Grid>
           </StackPanel>
         </GroupBox>
@@ -822,10 +822,10 @@
               <CheckBox x:Name="SavePcapCheck" Content="Save .pcap capture"
                         VerticalAlignment="Center"
                         Checked="SavePcap_Checked" Unchecked="SavePcap_Unchecked"
-                        ToolTip="Record every captured packet to a .pcap file in the Debug folder, openable in Wireshark and replayable in this app. For troubleshooting only."/>
+                        ToolTip="Record every captured packet to a .pcap file in the debug folder, openable in Wireshark and replayable in this app. For troubleshooting only."/>
               <Button Grid.Column="1" Content="📂" FontFamily="Segoe UI Emoji" FontSize="14" Padding="8,0"
                       Click="OpenDebugFolder_Click"
-                      ToolTip="Open the Debug folder: the recorded .pcap captures."/>
+                      ToolTip="Open the debug folder: the recorded .pcap captures."/>
             </Grid>
             <Grid Margin="0,8,0,0">
               <Grid.ColumnDefinitions>

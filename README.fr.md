@@ -216,10 +216,10 @@ chaque onglet.</sub>
   de ce dépôt ; si une version plus récente existe, une fenêtre pointe vers elle
   (rien n'est téléchargé sans votre confirmation) et peut être ignorée par version.
 - **Enregistrement & replay** — enregistrement optionnel de la session dans un
-  `.pcap` standard (lisible dans Wireshark) du dossier `Debug` à côté de l'exe,
+  `.pcap` standard (lisible dans Wireshark) du dossier `debug` à côté de l'exe,
   rejouable ensuite dans le même pipeline de décodage.
 - **Sessions sauvegardées en jouant** — les paquets du serveur du jeu sont enregistrés
-  dans le dossier `Sessions` à côté de l'exe : après avoir fermé l'application ou
+  dans le dossier `sessions` à côté de l'exe : après avoir fermé l'application ou
   après un crash, **Load session…** reconstruit le tableau et la session continue.
   Voir [Sessions](#sessions).
 - **Mémorise votre configuration** — tout l'état de la fenêtre (options,
@@ -239,11 +239,11 @@ tableau complet, sans détour :
   élevés. L'élévation ne sert qu'à ça.
 - **Qu'est-ce qui est capturé ?** Le trafic UDP entrant de *votre propre* machine,
   en mémoire. Une fois le serveur ACR détecté, seuls ses paquets sont décodés ; tout
-  le reste est ignoré. Ces paquets sont enregistrés dans le dossier `Sessions` à
+  le reste est ignoré. Ces paquets sont enregistrés dans le dossier `sessions` à
   côté de l'exe (voir [Sessions](#sessions)) : ils contiennent ce que le jeu envoie,
   identifiants de compte compris, gardez donc les fichiers de session pour vous. Rien
   d'autre n'est écrit sur disque sauf si *vous* activez l'enregistrement pcap de debug
-  (fichier local dans le dossier `Debug` à côté de l'exe). Attention : le raw socket
+  (fichier local dans le dossier `debug` à côté de l'exe). Attention : le raw socket
   voit **tout** le trafic entrant, donc un `.pcap` de debug contient plus que les
   paquets du jeu — traitez les fichiers de capture comme sensibles et réfléchissez
   avant d'en partager un.
@@ -376,7 +376,7 @@ publish.bat         # exe Release monofichier dans .\publish\
 
 ## Sessions
 
-Chaque session est enregistrée au fil du jeu, dans le dossier `Sessions` à côté de
+Chaque session est enregistrée au fil du jeu, dans le dossier `sessions` à côté de
 l'exe (📂 à côté de **Load session…** l'ouvre) : `session_20261023_201405.pcap`
 contient les paquets du serveur du jeu et `session_20261023_201405.json` à côté vos
 spéciales cochées et vos rallyes. Une session commence au premier paquet d'un lobby
@@ -506,7 +506,7 @@ contacte aucun tant que vous ne vous êtes pas associé.
 Ce qui part, ce sont des faits bruts — statut, temps, pénalité, secteurs et voiture
 de chaque pilote par spéciale, avec son pseudo et son **SteamID/EOS ID** — jamais un
 classement : le serveur fait le sien. Une copie de chaque envoi est gardée dans le
-dossier `Results` à côté de l'application (📂 l'ouvre), et sans serveur en ▶ le bouton devient
+dossier `results` à côté de l'application (📂 l'ouvre), et sans serveur en ▶ le bouton devient
 **Save…** pour écrire les mêmes résultats dans un fichier JSON. Le jeton
 d'association est stocké chiffré pour votre compte Windows.
 

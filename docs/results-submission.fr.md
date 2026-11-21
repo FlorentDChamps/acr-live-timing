@@ -233,7 +233,7 @@ Un panneau **Servers**, à côté du panneau Discord.
 - **Envoi** : un sélecteur avec *All stages* et chaque groupe de rallye (comme pour
   Discord) et un seul bouton : **Send…** quand au moins une association est en ▶,
   **Save…** (fichier JSON, § 7) quand aucune ne l'est. Les deux ouvrent d'abord
-  l'aperçu. Un bouton dossier ouvre le dossier `Results`.
+  l'aperçu. Un bouton dossier ouvre le dossier `results`.
 
 Chaque envoi et sa réponse sont aussi écrits dans le journal d'activité (statut et
 message, jamais le jeton ni le contenu).
@@ -442,7 +442,7 @@ réception signifie « enregistré », pas « validé ».
 Les résultats sont toujours disponibles en fichier, avec ou sans serveur.
 
 - **Copie de chaque envoi.** Chaque envoi est aussi écrit, à l'octet près, dans le
-  dossier `Results` à côté du fichier de config, quelle que soit la réponse :
+  dossier `results` à côté du fichier de config, quelle que soit la réponse :
   `yyyyMMdd-HHmmss_<hôte>_<eventId>.json` (caractères interdits dans un nom de
   fichier remplacés par `_`). Le panneau a un bouton pour ouvrir le dossier.
   L'application ne supprime jamais ces fichiers. Un fichier qui ne peut pas être

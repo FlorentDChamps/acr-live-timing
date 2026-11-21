@@ -348,6 +348,7 @@ public partial class MainWindow : Window
 
         _ = CheckForUpdateAsync();
 
+        if (_settings.LoadProblem != null) AppendLog(_settings.LoadProblem);
         AppendLog("Ready. Join an ACR lobby — the server is detected automatically.");
 
         // startup restore is done: enable saving and write once now, so the
@@ -698,8 +699,8 @@ public partial class MainWindow : Window
         catch (Exception ex) { AppendLog("Open URL error: " + ex.Message); }
     }
 
-    // Captures are recorded to, and replayed from, the Debug folder next to the exe.
-    private static string DebugFolder => Path.Combine(AppContext.BaseDirectory, "Debug");
+    // Captures are recorded to, and replayed from, the debug folder next to the exe.
+    private static string DebugFolder => Path.Combine(AppContext.BaseDirectory, "debug");
 
     private void SavePcap_Checked(object sender, RoutedEventArgs e)
     {
@@ -737,7 +738,7 @@ public partial class MainWindow : Window
 
     // ---- sessions ----------------------------------------------------------
 
-    private static string SessionsFolder => Path.Combine(AppContext.BaseDirectory, "Sessions");
+    private static string SessionsFolder => Path.Combine(AppContext.BaseDirectory, "sessions");
 
     private async void LoadSessionBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -764,7 +765,7 @@ public partial class MainWindow : Window
             if (confirm != MessageBoxResult.OK) return;
         }
 
-        // A file of the Sessions folder goes on as it is; any other capture is
+        // A file of the sessions folder goes on as it is; any other capture is
         // copied into a new session file as it loads.
         bool continueFile = string.Equals(Path.GetDirectoryName(Path.GetFullPath(file)),
             Path.GetFullPath(SessionsFolder), StringComparison.OrdinalIgnoreCase);

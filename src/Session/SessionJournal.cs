@@ -18,7 +18,7 @@ public sealed class SessionFile
 }
 
 /// <summary>
-/// The Sessions folder: every packet the engine decodes is appended to
+/// The sessions folder: every packet the engine decodes is appended to
 /// <c>session_yyyyMMdd_HHmmss.pcap</c>, with the organiser's choices in the .json
 /// of the same name, so a session can be loaded back after the app was closed or
 /// crashed. A file opens with the first packet of a locked server, never before.
