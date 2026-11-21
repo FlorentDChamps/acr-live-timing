@@ -243,11 +243,13 @@
   /* second line in a time cell: gap to the column leader, small + dim */
   .t-diff { display: block; font-size: 12px; line-height: 1.1; min-height: 14px;
             font-weight: 400; font-style: normal; color: var(--dim); }
-  /* stage time over the cap (real stage time shown) -> grey italic */
+  /* a stage without a finish counts the DNF time (progress shown) -> grey italic */
   td.pen { color: var(--faint); font-style: italic; }
   td.ignored { color: var(--faint); font-style: italic; }
   /* live cumulative split: visible for comparison, never counted as a finish */
   td.split { color: var(--dim); }
+  /* a penalty the rally weekend's classification adds (a late service park) */
+  .t-diff.rallypen { color: var(--sub); }
   /* a rally weekend's stages still to come */
   th.upcoming, td.upcoming { color: var(--dim); background: transparent; }
   th.upcoming .stagename { color: var(--dim); }
@@ -345,7 +347,7 @@
   body.view-progress .progtrack { background: rgba(22, 27, 34, var(--ov-alpha)); }
 
   /* ---- viewer settings panel (normal page only; hidden in OBS overlay modes) ----
-     Mirrors the IHM's ranking/display controls locally: stage exclusion, penalty %,
+     Mirrors the IHM's ranking/display controls locally: stage exclusion, DNF penalty,
      progression window, hide nationalities, hide splits. Held in SESSION MEMORY
      (no persistence) so a reload reverts; "Reset" restores the host's config. */
   #cfgbtn { position: fixed; top: 10px; right: 12px; z-index: 20;
@@ -478,9 +480,9 @@
     <p class="cfgnote">Local to your view · not saved (reload reverts).
       <em>Reset</em> restores the host's setup.</p>
     <div class="cfgsec first">
-      <div class="cfgrow" title="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic).">
-        <label for="cfgPct">Penalty cap %</label>
-        <input type="number" id="cfgPct" min="0" max="500" step="1" /></div>
+      <div class="cfgrow" id="cfgPenaltyRow" title="A driver without a time on a stage (retired or absent) is counted at the slowest finish (without its penalty) plus this many seconds, the game's own rule (shown in grey italic). Not used for a rally weekend once a stage is over: its stages count as the game's classification counts them.">
+        <label for="cfgPenalty">DNF penalty (s)</label>
+        <input type="number" id="cfgPenalty" min="0" max="3600" step="30" /></div>
       <div class="cfgrow" title="After a driver's first non-finished stage, keep later stage times visible but classify the driver DNF with no general-classification total.">
         <label for="cfgDnfNoRejoin">DNF – No Rejoin</label>
         <input type="checkbox" id="cfgDnfNoRejoin" /></div>
@@ -895,11 +897,11 @@ function renderProgress(list, windowKm, fixed) {
 
 // ---- viewer overrides (session memory; null on a field = follow the host) --------
 // The host publishes its config in /state; a viewer may locally diverge on any of
-// these. Only stage-exclusion / penalty% / hide-splits change the standings and
+// these. Only stage-exclusion / DNF penalty / hide-splits change the standings and
 // trigger a client-side recompute from the ungated `rawCells`; hide-nations and the
 // progression window are purely presentational. Nothing is persisted — a reload
 // (or Reset) drops back to the host's published config.
-const ov = { discarded: null, pct: null, dnfNoRejoin: null, hideSplits: null, hideNations: null, theme: null, progKm: null,
+const ov = { discarded: null, penalty: null, dnfNoRejoin: null, hideSplits: null, hideNations: null, theme: null, progKm: null,
              progFixed: null, groupFilter: null };
 let lastServer = null;
 let lastRendered = null;
@@ -917,7 +919,7 @@ let groupAuto = true;
 let autoGroupKey = "";
 
 const hasOverride = () =>
-  (ov.discarded !== null && !groupAuto) || ov.pct !== null || ov.dnfNoRejoin !== null || ov.hideSplits !== null ||
+  (ov.discarded !== null && !groupAuto) || ov.penalty !== null || ov.dnfNoRejoin !== null || ov.hideSplits !== null ||
   ov.hideNations !== null || ov.theme !== null || ov.progKm !== null ||
   ov.progFixed !== null || (ov.groupFilter !== null && !groupAuto);
 
@@ -925,6 +927,13 @@ const hostDiscarded = v => new Set((v.allStages || []).filter(s => s.discarded).
 const effDiscarded  = v => ov.discarded !== null ? ov.discarded : hostDiscarded(v);
 const hostGroups = v => new Map((v.allStages || []).filter(s => s.group > 0).map(s => [s.id, s.group]));
 const effGroups = hostGroups;  // rally definitions always come from the host
+// The Stages board shows one rally run in a game rally weekend: its totals follow
+// the game's classification, so the DNF penalty setting does not apply.
+const weekendShown = v => activeTab === "stages" && ov.groupFilter != null
+  && ((lastServer || v).calendars || []).some(c => c.group === ov.groupFilter);
+// a host from before the seconds option sends none: the game's 300 s
+const penaltyOf     = v => ov.penalty !== null ? ov.penalty
+  : (typeof v.penaltySeconds === "number" ? v.penaltySeconds : 300);
 const progKmOf      = v => ov.progKm !== null ? ov.progKm : v.progressWindowKm;
 // `!== false` so a cached payload from a host without the field defaults to fixed
 const progFixedOf   = v => ov.progFixed !== null ? ov.progFixed : v.progressFixed !== false;
@@ -1002,7 +1011,8 @@ function computeView(v, cfg, withPositionChange = true) {
     let worst = -Infinity;
     for (const r of src) {
       const rc = r.rawCells && r.rawCells[c];
-      if (completed(rc, c) && rc.t > worst) worst = rc.t;
+      // penalty-free, as the game does: its stage penalty is the slowest driver's own
+      if (completed(rc, c) && rc.t - (rc.q || 0) > worst) worst = rc.t - (rc.q || 0);
     }
     if (worst > -Infinity) slowest[c] = worst;
   }
@@ -1018,6 +1028,12 @@ function computeView(v, cfg, withPositionChange = true) {
       const final = has && completed(rc, c);
       const real = (has && revealed(rc, c)) ? rc.t : null;
       const finalTime = final ? rc.t : null;
+      // In a rally weekend the game's own classification says what the stage
+      // counts (rc.c: a DNF or a missed stage gets the slowest finish plus its
+      // penalties) and replaces the board's rule, the DNF penalty included; rc.p is
+      // the part it adds to a finish (a late service park, say).
+      const gameTime = has && rc.c != null ? rc.c : null;
+      const rallyPen = final && rc.p ? rc.p : 0;
       // A driver abandoned a stage they posted splits on: the host's direct per-cell
       // flag (rc.r — retire/disqualify or vanished actor, live or snapshot at column
       // close) is authoritative; the peer-finished inference remains as fallback for
@@ -1033,31 +1049,37 @@ function computeView(v, cfg, withPositionChange = true) {
       if (cfg.dnfNoRejoin && firstDnf < 0 && dnf) firstDnf = cells.length;
       const counted = !cfg.dnfNoRejoin || firstDnf < 0;
       if (!(c in slowest)) {
+        const counts = gameTime != null && !cfg.dnfNoRejoin ? gameTime
+          : finalTime != null ? finalTime + rallyPen : 0;
         cells.push({ real, effective: finalTime == null ? 0 : finalTime,
-                     substituted: false, empty: true, dnf, final, counted });
-        if (counted && finalTime != null) total += finalTime;
+                     substituted: false, empty: true, dnf, final, counted, rallyPen, counts });
+        if (counted) total += counts;
         if (firstDnf < 0 && finalTime != null) {
-          completedBeforeDnf++; timeBeforeDnf += finalTime;
+          completedBeforeDnf++; timeBeforeDnf += finalTime + rallyPen;
         }
         continue;
       }
-      const threshold = slowest[c] * (1 + cfg.pct);
+      // the game's rule in a rally weekend: a stage without a time counts the
+      // slowest finish plus a fixed penalty; a finish always counts its own time,
+      // its penalties included, however slow
+      const threshold = slowest[c] + cfg.penalty;
       let effective, substituted;
-      // No Rejoin is a complete alternative to penalty-cap scoring: completed
-      // stages keep their real time, an unsettled absence adds nothing, and once
-      // settled that absence makes the driver DNF with no general total.
+      // No Rejoin is a complete alternative to penalty scoring: completed stages
+      // keep their real time, an unsettled absence adds nothing, and once settled
+      // that absence makes the driver DNF with no general total.
       if (cfg.dnfNoRejoin) { effective = finalTime == null ? 0 : finalTime; substituted = false; }
       else if (finalTime == null) { effective = threshold; substituted = true; }
-      else if (finalTime > threshold) { effective = threshold; substituted = true; }
       else { effective = finalTime; substituted = false; }
+      const counts = gameTime != null && !cfg.dnfNoRejoin ? gameTime
+        : effective + (substituted ? 0 : rallyPen);
       if (counted) {
-        total += effective;
+        total += counts;
         if (substituted) totalSubstituted = true;
       }
       if (firstDnf < 0 && finalTime != null) {
-        completedBeforeDnf++; timeBeforeDnf += finalTime;
+        completedBeforeDnf++; timeBeforeDnf += finalTime + rallyPen;
       }
-      cells.push({ real, effective, substituted, empty: false, dnf, final, counted });
+      cells.push({ real, effective, substituted, empty: false, dnf, final, counted, rallyPen, counts });
     }
     // `timed` = has at least one completed stage time, so it is classified. Computed
     // once here: the sort comparator would otherwise rescan every cell per comparison.
@@ -1128,7 +1150,7 @@ function computeView(v, cfg, withPositionChange = true) {
 
   return Object.assign({}, v, {
     stages: incl.map(c => ({ id: all[c].id, name: all[c].name, group: cfg.groups.get(all[c].id) || 0 })),
-    rows, pct: cfg.pct, dnfNoRejoin: !!cfg.dnfNoRejoin
+    rows, penaltySeconds: cfg.penalty, dnfNoRejoin: !!cfg.dnfNoRejoin
   });
 }
 
@@ -1138,7 +1160,7 @@ function effectiveView(v) {
   return computeView(v, {
     discarded: effDiscarded(v),
     groups: effGroups(v),
-    pct: ov.pct !== null ? ov.pct : (v.pct || 0),
+    penalty: penaltyOf(v),
     dnfNoRejoin: dnfNoRejoinOn(v),
     hideSplits: hideSplitsOn(v)
   });
@@ -1152,7 +1174,7 @@ function standingsView(v) {
     .filter(s => !(groups.get(s.id) > 0)).map(s => s.id));
   return computeView(v, {
     discarded, groups,
-    pct: ov.pct !== null ? ov.pct : (v.pct || 0),
+    penalty: penaltyOf(v),
     dnfNoRejoin: dnfNoRejoinOn(v),
     hideSplits: hideSplitsOn(v)
   });
@@ -1262,7 +1284,7 @@ function initScrollLayout() {
 function initPanel() {
   const $ = id => document.getElementById(id);
   Object.assign(cfgEls, {
-    btn: $("cfgbtn"), panel: $("cfgpanel"), pct: $("cfgPct"), dnfNoRejoin: $("cfgDnfNoRejoin"), win: $("cfgWin"),
+    btn: $("cfgbtn"), panel: $("cfgpanel"), penalty: $("cfgPenalty"), dnfNoRejoin: $("cfgDnfNoRejoin"), win: $("cfgWin"),
     winFix: $("cfgWinFix"),
     hideSplits: $("cfgHideSplits"), nat: $("cfgNat"), stages: $("cfgStages"), reset: $("cfgreset"),
     groupToggle: $("cfgGroupToggle"),
@@ -1294,9 +1316,9 @@ function initPanel() {
   cfgEls.copyTable.addEventListener("click", () => copyVisibleTable(cfgEls.copyTable));
   cfgEls.exportCsv.addEventListener("click", () => exportVisibleTableCsv(cfgEls.exportCsv));
   cfgEls.exportPng.addEventListener("click", () => exportVisibleTablePng(cfgEls.exportPng));
-  cfgEls.pct.addEventListener("input", () => {
-    const n = parseFloat(cfgEls.pct.value);
-    ov.pct = isNaN(n) ? null : Math.max(0, n) / 100; reRender();
+  cfgEls.penalty.addEventListener("input", () => {
+    const n = parseFloat(cfgEls.penalty.value);
+    ov.penalty = isNaN(n) ? null : Math.min(3600, Math.max(0, n)); reRender();
   });
   cfgEls.dnfNoRejoin.addEventListener("change", () => {
     ov.dnfNoRejoin = cfgEls.dnfNoRejoin.checked; reRender();
@@ -1337,7 +1359,7 @@ function initPanel() {
     }
   });
   cfgEls.reset.addEventListener("click", () => {
-    ov.discarded = ov.pct = ov.dnfNoRejoin = ov.hideSplits = ov.hideNations = ov.theme = ov.progKm =
+    ov.discarded = ov.penalty = ov.dnfNoRejoin = ov.hideSplits = ov.hideNations = ov.theme = ov.progKm =
       ov.progFixed = ov.groupFilter = null;
     applyTheme("system");
     syncThemeButton();
@@ -1515,10 +1537,14 @@ function syncTabBar() {
 function syncPanel(v) {
   if (!cfgEls.btn) return;
   const active = document.activeElement;
-  if (cfgEls.pct !== active)
-    cfgEls.pct.value = Math.round(((ov.pct !== null ? ov.pct : (v.pct || 0)) * 100));
+  if (cfgEls.penalty !== active) cfgEls.penalty.value = Math.round(penaltyOf(v));
   if (cfgEls.dnfNoRejoin !== active) cfgEls.dnfNoRejoin.checked = dnfNoRejoinOn(v);
-  cfgEls.pct.disabled = dnfNoRejoinOn(v);
+  // a rally weekend follows the game's classification, and this setting where
+  // the game has none yet (a stage being run, a driver it does not list)
+  cfgEls.penalty.disabled = dnfNoRejoinOn(v);
+  document.getElementById("cfgPenaltyRow").title = weekendShown(v)
+    ? "The rally shown is a game rally weekend: its stages count as the game's classification counts them, penalties included. This setting only counts a stage the game has not classified yet, or a driver it does not list."
+    : "A driver without a time on a stage (retired or absent) is counted at the slowest finish (without its penalty) plus this many seconds, the game's own rule (shown in grey italic). Not used for a rally weekend once a stage is over: its stages count as the game's classification counts them.";
   if (cfgEls.win !== active) {
     const w = progKmOf(v);
     cfgEls.win.value = (w != null ? +(+w).toFixed(1) : "");
@@ -1788,9 +1814,13 @@ function buildLiveSplitBoard(v) {
 function render(v) {
   lastRendered = v;
   document.getElementById("state").textContent = v.state || "";
-  document.getElementById("thresh").textContent = v.dnfNoRejoin
-    ? "DNF – No Rejoin"
-    : "Penalty cap: last +" + Math.round((v.pct || 0) * 100) + "%";
+  const thresh = document.getElementById("thresh");
+  thresh.textContent = v.dnfNoRejoin ? "DNF – No Rejoin"
+    : (weekendShown(v) ? "Game's classification, else slowest +" : "DNF penalty: slowest +")
+      + Math.round(penaltyOf(v)) + " s";
+  thresh.title = !v.dnfNoRejoin && weekendShown(v)
+    ? "This rally is a game rally weekend: each stage counts as the game's classification counts it, penalties included, once the stage is over. Until then, or for a driver the game does not list, a stage without a time counts the slowest finish plus the DNF penalty."
+    : "";
   document.getElementById("dot").className = "dot" + (v.state === "Connected" ? " on" : "");
   // host version: separator lives here so the whole thing vanishes when absent
   document.getElementById("ver").textContent = v.version ? " · v" + v.version : "";
@@ -2063,7 +2093,7 @@ function render(v) {
         setCell(td, "DNF", "");
         td.title = v.dnfNoRejoin
           ? "Did not finish — driver remains DNF, no general-classification total"
-          : "Did not finish — counted as penalty in total";
+          : "Did not finish — counted as " + (cell.counts != null ? fmt(cell.counts) : "a penalty") + " in the total";
       } else if (!live && v.dnfNoRejoin && cell.counted === false) {
         // A rejoin after the first abandon remains useful as a stage result, but is
         // visually separated from times that contributed to the general result.
@@ -2078,7 +2108,7 @@ function render(v) {
         if (cell.substituted) td.classList.add("pen");
         setCell(td, fmt(cell.time), gap);
         td.title = cell.split ? "Cumulative sector split" :
-          cell.substituted ? "Stage time over the penalty cap" : "Stage time";
+          cell.substituted ? "Stage time over the DNF penalty time" : "Stage time";
         const mc = medalClass(stageMedal[s].get(r.driver));
         if (mc) td.classList.add(mc);
       } else if (live) {
@@ -2094,10 +2124,21 @@ function render(v) {
         td.classList.add("pen");
         setCell(td, cell.real != null ? fmt(cell.real) : "", gap);
         td.title = cell.real != null
-          ? "Real time " + fmt(cell.real) + " — over penalty cap, counted as penalty in total"
-          : "No time — counted as penalty in total";
+          ? "Real time " + fmt(cell.real) + " — counted as " + fmt(cell.counts) + " in the total"
+          : "No time — counted as " + fmt(cell.counts) + " in the total";
       } else {
+        // a rally weekend's penalty on this stage counts in the total, not the stage time
+        const rallyPen = !cell.rallyPen ? "" : cell.rallyPen < 60 ? "+" + (+cell.rallyPen.toFixed(1)) + " s"
+          : "+" + Math.floor(cell.rallyPen / 60) + ":" + String(Math.round(cell.rallyPen % 60)).padStart(2, "0");
         setCell(td, fmt(cell.effective), gap);
+        if (rallyPen) {
+          // its own line: the gap keeps the column's width
+          const pen = document.createElement("span");
+          pen.className = "t-diff rallypen";
+          pen.textContent = rallyPen + " pen.";
+          td.appendChild(pen);
+        }
+        if (rallyPen) td.title = `Rally weekend penalty ${rallyPen} (a late service park, say), added to the total`;
         const mc = medalClass(stageMedal[s].get(r.driver));  // top 3 of this stage
         if (mc) td.classList.add(mc);
       }
@@ -2159,7 +2200,7 @@ function renderStandings(v) {
     const discarded = new Set(all.filter(s => groups.get(s.id) !== group).map(s => s.id));
     const standing = computeView(source, {
       discarded, groups,
-      pct: ov.pct !== null ? ov.pct : (source.pct || 0),
+      penalty: penaltyOf(source),
       dnfNoRejoin: dnfNoRejoinOn(source),
       hideSplits: hideSplitsOn(source)
     }).rows.filter(row => row.pointEligible);
@@ -2286,7 +2327,7 @@ function renderSectors(v) {
   // finish / DNF per driver on this stage, from the same rules as the Stages board
   const ci = stage.index;
   const status = computeView(source, {
-    discarded: new Set(), groups: effGroups(source), pct: 0, dnfNoRejoin: false, hideSplits: true
+    discarded: new Set(), groups: effGroups(source), penalty: 0, dnfNoRejoin: false, hideSplits: true
   }, false);
   const rawByDriver = new Map((source.rows || []).map(row => [row.driver, row]));
   const entries = status.rows.map(row => {

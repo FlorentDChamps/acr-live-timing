@@ -77,8 +77,15 @@ being run; below: the same session once it is over, on each tab.</sub>
   follow the latest available split classification. The regular stage history
   returns at Results.
 - **Session classification** — one column per stage run, running totals and ranks.
-  Configurable *penalty-cap rule*: a driver missing a stage is counted at
-  `slowest completed time × (1 + penalty-cap %)` and flagged.
+  Configurable *DNF penalty*, the game's own rule: a driver without a time on a
+  stage (retired or absent) is counted at `slowest finish (without its penalty) +
+  300 s` (the seconds can be changed) and flagged. In a rally weekend, the totals
+  take each stage as the game's weekend classification counts it, its penalties
+  included (a late service park, say): the page header then reads *Game's
+  classification, else slowest +300 s*. The game sends that classification when a
+  stage is over; until then the stage's total is provisional, under the rule above,
+  as is a driver the game does not list.
+  *DNF – No Rejoin* keeps its own rules.
   Any stage can be excluded from the totals with a checkbox. A stage you join already
   under way is **not** counted — its start was missed — but its name and the
   driver/car bindings are still learned, so the next, fully-captured stage is ready
@@ -98,11 +105,13 @@ being run; below: the same session once it is over, on each tab.</sub>
   rally or by the points total; the main board gets a rally filter to show a single
   rally's stages. The stages of a game's rally weekend are grouped into one rally on
   their own, named after the weekend (*Greece Weekend Short*), following the weekend's
-  calendar: a lobby that runs the weekend again starts a new rally. The host can still
-  ungroup or regroup them. Grouping is host-defined and shared with every viewer. The
-  board shows the rally being run by default, with the weekend's stages still to come
-  as empty columns; a viewer can pick another rally or *All stages*. A driver who
-  started none of the selected stages is not listed.
+  calendar: a lobby that runs the weekend again starts a new rally. A penalty of the
+  weekend's classification, such as a late service park, shows in red under the stage
+  it is counted on once the game sends it, at the end of that stage. The host can
+  still ungroup or regroup them. Grouping is host-defined and shared with every
+  viewer. The board shows the rally being run by default, with the weekend's stages
+  still to come as empty columns; a viewer can pick another rally or *All stages*. A
+  driver who started none of the selected stages is not listed.
 - **Result exports** — three buttons on the page export exactly what is displayed:
   copy as text, CSV (Excel-ready, locale-aware separator) and PNG image. On the host
   side, an optional **Discord webhook** (Discord panel) posts to your channel in one
@@ -126,7 +135,7 @@ being run; below: the same session once it is over, on each tab.</sub>
   board, or turn it on to keep the former stage-history board and hide intermediate
   times until the finish.
 - **DNF display** — a driver who never crossed the line is shown as **DNF** on that
-  stage (counted at the penalty cap, like an absence). On the running stage it
+  stage (counted at the DNF penalty, like an absence). On the running stage it
   appears the moment the car's race phase turns *Retire/Disqualify*; when a stage
   closes, each car's fate is snapshotted (retired, disqualified or vanished
   mid-run), so past stages keep an exact DNF record, with a peer-finish inference as
@@ -138,7 +147,7 @@ being run; below: the same session once it is over, on each tab.</sub>
   permanent for the rally: later stage times remain visible but no longer contribute
   to a general-classification total. Finishers stay ahead of every DNF; DNF ties use
   completed stages before the first abandon, then their real cumulative time on
-  those stages. This mode replaces the penalty cap for the selected stages, while
+  those stages. This mode replaces the DNF penalty for the selected stages, while
   ranked DNF remain eligible for championship points.
 - **Live stage progression** — a horizontal track above the board shows every
   driver's live position along the current stage. By default the track spans a
@@ -175,7 +184,7 @@ being run; below: the same session once it is over, on each tab.</sub>
   one-click copy button.
 - **Per-viewer display settings** — a gear button on the web page opens a panel that
   mirrors the host's ranking/display controls **locally**: exclude stages from the
-  totals, change the penalty cap %, resize the progression window or toggle its
+  totals, change the DNF penalty, resize the progression window or toggle its
   fixed range, hide nationalities, toggle **Hide split times**, filter by rally, sort by
   any column, and
   switch the page's light/dark theme. Changing a stage/penalty/gating setting
@@ -475,7 +484,8 @@ Timing knows no server of its own and contacts none until you pair.
 What is sent is raw facts — each driver's status, time, penalty, sectors and car
 per stage, with their pseudonym and **SteamID/EOS ID** — never a classification:
 the server builds its own. Each stage also carries its weather options and the
-game's forecast, and a rally run in a rally weekend carries the weekend's calendar.
+game's forecast, and a rally run in a rally weekend carries the weekend's calendar
+and what its classification counts for each driver's stages.
 A copy of every send is kept in the `results` folder
 next to the app (📂 opens it), and with no server on ▶ the button becomes **Save…** to write
 the same results to a JSON file. The pairing token is stored encrypted for your
@@ -529,7 +539,7 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | Finish detection (hide intermediate splits) | ✅ event-driven via the replicated race phase (*Ended*) of the driver's own car, exact to the ms, streamed live; the game's per-driver session result then confirms it or overrides it (DNF/DQ) |
 | DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; the replicated results' retirement and disqualification flags are decoded too, so even a zero-split quit is listed as DNF and a disqualification stands even after the line |
 | Live stage progression | ✅ horizontal track above the board, fixed range behind the leader by default (leader↔tail auto-fit as an option); markers named at spawn (PlayerState identity block), first-split fallback — can be partial during the first stage after lock-on |
-| Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config; the OBS widget URLs to copy |
+| Per-viewer web settings | ✅ stage exclusion, DNF penalty, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config; the OBS widget URLs to copy |
 | Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names, rally weekends grouped automatically; independent per-rally classification and championship points, shared with every viewer |
 | Result exports | ✅ copy / CSV / PNG buttons on the page; host-side Discord webhook (live alert, standings board, rally results) |
 | Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header; next stage with its weather options and forecast once a stage is over |

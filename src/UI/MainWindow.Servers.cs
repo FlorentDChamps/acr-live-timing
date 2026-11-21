@@ -224,10 +224,10 @@ public partial class MainWindow
         var settings = association.EventSettings;
         if (settings == null) return;
         string who = association.PublicServer;
-        if (settings.PenaltyCapPct is double pct)
+        if (settings.PenaltySeconds is double seconds)
         {
-            PctBox.Text = pct.ToString(CultureInfo.InvariantCulture);
-            AppendLog($"Penalty cap set to {pct.ToString(CultureInfo.InvariantCulture)} % by {who}.");
+            PenaltyBox.Text = seconds.ToString(CultureInfo.InvariantCulture);
+            AppendLog($"DNF penalty set to {seconds.ToString(CultureInfo.InvariantCulture)} s by {who}.");
         }
         if (settings.DnfNoRejoin is bool dnf)
         {
@@ -242,16 +242,16 @@ public partial class MainWindow
     /// active association suggested.</summary>
     private void RefreshSettingWarnings()
     {
-        if (PctWarn == null || DnfWarn == null) return;
-        double pct = ParseD(PctBox.Text, double.NaN);
+        if (PenaltyWarn == null || DnfWarn == null) return;
+        double seconds = ParseD(PenaltyBox.Text, double.NaN);
         bool dnf = DnfNoRejoinCheck.IsChecked == true;
-        var pctOff = _associations.Active
-            .Where(a => a.EventSettings?.PenaltyCapPct is double v && Math.Abs(v - pct) > 1e-9).ToList();
+        var penaltyOff = _associations.Active
+            .Where(a => a.EventSettings?.PenaltySeconds is double v && Math.Abs(v - seconds) > 1e-9).ToList();
         var dnfOff = _associations.Active
             .Where(a => a.EventSettings?.DnfNoRejoin is bool v && v != dnf).ToList();
-        PctWarn.Visibility = pctOff.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        PctWarn.ToolTip = string.Join("\n", pctOff.Select(a =>
-            $"{a.PublicServer} — {a.PublicEvent} suggests {a.EventSettings!.PenaltyCapPct!.Value.ToString(CultureInfo.InvariantCulture)} %."));
+        PenaltyWarn.Visibility = penaltyOff.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PenaltyWarn.ToolTip = string.Join("\n", penaltyOff.Select(a =>
+            $"{a.PublicServer} — {a.PublicEvent} suggests {a.EventSettings!.PenaltySeconds!.Value.ToString(CultureInfo.InvariantCulture)} s."));
         DnfWarn.Visibility = dnfOff.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         DnfWarn.ToolTip = string.Join("\n", dnfOff.Select(a =>
             $"{a.PublicServer} — {a.PublicEvent} suggests DNF – No Rejoin {(a.EventSettings!.DnfNoRejoin == true ? "on" : "off")}."));

@@ -331,8 +331,12 @@ public sealed class Engine
         ApplyResults(runKey);
         // The stage's results come from a rally weekend: it joins that weekend's rally.
         if (!_provisional && _rep.WeekendResults != 0)
-            Matrix.JoinWeekend(runKey, $"{ip}:{port}/{_rep.WeekendResults}/{_rep.WeekendRun}",
-                _rep.WeekendStage, _rep.Calendar?.Stages.Count ?? 0);
+        {
+            string weekend = $"{ip}:{port}/{_rep.WeekendResults}/{_rep.WeekendRun}";
+            Matrix.JoinWeekend(runKey, weekend, _rep.WeekendStage, _rep.Calendar?.Stages.Count ?? 0);
+            if (_rep.WeekendEntries is { } entries)
+                Matrix.SetWeekendResults(weekend, entries.Select(e => (e.ParticipantId, e.Stage, (double)e.Penalty, e.Classified)));
+        }
     }
 
     /// <summary>
@@ -611,7 +615,19 @@ public sealed class Engine
         lock (_sync)
         {
             if (keepIdentity) Matrix.ResetKeepIdentity();
-            else Matrix.Reset();
+            else
+            {
+                Matrix.Reset();
+                // a new capture finds its server again: the one locked before would
+                // drop all of an older file's packets, its clock being ahead of them
+                _detector.Reset();
+                _preBuffer.Clear();
+                ServerIp = null;
+                ServerPort = 0;
+                _lastServerIp = null;
+                _lastServerPort = 0;
+                SetState(SnifferState.Sniffing);
+            }
             ResetRunState(keepIdentity);
             ResetDone?.Invoke();
         }

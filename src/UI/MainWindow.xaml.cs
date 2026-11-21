@@ -23,6 +23,8 @@ namespace ACRLiveTiming.UI;
 
 public partial class MainWindow : Window
 {
+    private const double MaxPenaltySeconds = 3600;
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -917,7 +919,7 @@ public partial class MainWindow : Window
     private void DnfNoRejoin_Changed(object sender, RoutedEventArgs e)
     {
         bool enabled = DnfNoRejoinCheck.IsChecked == true;
-        PenaltyCapPanel?.IsEnabled = !enabled;
+        PenaltyPanel?.IsEnabled = !enabled;
         _engine?.Matrix.DnfNoRejoin = enabled;
         RefreshSettingWarnings();
     }
@@ -941,12 +943,13 @@ public partial class MainWindow : Window
         PcapStatus.Text = "";
     }
 
-    private void PctBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void PenaltyBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (_engine == null) return;   // designer / pre-init safety
-        string text = PctBox.Text.Trim().Replace(',', '.');
-        if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double pct) && pct >= 0 && pct <= 500)
-            _engine.Matrix.Pct = pct / 100.0;
+        string text = PenaltyBox.Text.Trim().Replace(',', '.');
+        if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double seconds)
+            && seconds >= 0 && seconds <= MaxPenaltySeconds)
+            _engine.Matrix.PenaltySeconds = seconds;
         RefreshSettingWarnings();
     }
 
@@ -1084,10 +1087,10 @@ public partial class MainWindow : Window
     private void PenaltyStep_Click(object sender, RoutedEventArgs e)
     {
         double step = double.Parse((string)((Button)sender).Tag, CultureInfo.InvariantCulture);
-        string text = PctBox.Text.Trim().Replace(',', '.');
+        string text = PenaltyBox.Text.Trim().Replace(',', '.');
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double cur);
-        double next = Math.Min(500, Math.Max(0, Math.Round(cur + step)));
-        PctBox.Text = next.ToString(CultureInfo.InvariantCulture);
+        double next = Math.Min(MaxPenaltySeconds, Math.Max(0, Math.Round(cur + step)));
+        PenaltyBox.Text = next.ToString(CultureInfo.InvariantCulture);
     }
 
     private void ProgressWindowStep_Click(object sender, RoutedEventArgs e)
@@ -1311,7 +1314,7 @@ public partial class MainWindow : Window
     {
         var inv = CultureInfo.InvariantCulture;
         PortBox.Text = _settings.Port.ToString(inv);
-        PctBox.Text = _settings.PenaltyPct.ToString(inv);
+        PenaltyBox.Text = _settings.PenaltySeconds.ToString(inv);
         DnfNoRejoinCheck.IsChecked = _settings.DnfNoRejoin;
         ProgressWindowBox.Text = _settings.ProgressWindowKm.ToString("0.0", inv);
         ProgressFixedCheck.IsChecked = _settings.ProgressFixed;
@@ -1357,7 +1360,7 @@ public partial class MainWindow : Window
         // real saves only after startup has finished restoring the controls.
         if (!_settingsLoaded) return;
         if (int.TryParse(PortBox.Text.Trim(), out int port)) _settings.Port = port;
-        _settings.PenaltyPct = ParseD(PctBox.Text, _settings.PenaltyPct);
+        _settings.PenaltySeconds = ParseD(PenaltyBox.Text, _settings.PenaltySeconds);
         _settings.DnfNoRejoin = DnfNoRejoinCheck.IsChecked == true;
         _settings.ProgressWindowKm = ParseD(ProgressWindowBox.Text, _settings.ProgressWindowKm);
         _settings.ProgressFixed = ProgressFixedCheck.IsChecked == true;

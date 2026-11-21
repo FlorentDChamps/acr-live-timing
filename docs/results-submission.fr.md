@@ -104,7 +104,7 @@ Un succès est un `2xx` avec :
   "serverName": "Example League",
   "expiresAt": "2026-08-16T18:00:00Z",
   "authorizationId": "01K2D80A7VBZJ2R9X4Z8DF6M3P",
-  "eventSettings": { "penaltyCapPct": 50, "dnfNoRejoin": true }
+  "eventSettings": { "penaltySeconds": 300, "dnfNoRejoin": true }
 }
 ```
 
@@ -135,7 +135,7 @@ définit :
 
 | Champ | Règle |
 |---|---|
-| `penaltyCapPct` | Nombre, de 0 à 500 : le pourcentage du *Penalty cap*. |
+| `penaltySeconds` | Nombre, de 0 à 3600 : la *DNF penalty*, en secondes ajoutées au temps du plus lent des arrivés pour une spéciale sans temps. |
 | `dnfNoRejoin` | Booléen : l'option *DNF – No Rejoin*. |
 
 - Chaque champ est facultatif ; un champ invalide est ignoré et journalisé, jamais
@@ -143,7 +143,7 @@ définit :
   ultérieures pourront en ajouter (heure de départ, voiture…), toujours comme des
   suggestions montrées à l'opérateur, jamais comme un contrôle qui bloque un envoi.
 - À un échange réussi, les valeurs présentes sont appliquées au panneau Config et
-  journalisées (*"Penalty cap set to 50 % by Example League."*). Réutiliser une
+  journalisées (*"DNF penalty set to 300 s by Example League."*). Réutiliser une
   association enregistrée n'applique rien.
 - L'opérateur peut les modifier à tout moment. Tant qu'un réglage diffère de celui
   proposé par une association active, un petit avertissement s'affiche à côté, avec
@@ -406,6 +406,16 @@ Un SteamID64 ou un EOS PUID apparaît au plus une fois par envoi.
   milliseconde : leur somme donne exactement le temps de la spéciale, et un secteur
   peut différer d'1 ms du temps de secteur affiché par le jeu.
 - `penaltyMs` : la pénalité appliquée par le jeu, en millisecondes.
+- `rallyTimeMs`, `rallyPenaltyMs` (facultatifs, tout statut) : en rally weekend, ce
+  que le classement du weekend du jeu compte pour cette spéciale, en
+  millisecondes. `rallyTimeMs` est le temps entier ajouté au total du rallye du
+  pilote : le temps de la spéciale avec sa pénalité et `rallyPenaltyMs` ; pour un
+  `dnf`, ou une spéciale manquée (`not_started`), le temps du plus lent des arrivés
+  sans sa pénalité, plus la pénalité de spéciale du pilote et `rallyPenaltyMs`.
+  `rallyPenaltyMs` est la pénalité ajoutée par le classement : la pénalité
+  d'abandon pour un `dnf` ou une spéciale manquée (300 000 observé), sinon une
+  pénalité comme un retard au parc d'assistance, souvent 0. Absents hors rally
+  weekend, et tant que le jeu n'a pas envoyé son classement, en fin de spéciale.
 - `timeMs` = somme des `sectorsMs` + `penaltyMs`, exactement : le temps affiché
   sur le tableau.
 - `carId` : la voiture **telle que le jeu l'envoie** (`SkodaFabiaRSRally2`), ou
@@ -416,7 +426,7 @@ Un SteamID64 ou un EOS PUID apparaît au plus une fois par envoi.
   `Hyundaii20NRally2` ont tous deux été vus. Le client envoie ce qu'il a reçu ; les
   serveurs comparent sans tenir compte de la casse.
 
-Jamais envoyés : positions, totaux, écarts, points, plafond de pénalité, option
+Jamais envoyés : positions, totaux, écarts, points, pénalité de DNF, option
 *No rejoin*, DSQ, numéro de révision.
 
 ## 6. Envoi
@@ -538,4 +548,4 @@ Ces fichiers contiennent les SteamID et EOS ID en clair ; l'aperçu le signale.
 11. Facultatif : utiliser `runId` pour repérer un même rallye envoyé deux fois, et
     `startedAfterPairing` / `startedAt` pour refuser une association trop tardive.
 12. Facultatif : renvoyer `eventSettings` pour que le tableau de l'hôte suive les
-    règles de l'épreuve (plafond de pénalité, DNF – No Rejoin).
+    règles de l'épreuve (pénalité de DNF, DNF – No Rejoin).

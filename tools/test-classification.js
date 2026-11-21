@@ -40,7 +40,7 @@ const view = {
 const cfg = {
   discarded: new Set(),
   groups: new Map(),
-  pct: .5,
+  penalty: 300,
   dnfNoRejoin: true,
   hideSplits: true
 };
@@ -89,5 +89,52 @@ const atResults = computeView({ ...view, phase: "Results", rows: [
   row("Missed final stage", [95, 105, 115, null])
 ] }, cfg, false);
 assert.strictEqual(atResults.rows.find(value => value.driver === "Missed final stage").status, "dnf");
+
+
+// A stage without a time counts the slowest finish plus the DNF penalty (s), as
+// the game does in a rally weekend; a weekend penalty on a finish counts in the
+// total, never in the stage time.
+const weekend = computeView({ allStages: stages.slice(0, 2), hasRaceState: true, rows: [
+  { driver: "Quick", rawCells: [{ t: 100, f: true, s: 4, p: 30 }, { t: 200, f: true, s: 4 }], cars: [] },
+  { driver: "Slow", rawCells: [{ t: 150, f: true, s: 4 }, { t: 260, f: true, s: 4 }], cars: [] },
+  { driver: "Out", rawCells: [{ t: 120, f: false, s: 2, r: true, p: 300 }, null], cars: [] }
+] }, { discarded: new Set(), groups: new Map(), penalty: 300, dnfNoRejoin: false, hideSplits: true }, false);
+const weekendBy = new Map(weekend.rows.map(value => [value.driver, value]));
+assert.strictEqual(weekendBy.get("Quick").total, 330);
+assert.strictEqual(weekendBy.get("Quick").cells[0].effective, 100);
+assert.strictEqual(weekendBy.get("Slow").total, 410);
+assert.strictEqual(weekendBy.get("Out").total, 450 + 560);
+assert.deepStrictEqual(weekend.rows.map(value => value.driver), ["Quick", "Slow", "Out"]);
+
+// The slowest finish is taken without its own penalty, as the game does.
+const penalised = computeView({ allStages: stages.slice(0, 1), hasRaceState: true, rows: [
+  { driver: "Fast", rawCells: [{ t: 100, f: true, s: 4 }], cars: [] },
+  { driver: "Penalised", rawCells: [{ t: 157, q: 27, f: true, s: 4 }], cars: [] },
+  { driver: "Out", rawCells: [{ t: 60, f: false, s: 1, r: true }], cars: [] }
+] }, { discarded: new Set(), groups: new Map(), penalty: 300, dnfNoRejoin: false, hideSplits: true }, false);
+assert.strictEqual(penalised.rows.find(value => value.driver === "Out").total, 130 + 300);
+
+// A finish counts its own time, penalties included, even past the DNF time.
+const slowFinish = computeView({ allStages: stages.slice(0, 1), hasRaceState: true, rows: [
+  { driver: "Only finisher", rawCells: [{ t: 140, q: 40, f: true, s: 4 }], cars: [] },
+  { driver: "Out", rawCells: [{ t: 60, f: false, s: 1, r: true }], cars: [] }
+] }, { discarded: new Set(), groups: new Map(), penalty: 30, dnfNoRejoin: false, hideSplits: true }, false);
+const onlyFinisher = slowFinish.rows.find(value => value.driver === "Only finisher");
+assert.strictEqual(onlyFinisher.total, 140);
+assert.strictEqual(onlyFinisher.cells[0].substituted, false);
+assert.strictEqual(slowFinish.rows.find(value => value.driver === "Out").total, 130);
+
+// In a rally weekend the game's classification decides what each stage counts
+// (c), whatever the DNF penalty setting says.
+const game = computeView({ allStages: stages.slice(0, 1), hasRaceState: true, rows: [
+  { driver: "Fast", rawCells: [{ t: 100, f: true, s: 4, p: 20, c: 120 }], cars: [] },
+  { driver: "Out", rawCells: [{ t: 60, f: false, s: 1, r: true, p: 300, c: 415 }], cars: [] },
+  { driver: "Missed", rawCells: [{ r: true, p: 300, c: 400 }], cars: [] }
+] }, { discarded: new Set(), groups: new Map(), penalty: 30, dnfNoRejoin: false, hideSplits: true }, false);
+const gameBy = new Map(game.rows.map(value => [value.driver, value]));
+assert.strictEqual(gameBy.get("Fast").total, 120);
+assert.strictEqual(gameBy.get("Fast").cells[0].effective, 100);
+assert.strictEqual(gameBy.get("Out").total, 415);
+assert.strictEqual(gameBy.get("Missed").total, 400);
 
 console.log("classification tests passed");

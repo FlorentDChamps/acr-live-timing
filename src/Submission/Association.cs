@@ -11,7 +11,7 @@ public enum AssociationState { Active, Ended, Refused, Expired }
 /// the operator can change the board settings afterwards.</summary>
 public sealed class EventSettings
 {
-    public double? PenaltyCapPct { get; set; }
+    public double? PenaltySeconds { get; set; }   // DNF penalty: slowest finish + this
     public bool? DnfNoRejoin { get; set; }
 }
 

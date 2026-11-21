@@ -133,12 +133,12 @@ public static class SubmissionClient
         ignored = [];
         if (!root.TryGetProperty("eventSettings", out var s) || s.ValueKind != JsonValueKind.Object) return null;
         var settings = new EventSettings();
-        if (s.TryGetProperty("penaltyCapPct", out var pct))
+        if (s.TryGetProperty("penaltySeconds", out var penalty))
         {
-            if (pct.ValueKind == JsonValueKind.Number && pct.TryGetDouble(out double value) && value >= 0 && value <= 500)
-                settings.PenaltyCapPct = value;
+            if (penalty.ValueKind == JsonValueKind.Number && penalty.TryGetDouble(out double value) && value >= 0 && value <= 3600)
+                settings.PenaltySeconds = value;
             else
-                ignored.Add("penaltyCapPct");
+                ignored.Add("penaltySeconds");
         }
         if (s.TryGetProperty("dnfNoRejoin", out var dnf))
         {
@@ -147,7 +147,7 @@ public static class SubmissionClient
             else
                 ignored.Add("dnfNoRejoin");
         }
-        return settings.PenaltyCapPct == null && settings.DnfNoRejoin == null ? null : settings;
+        return settings.PenaltySeconds == null && settings.DnfNoRejoin == null ? null : settings;
     }
 
     public static async Task<SubmitResult> SubmitAsync(Association association, byte[] body)

@@ -1,37 +1,39 @@
 // Builds the README screenshots without a live lobby: bakes an anonymised state into
 // a standalone copy of the web page (fictional pseudonyms, RFC 5737 documentation IP;
 // stage and car names are the game's own, as the host resolves them from its content
-// catalog). The page renders it from #statecache, exactly as a "Save page as" copy
-// would. One copy per view:
+// catalog). The page renders it from #statecache, as a "Save page as" copy would,
+// but keeps the live parts a saved copy hides, in the dark theme. One copy per view:
 //
 //   node tools/demo-page.js src/Web/index.html demo/live.html live
 //   node tools/demo-page.js src/Web/index.html demo/stages.html stages
 //   node tools/demo-page.js src/Web/index.html demo/sectors.html sectors
 //   node tools/demo-page.js src/Web/index.html demo/standings.html standings
-//   python -m http.server 8790 --directory demo
 //
 // "live" is SS4 while it is being run (live sector board); the other three are the
-// same session once SS4 is over, on the Stages, Sectors and Standings tabs. Then,
-// with EDGE=".../msedge.exe" and COMMON="--headless=new --hide-scrollbars
-// --force-device-scale-factor=2 --default-background-color=0e1116":
+// same session once SS4 is over, on the Stages, Sectors and Standings tabs. The
+// copies open straight from disk, no server needed. Then, in PowerShell, from the
+// folder that holds demo\ and docs\:
 //
-//   $EDGE $COMMON --window-size=1180,985 --screenshot=docs/screenshot.png \
-//         http://localhost:8790/live.html
-//   $EDGE $COMMON --window-size=1180,985 --screenshot=docs/stages.png \
-//         http://localhost:8790/stages.html
-//   (same for sectors.png and standings.png)
-//   $EDGE $COMMON --window-size=330,545 --screenshot=docs/overlay-classification.png \
-//         "http://localhost:8790/live.html?view=classification&bg=88"
-//   $EDGE $COMMON --window-size=900,96 --screenshot=docs/overlay-progress.png \
-//         "http://localhost:8790/live.html?view=progress&bg=88"
+//   $edge = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+//   $common = "--headless=new", "--hide-scrollbars", "--force-device-scale-factor=2",
+//     "--default-background-color=0e1116", "--user-data-dir=$env:TEMP\demo-shots"
+//   function Shot($size, $png, $page) {
+//     $url = ([uri](Resolve-Path "demo\$page".Split("?")[0]).Path).AbsoluteUri
+//     if ($page.Contains("?")) { $url += "?" + $page.Split("?")[1] }
+//     & $edge @common "--window-size=$size" "--screenshot=$PWD\docs\$png" $url | Out-Null
+//   }
+//   Shot 1180,985 screenshot.png live.html
+//   Shot 1180,985 stages.png stages.html
+//   Shot 1180,985 sectors.png sectors.html
+//   Shot 1180,985 standings.png standings.html
+//   Shot 330,545 overlay-classification.png "live.html?view=classification&bg=88"
+//   Shot 900,96 overlay-progress.png "live.html?view=progress&bg=88"
 //
 // The overlays are transparent in the app; they are shot on the page background so
-// the PNGs stay readable on both GitHub themes. Edge caches by URL — add a dummy
-// query param when re-shooting after an edit. Window height must leave some slack
+// the PNGs stay readable on both GitHub themes. Window height must leave some slack
 // under the content or the progression markers render unpositioned, and the last
 // row sits under the footer. An Edge already open takes the launch over and writes
-// no screenshot: add --user-data-dir=<empty dir> to COMMON. The page polls /state;
-// the static server answers 404, which the page ignores.
+// no screenshot: hence the separate --user-data-dir.
 const fs = require("fs");
 
 const SRC = process.argv[2];
@@ -41,7 +43,7 @@ if (!["live", "stages", "sectors", "standings"].includes(MODE))
   throw new Error("mode must be live, stages, sectors or standings");
 const LIVE = MODE === "live";
 
-const PCT = 0.2;
+const PENALTY = 300;
 
 // Each stage's share of the stage time per sector (the last sector ends at the
 // finish): the number of entries is the stage's number of sectors.
@@ -169,7 +171,7 @@ const progress = D.map(([driver], index) => {
 const view = {
   allStages: STAGES.map(({ profile, ...s }) => ({ ...s, discarded: false })),
   rows,
-  pct: PCT,
+  penaltySeconds: PENALTY,
   server: "203.0.113.42:9600",
   state: "Connected",
   phase: LIVE ? "Racing" : "Results",
@@ -197,9 +199,17 @@ html = html.slice(0, i + tag.length) + json + html.slice(i + tag.length);
 // Progression markers slide in from 0 via a CSS transition; a headless screenshot
 // races it and catches them mid-flight. Kill transitions so first paint is final.
 html = html.replace("</head>", "<style>*{transition:none !important}</style>\n</head>");
-// Open the requested tab once the page has rendered the baked state.
+// Opened from disk, the page would hide what only a live page shows (connection,
+// stage bar, progression): keep them.
+const SAVED = 'if (location.protocol === "file:") document.body.classList.add("saved-page");';
+if (!html.includes(SAVED)) throw new Error("saved-page switch not found");
+html = html.replace(SAVED, "");
+// Open the requested tab once the page has rendered the baked state, in the dark
+// theme whatever the system's (as the system's own theme: a chosen one would
+// light up the settings button).
 const TAB = { sectors: "openSectors(null);",
               standings: 'activeTab = "standings"; render(displayedView(lastServer)); syncPanel(lastServer);' };
-if (TAB[MODE]) html = html.replace("</body>", "<script>" + TAB[MODE] + "</script>\n</body>");
+html = html.replace("</body>", '<script>applyTheme("dark"); themeButton.textContent = "☾";' + (TAB[MODE] || "")
+  + "</script>\n</body>");
 fs.writeFileSync(OUT, html, "utf8");
 console.log("wrote", OUT, html.length, "bytes,", rows.length, "rows,", MODE);

@@ -596,19 +596,19 @@
         <GroupBox Header="Config">
           <StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-              <StackPanel x:Name="PenaltyCapPanel" Orientation="Horizontal">
-                <TextBlock Text="Penalty cap: last +" VerticalAlignment="Center"/>
-                <TextBox x:Name="PctBox" Text="50" Width="46" Margin="6,0,2,0"
-                         TextChanged="PctBox_TextChanged"
-                         ToolTip="A driver who misses a stage is counted at the penalty cap: the slowest completed time plus this percentage (shown in grey italic on the page)."/>
+              <StackPanel x:Name="PenaltyPanel" Orientation="Horizontal">
+                <TextBlock Text="DNF penalty: slowest +" VerticalAlignment="Center"/>
+                <TextBox x:Name="PenaltyBox" Text="300" Width="46" Margin="6,0,2,0"
+                         TextChanged="PenaltyBox_TextChanged"
+                         ToolTip="A driver without a time on a stage (retired or absent) is counted at the slowest finish (without its penalty) plus this many seconds, the game's own rule (shown in grey italic on the page). Not used for a game rally weekend once a stage is over: its stages count as the game's classification counts them."/>
                 <StackPanel VerticalAlignment="Center">
-                  <Button Content="▲" Tag="10" Click="PenaltyStep_Click"
-                          Padding="0" FontSize="8" Width="16" Height="12" ToolTip="+10 %"/>
-                  <Button Content="▼" Tag="-10" Click="PenaltyStep_Click"
-                          Padding="0" FontSize="8" Width="16" Height="12" Margin="0,1,0,0" ToolTip="-10 %"/>
+                  <Button Content="▲" Tag="30" Click="PenaltyStep_Click"
+                          Padding="0" FontSize="8" Width="16" Height="12" ToolTip="+30 s"/>
+                  <Button Content="▼" Tag="-30" Click="PenaltyStep_Click"
+                          Padding="0" FontSize="8" Width="16" Height="12" Margin="0,1,0,0" ToolTip="-30 s"/>
                 </StackPanel>
-                <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                <TextBlock x:Name="PctWarn" Text="⚠" Visibility="Collapsed" VerticalAlignment="Center"
+                <TextBlock Text="s" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                <TextBlock x:Name="PenaltyWarn" Text="⚠" Visibility="Collapsed" VerticalAlignment="Center"
                            Margin="4,0,0,0" Foreground="{DynamicResource Brush.Danger}"/>
               </StackPanel>
               <CheckBox x:Name="DnfNoRejoinCheck" Content="DNF – No Rejoin"

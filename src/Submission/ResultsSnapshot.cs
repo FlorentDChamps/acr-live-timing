@@ -29,6 +29,8 @@ public sealed class SnapshotCell
     public long? TimeMs { get; init; }
     public long? PenaltyMs { get; init; }
     public List<long> SectorsMs { get; init; } = [];
+    public long? RallyPenaltyMs { get; init; }   // added by the rally weekend's classification
+    public long? RallyTimeMs { get; init; }      // the whole time that classification counts
     public string? CarId { get; init; }
     public string? CarName { get; init; }
 }

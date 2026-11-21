@@ -100,6 +100,16 @@ public sealed class ReplicationDecoder
     public enum ResultSource { Partial, Session, Best }
 
     public readonly record struct ResultUpdate(ResultSource Source, RallyResult Result);
+    /// <summary>One stage of a driver in the rally weekend's classification: its
+    /// place in the calendar, the time the classification counts (a DNF gets the
+    /// slowest finish), the stage's own penalty and the penalty the classification
+    /// adds (the retirement penalty on a DNF; else, say, a late service park).
+    /// <see cref="Classified"/> is what the stage adds to the weekend's total.</summary>
+    public readonly record struct WeekendEntry(string ParticipantId, int Stage, float? Time, float StagePenalty,
+        float Penalty)
+    {
+        public double? Classified => Time is float t ? (double)t + StagePenalty + Penalty : null;
+    }
 
     // ---- state -------------------------------------------------------------------
 
@@ -151,6 +161,8 @@ public sealed class ReplicationDecoder
     // ---- per-Feed outputs (cleared on every Feed) --------------------------------
 
     public List<ResultUpdate> ResultUpdates { get; } = [];
+    /// <summary>The whole weekend classification, when it changed in this Feed.</summary>
+    public List<WeekendEntry>? WeekendEntries { get; private set; }
     public List<Participant> ParticipantUpdates { get; } = [];
     public List<Player> PlayerUpdates { get; } = [];
     public List<CarState> CarUpdates { get; } = [];
@@ -179,7 +191,7 @@ public sealed class ReplicationDecoder
     private void ClearOutputs()
     {
         ResultUpdates.Clear(); ParticipantUpdates.Clear(); PlayerUpdates.Clear();
-        CarUpdates.Clear(); NewSectorTimes.Clear(); TrackChanged = false;
+        CarUpdates.Clear(); NewSectorTimes.Clear(); TrackChanged = false; WeekendEntries = null;
     }
 
     /// <summary>Participant whose id is <paramref name="id"/>, if known.</summary>
@@ -533,12 +545,28 @@ public sealed class ReplicationDecoder
             }
         }
 
-        // the game empties the weekend's classification as each weekend starts
+        // the rally weekend's classification: every stage of every driver so far
         if (delta.GetArray("ParticipantsWeekendResults") != null
             && state.GetArray("ParticipantsWeekendResults") is RepArray weekend)
         {
             if (weekend.Count == 0 && !_weekendEmptied) WeekendRun++;
             _weekendEmptied = weekend.Count == 0;
+            WeekendEntries = [];
+            foreach (var (i, driver) in weekend.Elements)
+            {
+                if (i >= weekend.Count || driver.GetString("ParticipantId") is not string participant) continue;
+                if (driver.GetArray("Results") is not RepArray stages) continue;
+                foreach (var (k, stage) in stages.Elements)
+                {
+                    if (k >= stages.Count || stage.Get<int>("RaceSubEventIndex") is not int index) continue;
+                    var sectors = stage.GetArray("Result.RallyTimes.Sectors");
+                    float? time = sectors is { Count: > 0 } && sectors.Elements.TryGetValue(sectors.Count - 1, out var last)
+                        ? last.Get<float>("Time") : null;
+                    WeekendEntries.Add(new WeekendEntry(participant, index, time,
+                        stage.Get<float>("Result.RallyTimes.PenaltyTotalTime") ?? 0f,
+                        stage.Get<float>("RaceSubEventResultPenaltyTime") ?? 0f));
+                }
+            }
         }
 
         if (state.GetArray("BestParticipantsResults") is RepArray best && delta.GetArray("BestParticipantsResults") is RepArray bestDelta)

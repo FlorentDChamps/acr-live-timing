@@ -33,6 +33,16 @@ public sealed class RawCell
     public List<double?>? Sectors { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool R { get; set; }
+    // the stage's own penalty, included in T (s; null: none)
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? Q { get; set; }
+    // In a rally weekend, what the game's classification counts for the stage: the
+    // penalty it adds (the retirement penalty on a DNF, else a penalty such as a
+    // late service park) and the whole time C (a DNF counts the slowest finish).
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? P { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? C { get; set; }
 }
 
 public sealed class RowView
@@ -79,7 +89,7 @@ public sealed class MatrixView
 {
     public List<StageInfo> AllStages { get; set; } = [];  // every run column (for UI checkboxes)
     public List<RowView> Rows { get; set; } = [];         // arrival order; the page sorts
-    public double Pct { get; set; }
+    public double PenaltySeconds { get; set; }   // a stage without a time counts the slowest finish + this
     public bool DnfNoRejoin { get; set; }
     public string State { get; set; } = "";
     public string Phase { get; set; } = "";        // lobby FSM phase ("Racing", "Results", …)
@@ -117,8 +127,8 @@ public sealed record EventView(string Server, string Name);
 /// Session-wide classification: drivers (rows) × run columns. Each run of a
 /// stage is its own column, keyed by a stable id ("run1", "run2", …) and shown
 /// with a label ("SS1 &lt;stage&gt;"). Times are final decoded seconds. A driver
-/// missing a run is counted at the per-run penalty cap (slowest completed time ×
-/// (1 + Pct)) and flagged Substituted. Total = sum of effective
+/// missing a run is counted at the slowest completed time plus
+/// <see cref="PenaltySeconds"/> and flagged Substituted. Total = sum of effective
 /// times, re-sorted every update. Thread-safe; raises <see cref="Changed"/>.
 /// </summary>
 public sealed partial class SessionMatrix
@@ -178,7 +188,7 @@ public sealed partial class SessionMatrix
     // Ended is STICKY: since ACR 0.6 a car that crossed the line and went back to
     // the lobby drops from Post to None within seconds while the run is still on,
     // so "reached an end phase" must be remembered rather than read off Phase.
-    private sealed class CarState { public double Dist; public int Phase = -1; public int Pos = -1; public double Raised; public DateTime LastSeen; public bool Retired; public bool Ended; }
+    private sealed class CarState { public double Dist; public int Phase = -1; public int Pos = -1; public double Raised; public DateTime LastSeen; public bool Retired; public bool Ended; public bool Started; }
     private readonly Dictionary<long, CarState> _carsLive = [];
     // guid -> driver name, learned when one of the car's times (sector split or
     // finish, both penalty-free) matches a result row's raw uniquely. Splits give
@@ -201,6 +211,9 @@ public sealed partial class SessionMatrix
     private readonly Dictionary<int, string> _groupNames = [];              // group id -> host-set label
     // id -> rally weekend it was driven in, and its place in the weekend's calendar (-1: unknown)
     private readonly Dictionary<string, (string Weekend, int Stage)> _weekendOf = [];
+    // id -> driver key -> what the rally weekend's classification counts for the stage:
+    // the penalty it adds and the whole time (s; null: not received)
+    private readonly Dictionary<string, Dictionary<string, (double Penalty, double? Classified)>> _weekendResults = [];
     private readonly Dictionary<string, string?> _nations = [];
     // Latest known car is carried to the next stage when its first time arrives;
     // the per-column map preserves the car actually used on each stage.
@@ -214,7 +227,7 @@ public sealed partial class SessionMatrix
     private readonly Dictionary<string, string> _driverKeysByName = [];
     private readonly Dictionary<string, string> _driverLabels = [];
     private const string AccountKeyPrefix = "\u001faccount:";
-    private double _pct = 0.50;
+    private double _penaltySeconds = 300;
     private bool _dnfNoRejoin;
     private double _progressWindowKm = 0.8;   // MAX span of the auto-fitting progression window (km)
     private bool _progressFixed = true;       // freeze the window at the max span instead of auto-fitting
@@ -331,6 +344,8 @@ public sealed partial class SessionMatrix
             if (finish.Driver == from) finish.Driver = to;
         foreach (var cars in _carsByColumn.Values)
             if (cars.Remove(from, out string? car) && !cars.ContainsKey(to)) cars[to] = car;
+        foreach (var results in _weekendResults.Values)
+            if (results.Remove(from, out var result) && !results.ContainsKey(to)) results[to] = result;
         MergeRaws(_seenRaws, from, to);
         MergeRaws(_seenRawsPrev, from, to);
         foreach (long carId in _carNames.Where(p => p.Value == from).Select(p => p.Key).ToList())
@@ -798,6 +813,15 @@ public sealed partial class SessionMatrix
                 if (pos > 0) car.Pos = pos;
                 car.LastSeen = Now;
                 car.Dist = dist;
+                // STICKY: the car has driven this run. The next stage's cars spawn
+                // (phase Pre, on the start line) before its run-start event: until
+                // they move, they belong to no run yet.
+                if (dist > 50 || phase == RaceStateWire.PhaseRunning
+                    || phase is >= RaceStateWire.PhaseEnded and <= RaceStateWire.PhasePost
+                    || phase == RaceStateWire.PhaseRetire || phase == RaceStateWire.PhaseDisqualify)
+                {
+                    car.Started = true;
+                }
                 if (Math.Abs(car.Dist - car.Raised) >= 20) { car.Raised = car.Dist; changed = true; }
                 // an ident-named driver enters the standings once their car has
                 // actually RUN (past the start line) — not at spawn: idle lobby
@@ -980,7 +1004,8 @@ public sealed partial class SessionMatrix
             // Retire phase, the entry just stops updating). Snapshot it before
             // the live states are dropped. A car that FINISHED and then went back
             // to the lobby keeps its sticky Ended flag even though its phase has
-            // regressed to None by now (ACR 0.6 does that within seconds).
+            // regressed to None by now (ACR 0.6 does that within seconds). A car
+            // that never started is not a DNF: it was spawned for the NEXT stage.
             if (_carsLive.Count > 0 && _columnOrder.Count > 0)
             {
                 string column = _columnOrder[^1];
@@ -988,7 +1013,7 @@ public sealed partial class SessionMatrix
                     _dnfByColumn[column] = dnf = [];
                 foreach (var kv in _carsLive)
                 {
-                    if (!kv.Value.Ended && _carNames.TryGetValue(kv.Key, out string? drv))
+                    if (kv.Value.Started && !kv.Value.Ended && _carNames.TryGetValue(kv.Key, out string? drv))
                         dnf.Add(drv);
                 }
             }
@@ -1062,6 +1087,7 @@ public sealed partial class SessionMatrix
             _groups.Clear();
             _groupNames.Clear();
             _weekendOf.Clear();
+            _weekendResults.Clear();
             _nations.Clear();
             _lastCars.Clear();
             _carsByColumn.Clear();
@@ -1122,6 +1148,7 @@ public sealed partial class SessionMatrix
             _groups.Clear();
             _groupNames.Clear();
             _weekendOf.Clear();
+            _weekendResults.Clear();
             _carsByColumn.Clear();
             _finishes.Clear();
             _sessionOut.Clear();
@@ -1261,6 +1288,34 @@ public sealed partial class SessionMatrix
         SettingsChanged?.Invoke();
     }
 
+    // Caller holds _lock.
+    private (double Penalty, double? Classified)? WeekendResult(string id, string driverKey)
+        => _weekendResults.TryGetValue(id, out var results) && results.TryGetValue(driverKey, out var r) ? r : null;
+
+    /// <summary>The rally weekend's classification: for each driver and stage of
+    /// <paramref name="weekend"/> (its place in the calendar), the penalty it adds to
+    /// the stage and the whole time it counts for it. Stages run before the app saw
+    /// them, and drivers it never saw, are left out.</summary>
+    public void SetWeekendResults(string weekend,
+        IEnumerable<(string Driver, int Stage, double Penalty, double? Classified)> entries)
+    {
+        bool changed = false;
+        lock (_lock)
+        {
+            foreach (var (driver, stage, penalty, classified) in entries)
+            {
+                string? column = _columnOrder.LastOrDefault(id => _weekendOf.TryGetValue(id, out var w)
+                                                                  && w.Weekend == weekend && w.Stage == stage);
+                if (column == null || !_driverKeysByName.TryGetValue(driver, out string? key)) continue;
+                if (!_weekendResults.TryGetValue(column, out var results)) _weekendResults[column] = results = [];
+                if (results.TryGetValue(key, out var known) && known == (penalty, classified)) continue;
+                results[key] = (penalty, classified);
+                changed = true;
+            }
+        }
+        if (changed) RaiseChanged();
+    }
+
     /// <summary>Set the published display name for a rally group. An empty name
     /// restores the stable default, <c>Rally N</c>.</summary>
     public void SetGroupName(int group, string? name)
@@ -1307,10 +1362,10 @@ public sealed partial class SessionMatrix
         }
     }
 
-    public double Pct
+    public double PenaltySeconds
     {
-        get { lock (_lock) return _pct; }
-        set { lock (_lock) _pct = value; RaiseChanged(); }
+        get { lock (_lock) return _penaltySeconds; }
+        set { lock (_lock) _penaltySeconds = value; RaiseChanged(); }
     }
 
     /// <summary>Once a driver fails to finish a stage, keep their later stage
@@ -1352,7 +1407,7 @@ public sealed partial class SessionMatrix
     }
 
     /// <summary>Operator-set page title shown on the web page (empty = hidden).
-    /// Page config, not session data: survives both resets, like <see cref="Pct"/>.</summary>
+    /// Page config, not session data: survives both resets, like <see cref="PenaltySeconds"/>.</summary>
     public string PageTitle
     {
         get { lock (_lock) return _pageTitle; }
@@ -1464,6 +1519,8 @@ public sealed partial class SessionMatrix
                             TimeMs = sectors.Sum() + penalty,
                             PenaltyMs = penalty,
                             SectorsMs = sectors,
+                            RallyPenaltyMs = WeekendResult(id, key) is { } rally ? Ms(rally.Penalty) : null,
+                            RallyTimeMs = WeekendResult(id, key)?.Classified is double counted ? Ms(counted) : null,
                             CarId = car,
                             CarName = carName
                         });
@@ -1476,6 +1533,8 @@ public sealed partial class SessionMatrix
                         {
                             Status = CellStatus.Dnf,
                             SectorsMs = SectorsMs(splits, null),
+                            RallyPenaltyMs = WeekendResult(id, key) is { } rally ? Ms(rally.Penalty) : null,
+                            RallyTimeMs = WeekendResult(id, key)?.Classified is double counted ? Ms(counted) : null,
                             CarId = car,
                             CarName = carName
                         });
@@ -1489,7 +1548,14 @@ public sealed partial class SessionMatrix
                     }
                     else
                     {
-                        cells.Add(new SnapshotCell { Status = CellStatus.NotStarted });
+                        // missed: the weekend's classification still counts the stage
+                        var missed = WeekendResult(id, key);
+                        cells.Add(new SnapshotCell
+                        {
+                            Status = CellStatus.NotStarted,
+                            RallyPenaltyMs = missed is { } m ? Ms(m.Penalty) : null,
+                            RallyTimeMs = missed?.Classified is double counted ? Ms(counted) : null
+                        });
                     }
                 }
                 if (!any) continue;
@@ -1603,6 +1669,7 @@ public sealed partial class SessionMatrix
                         splitValues = storedSplits;
                     }
 
+                    var weekendResult = WeekendResult(id, driverKey);
                     if (_times[id].TryGetValue(driverKey, out var re))
                     {
                         rawCells.Add(new RawCell
@@ -1613,7 +1680,10 @@ public sealed partial class SessionMatrix
                             Splits = splitValues != null ? [.. splitValues] : null,
                             Sectors = _sectorTimes.TryGetValue(id, out var sectorColumn)
                                 && sectorColumn.TryGetValue(driverKey, out var own) ? [.. own] : null,
-                            R = isDnf || (id == lastColumn && retired.Contains(driverKey))
+                            R = isDnf || (id == lastColumn && retired.Contains(driverKey)),
+                            Q = re.time - re.raw > 0.0005 ? Math.Round(re.time - re.raw, 3) : null,
+                            P = weekendResult?.Penalty,
+                            C = weekendResult?.Classified
                         });
                     }
                     else if (splitValues != null && splitValues.Count > 0)
@@ -1622,12 +1692,16 @@ public sealed partial class SessionMatrix
                         {
                             S = splitValues.Count,
                             Splits = [.. splitValues],
-                            R = isDnf || (id == lastColumn && retired.Contains(driverKey))
+                            R = isDnf || (id == lastColumn && retired.Contains(driverKey)),
+                            P = weekendResult?.Penalty,
+                            C = weekendResult?.Classified
                         });
                     }
-                    else if (isDnf)
+                    else if (isDnf || weekendResult != null)
                     {
-                        rawCells.Add(new RawCell { R = true });
+                        // the weekend's classification counts a driver who missed the
+                        // stage as a retirement
+                        rawCells.Add(new RawCell { R = true, P = weekendResult?.Penalty, C = weekendResult?.Classified });
                     }
                     else
                     {
@@ -1688,7 +1762,7 @@ public sealed partial class SessionMatrix
             {
                 AllStages = all,
                 Rows = rows,
-                Pct = _pct,
+                PenaltySeconds = _penaltySeconds,
                 DnfNoRejoin = _dnfNoRejoin,
                 State = StateLabel,
                 Phase = _lobbyPhase,

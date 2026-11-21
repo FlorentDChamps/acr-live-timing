@@ -101,7 +101,7 @@ Success is any `2xx` with:
   "serverName": "Example League",
   "expiresAt": "2026-08-16T18:00:00Z",
   "authorizationId": "01K2D80A7VBZJ2R9X4Z8DF6M3P",
-  "eventSettings": { "penaltyCapPct": 50, "dnfNoRejoin": true }
+  "eventSettings": { "penaltySeconds": 300, "dnfNoRejoin": true }
 }
 ```
 
@@ -130,7 +130,7 @@ event, so the board, the page and Discord follow its rules. v1 defines:
 
 | Field | Rule |
 |---|---|
-| `penaltyCapPct` | Number, 0 to 500: the *Penalty cap* percentage. |
+| `penaltySeconds` | Number, 0 to 3600: the *DNF penalty*, in seconds added to the slowest finish for a stage without a time. |
 | `dnfNoRejoin` | Boolean: the *DNF – No Rejoin* option. |
 
 - Each field is optional; an invalid one is ignored and logged, never a failed
@@ -138,7 +138,7 @@ event, so the board, the page and Discord follow its rules. v1 defines:
   time, car…), always as suggestions shown to the operator, never as a check that
   blocks a send.
 - On a successful exchange, the present values are applied to the Config panel and
-  logged (*"Penalty cap set to 50 % by Example League."*). Reusing a stored
+  logged (*"DNF penalty set to 300 s by Example League."*). Reusing a stored
   association applies nothing.
 - The operator can change them at any time. While a setting differs from the one
   an active association suggested, a small warning sits next to it, naming that
@@ -392,6 +392,16 @@ A SteamID64 or EOS PUID appears at most once per payload.
   they add up exactly to the stage time; one may differ by 1 ms from the sector
   time the game shows.
 - `penaltyMs`: the penalty the game applied, in milliseconds.
+- `rallyTimeMs`, `rallyPenaltyMs` (optional, any status): in a rally weekend, what
+  the game's own weekend classification counts for this stage, in milliseconds.
+  `rallyTimeMs` is the whole time it adds to the driver's rally total: the stage
+  time with its penalty and `rallyPenaltyMs`; for a `dnf`, or a stage the driver
+  missed (`not_started`), the slowest finish without its penalty, plus the driver's
+  own stage penalty and `rallyPenaltyMs`. `rallyPenaltyMs` is the penalty the
+  classification adds: the retirement penalty for a `dnf` or a missed stage
+  (300 000 seen), else a penalty such as a late service park, often 0. Both absent
+  outside a rally weekend, and until the game sends its classification at the end
+  of the stage.
 - `timeMs` = sum of `sectorsMs` + `penaltyMs`, exactly: the time shown on the
   board.
 - `carId`: car **as the game sends it** (`SkodaFabiaRSRally2`), or `null`.
@@ -401,7 +411,7 @@ A SteamID64 or EOS PUID appears at most once per payload.
   client: `HyundaiI20NRally2` and `Hyundaii20NRally2` were both seen. The client
   sends what it received; servers compare without case.
 
-Never sent: positions, totals, gaps, points, the penalty cap, the *No rejoin*
+Never sent: positions, totals, gaps, points, the DNF penalty, the *No rejoin*
 option, DSQ, a revision number.
 
 ## 6. Sending
@@ -518,4 +528,4 @@ These files hold SteamIDs and EOS IDs in clear; the preview says so.
 11. Optionally: use `runId` to spot one rally sent twice, and
     `startedAfterPairing` / `startedAt` to refuse a late pairing.
 12. Optionally: return `eventSettings` so the host's board follows the event's
-    rules (penalty cap, DNF – No Rejoin).
+    rules (DNF penalty, DNF – No Rejoin).

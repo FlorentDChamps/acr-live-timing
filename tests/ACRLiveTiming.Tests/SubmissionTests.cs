@@ -96,14 +96,14 @@ public class ExchangeTests
              "submissionUrl":"https://results.example.org/v1/ingest/rally-results",
              "eventId":"summer-r03","eventName":"Summer Rally","serverName":"Example League",
              "expiresAt":"2026-08-16T18:00:00Z","authorizationId":"A1",
-             "eventSettings":{"penaltyCapPct":50,"dnfNoRejoin":true}}
+             "eventSettings":{"penaltySeconds":300,"dnfNoRejoin":true}}
             """);
         var a = result.Association!;
         Assert.Equal("tok", result.Token);
         Assert.Equal("summer-r03", a.EventId);
         Assert.Equal("Example League · results.example.org — Summer Rally", a.Label);
         Assert.Equal("Example League", a.PublicServer);
-        Assert.Equal(50, a.EventSettings!.PenaltyCapPct);
+        Assert.Equal(300, a.EventSettings!.PenaltySeconds);
         Assert.True(a.EventSettings.DnfNoRejoin);
     }
 
@@ -138,11 +138,11 @@ public class ExchangeTests
     {
         var result = SubmissionClient.ParseExchange(Server(), """
             {"submissionToken":"t","submissionUrl":"https://results.example.org/s","eventId":"e",
-             "eventSettings":{"penaltyCapPct":900,"dnfNoRejoin":"yes","startTime":"20:00"}}
+             "eventSettings":{"penaltySeconds":9000,"dnfNoRejoin":"yes","startTime":"20:00"}}
             """);
         Assert.NotNull(result.Association);
         Assert.Null(result.Association!.EventSettings);
-        Assert.Equal("penaltyCapPct, dnfNoRejoin", string.Join(", ", result.IgnoredSettings!));
+        Assert.Equal("penaltySeconds, dnfNoRejoin", string.Join(", ", result.IgnoredSettings!));
     }
 
     [Fact]

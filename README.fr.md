@@ -82,8 +82,15 @@ chaque onglet.</sub>
   classement du dernier split disponible. L'historique habituel réapparaît aux
   résultats.
 - **Classement de session** — une colonne par run de spéciale, totaux et rangs.
-  *Plafond de pénalité* configurable : un pilote absent d'une spéciale est compté au
-  `temps finalisé le plus lent × (1 + plafond de pénalité %)` et signalé.
+  *Pénalité de DNF* configurable, la règle du jeu : un pilote sans temps sur une
+  spéciale (abandon ou absence) est compté au `temps du plus lent des arrivés (sans
+  sa pénalité) + 300 s` (secondes modifiables) et signalé. En rally weekend, les
+  totaux prennent chaque spéciale comme le classement du weekend du jeu la compte,
+  pénalités comprises (retard au parc d'assistance, par exemple) : l'en-tête de la
+  page indique alors *Game's classification, else slowest +300 s*. Le jeu envoie ce
+  classement à la fin de chaque spéciale ; d'ici là, le total de la spéciale est
+  provisoire, selon la règle ci-dessus, comme celui d'un pilote absent du classement
+  du jeu. *DNF – No Rejoin* garde ses propres règles.
   Chaque spéciale peut être exclue des totaux d'une simple case à cocher. Une spéciale
   rejointe **en cours** n'est **pas** comptée — son départ a été manqué — mais son nom
   et les liaisons pilote/voiture sont quand même appris, pour que la spéciale suivante,
@@ -106,12 +113,14 @@ chaque onglet.</sub>
   points ; le tableau principal gagne un filtre pour n'afficher que les spéciales d'un
   rallye. Les spéciales d'un rally weekend du jeu sont regroupées d'elles-mêmes en un
   rallye, nommé d'après le weekend (*Greece Weekend Short*) et découpé d'après son
-  calendrier : un lobby qui relance le weekend ouvre un nouveau rallye. L'hôte peut
-  toujours les dégrouper ou les regrouper autrement. Le groupement est défini par
-  l'hôte et partagé avec tous les spectateurs. Le tableau montre par défaut le rallye
-  en cours, avec les spéciales du weekend encore à courir en colonnes vides ; un
-  spectateur peut choisir un autre rallye ou *All stages*. Un pilote qui n'a commencé
-  aucune des spéciales sélectionnées n'est pas listé.
+  calendrier : un lobby qui relance le weekend ouvre un nouveau rallye. Une pénalité
+  du classement du weekend, comme un retard au parc d'assistance, s'affiche en rouge
+  sous la spéciale sur laquelle elle est comptée, dès que le jeu l'envoie, à la fin de
+  cette spéciale. L'hôte peut toujours les dégrouper ou les regrouper autrement. Le
+  groupement est défini par l'hôte et partagé avec tous les spectateurs. Le tableau
+  montre par défaut le rallye en cours, avec les spéciales du weekend encore à courir
+  en colonnes vides ; un spectateur peut choisir un autre rallye ou *All stages*. Un
+  pilote qui n'a commencé aucune des spéciales sélectionnées n'est pas listé.
 - **Exports de résultats** — trois boutons sur la page exportent exactement ce qui
   est affiché : copie en texte, CSV (prêt pour Excel, séparateur selon la locale) et
   image PNG. Côté hôte, un **webhook Discord** optionnel (panneau Discord) poste dans
@@ -137,7 +146,7 @@ chaque onglet.</sub>
   de secteurs en direct pendant la course ; le cocher conserve l'ancien tableau des
   spéciales et masque les temps intermédiaires jusqu'à l'arrivée.
 - **Affichage des DNF** — un pilote qui n'a jamais franchi la ligne est affiché
-  **DNF** sur cette spéciale (compté au temps plafond de pénalité, comme une
+  **DNF** sur cette spéciale (compté avec la pénalité de DNF, comme une
   absence). Sur la spéciale en cours, il apparaît dès que la phase de course de la
   voiture passe à *Retire/Disqualify* ; à la clôture d'une spéciale, le sort de
   chaque voiture est mémorisé (abandon, disqualification ou disparition en cours de
@@ -152,7 +161,7 @@ chaque onglet.</sub>
   les temps des spéciales suivantes restent visibles mais ne contribuent plus à un
   total général. Tous les finishers précèdent les DNF ; ceux-ci sont départagés par
   le nombre de spéciales terminées avant le premier abandon, puis par leur temps réel
-  cumulé sur ces seules spéciales. Ce mode remplace le plafond de pénalité pour les
+  cumulé sur ces seules spéciales. Ce mode remplace la pénalité de DNF pour les
   spéciales sélectionnées, tandis que les DNF classés restent éligibles aux points de
   championnat.
 - **Progression de spéciale en direct** — une piste horizontale au-dessus du tableau
@@ -194,7 +203,7 @@ chaque onglet.</sub>
   bouton de copie en un clic.
 - **Réglages d'affichage par spectateur** — un bouton roue crantée sur la page web
   ouvre un panneau qui reprend **localement** les réglages de classement/affichage de
-  l'hôte : exclure des spéciales du total, changer le plafond de pénalité %, régler la
+  l'hôte : exclure des spéciales du total, changer la pénalité de DNF, régler la
   fenêtre de progression ou basculer sa portée fixe, masquer les nationalités,
   activer/couper **Hide split times**, filtrer par rallye, trier par n'importe quelle
   colonne et basculer le thème clair/sombre de la page.
@@ -525,7 +534,7 @@ Ce qui part, ce sont des faits bruts — statut, temps, pénalité, secteurs et 
 de chaque pilote par spéciale, avec son pseudo et son **SteamID/EOS ID** — jamais un
 classement : le serveur fait le sien. Chaque spéciale porte aussi ses options météo
 et la prévision du jeu, et un rallye couru en rally weekend porte le calendrier du
-weekend. Une copie de chaque envoi est gardée dans le
+weekend et ce que son classement compte pour les spéciales de chaque pilote. Une copie de chaque envoi est gardée dans le
 dossier `results` à côté de l'application (📂 l'ouvre), et sans serveur en ▶ le bouton devient
 **Save…** pour écrire les mêmes résultats dans un fichier JSON. Le jeton
 d'association est stocké chiffré pour votre compte Windows.
@@ -581,7 +590,7 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Détection d'arrivée (masquer les temps intermédiaires) | ✅ événementielle via la phase de course répliquée (*Ended*) de la voiture du pilote lui-même, exacte à la ms, streamée en direct ; le résultat de session du jeu, par pilote, la confirme ensuite ou l'annule (DNF/DQ) |
 | Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; les drapeaux d'abandon et de disqualification des résultats répliqués sont décodés aussi, donc même un abandon à zéro split est listé DNF et une disqualification tient même après la ligne |
 | Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
-| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic ; les URL des widgets OBS à copier |
+| Réglages web par spectateur | ✅ exclusion de spéciales, pénalité DNF, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic ; les URL des widgets OBS à copier |
 | Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables, rally weekends regroupés automatiquement ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
 | Exports de résultats | ✅ boutons copie / CSV / PNG sur la page ; webhook Discord côté hôte (alerte live, tableau des points, résultats de rallye) |
 | Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page ; spéciale suivante avec ses options météo et sa prévision une fois une spéciale terminée |

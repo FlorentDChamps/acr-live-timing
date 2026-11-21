@@ -112,6 +112,9 @@ public static class ResultsPayload
                 w.WriteNull("timeMs");
                 break;
         }
+        // a rally weekend: what the game's own classification counts for the stage
+        if (cell.RallyTimeMs is long rallyTime) w.WriteNumber("rallyTimeMs", rallyTime);
+        if (cell.RallyPenaltyMs is long rallyPenalty) w.WriteNumber("rallyPenaltyMs", rallyPenalty);
         w.WriteEndObject();
     }
 
