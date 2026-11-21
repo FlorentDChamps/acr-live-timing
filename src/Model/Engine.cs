@@ -274,12 +274,19 @@ public sealed class Engine
             Matrix.SetLobbyPhase(fsm);
         }
 
-        // in-game stage start time, from the replicated weather timeline
+        // race settings: the stage's weather options (its in-game start time
+        // included) and, in a rally weekend, the calendar and the stage it is at
+        Matrix.SetRaceSettings(_rep.StageSettings, _rep.Calendar, _rep.WeekendStage, _rep.TravelTrackId);
+        string? settingsStart = _rep.StageSettings?.StartClock;
+        if (settingsStart != null) Matrix.SetStageStart(settingsStart);
+
+        // Without race settings (joined before the capture started), the in-game
+        // stage start time comes from the replicated weather timeline
         // (FWeatherTimeline: [anchor][StartTime f32][0x24][elapsed f32] — the
         // anchor is the tail of the weather actor's replication header, stable
         // across every probed lobby). Broadcast periodically and re-emitted for
         // the next stage during results, so last-seen-wins tracks the current run.
-        for (int sh = 0; sh < 8; sh++)
+        for (int sh = 0; sh < 8 && settingsStart == null; sh++)
         {
             byte[] d = shifted[sh];
             for (int o = 0; o + WeatherAnchor.Length + 9 <= d.Length; o++)
@@ -301,11 +308,12 @@ public sealed class Engine
         // stage weather forecast (rare broadcast: service park / next-stage
         // pre-load; describes the upcoming stage — last-seen-wins, like the
         // start time and the route variant)
-        var wx = WeatherForecast.FirstSlot(payload);
-        if (wx != null)
+        var forecast = WeatherForecast.Slots(payload);
+        if (forecast != null)
         {
+            Matrix.SetForecast(forecast);
             Matrix.SetStageWeather(
-                $"{WeatherForecast.TypeName(wx.Value.type)} · {wx.Value.temp:0.#}°C");
+                $"{WeatherForecast.TypeName(forecast[0].Type)} · {forecast[0].Temperature:0.#}°C");
         }
         // the variant labels the run while it drives the current level (level aliases
         // included: "Weles…" routes on a "Wales…" level); a stale variant from another
@@ -321,6 +329,10 @@ public sealed class Engine
         }
 
         ApplyResults(runKey);
+        // The stage's results come from a rally weekend: it joins that weekend's rally.
+        if (!_provisional && _rep.WeekendResults != 0)
+            Matrix.JoinWeekend(runKey, $"{ip}:{port}/{_rep.WeekendResults}/{_rep.WeekendRun}",
+                _rep.WeekendStage, _rep.Calendar?.Stages.Count ?? 0);
     }
 
     /// <summary>

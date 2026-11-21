@@ -325,6 +325,7 @@ Les spéciales de la sélection qui ont des données, dans l'ordre de course : t
 | `startedAt` | Départ en UTC, d'après l'horloge Windows au moment où le client l'a reçu. Absent si le départ n'a pas été vu. |
 | `inGameStartTime` | Heure du jeu au départ, `HH:mm`, si reçue. |
 | `weather` | Libellé météo comme sur la page (`Light Rain · 12°C`), si reçu. |
+| `calendarOrder`, `conditions`, `forecast` | Voir plus bas. |
 
 `startedAfterPairing` : une spéciale démarre quand le client voit son départ (la
 séquence de départ qui ouvre sa colonne sur le tableau ; une spéciale rejointe en
@@ -336,6 +337,48 @@ de l'application) n'a pas été vue lors de ce lancement : son `startedAt` enreg
 est alors comparé à l'heure de l'échange. La valeur est calculée par destination à
 la construction de l'envoi, jamais stockée avec la spéciale. Une spéciale dont le
 départ n'a pas été vu vaut `false`.
+
+### `conditions`, `forecast` et `calendar`
+
+Champs facultatifs, ajoutés dans la version 1.0 : un serveur ignore les champs qu'il
+ne connaît pas. Ils sont absents quand le jeu ne les a pas envoyés pendant la
+session.
+
+`stages[].conditions` contient les options météo avec lesquelles la spéciale a été
+courue, telles que les réglages de course du jeu les portent. Les énumérations
+gardent **les noms du jeu**.
+
+| Champ | Règle |
+|---|---|
+| `startTime` | Heure du jeu au départ, `HH:mm`. |
+| `weatherType`, `targetWeatherType` | Météo au départ, et météo vers laquelle elle peut évoluer (`WT_CLEAR`, `WT_LIGHT_RAIN`…). |
+| `randomWeatherType`, `randomTargetWeatherType` | `true` quand le jeu tire cette météo au hasard. |
+| `targetWeatherProbability` | Probabilité du changement : `Low`, `Medium`, `High`, `Maximum`. |
+| `weatherPersistency` | `Zero`, `Decreased`, `Standard`, `Increased`. |
+| `dynamicWeather` | Météo qui évolue pendant la spéciale. |
+| `timeSpeed` | Vitesse de l'horloge du jeu (`WT_SPEEDREALISTIC`…). |
+| `startingWetness`, `startingAccumulatedSnow` | De 0 à 1. |
+| `startingGripLevel` | `Dirty`, `Slow`, `Green`, `Fast`, `Optimal`. |
+| `seed` | Graine météo, si reçue. |
+
+`stages[].forecast` est la prévision météo du jeu pour la spéciale : des tranches
+de dix minutes de jeu à la vitesse du temps réaliste (plus longues quand le temps
+passe plus vite : vingt minutes en accéléré, cent en rapide), la première une
+tranche après le départ, chacune avec `time` (`HH:mm`), `weatherType`,
+`temperature` (°C) et `cloudCover`, `rain`, `snow`, `fog`, `wind`, `lightning` (de
+0 à 1).
+
+`stages[].calendarOrder` est la place de la spéciale (1, 2, 3…) dans le calendrier
+du rally weekend, et `calendar`, à côté de `stages`, est ce calendrier quand le
+groupe a été couru dans un rally weekend du jeu : `presetId`, `customPreset`
+(`true` pour un calendrier composé par l'hôte) et `customPresetName` s'il existe,
+et `stages[]` avec `order`, `routeId`, `name`, `lengthKm`, `day`, `preRaceZone`
+(`ServiceParkDefault` : un parc d'assistance avant la spéciale ; `NoZone` : aucun)
+et `conditions` comme ci-dessus. Le calendrier liste toutes les spéciales du
+weekend, courues ou non. Le jeu envoie un nouveau calendrier sous forme de
+changements par rapport au précédent du lobby : un client arrivé dans le lobby
+après l'envoi du premier peut manquer une heure de départ ou une `preRaceZone`,
+alors absentes.
 
 ### `participants[]`
 

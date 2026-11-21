@@ -91,13 +91,18 @@ being run; below: the same session once it is over, on each tab.</sub>
   selector, or click a stage's name in the **Stages** tab to open it directly. Every
   stage of the session is available once it is over; the one still being run stays
   on the live board.
-- **Rallies, standings & championship points** — group stages into named rallies
-  from the host panel (*Stages — select to group*: tick the stages, click **Group**,
-  rename inline). The web page gains a **Standings** tab: an independent
-  classification per rally plus championship points (25-18-15-12-10-8-6-4-2-1 per
-  rally), sortable by any rally or by the points total; the main board gets a rally
-  filter to show a single rally's stages. Grouping is host-defined and shared with
-  every viewer.
+- **Rallies, standings & championship points** — group stages into named rallies from
+  the host panel (*Stages — select to group*: tick the stages, click **Group**, rename
+  inline). The web page gains a **Standings** tab: an independent classification per
+  rally plus championship points (25-18-15-12-10-8-6-4-2-1 per rally), sortable by any
+  rally or by the points total; the main board gets a rally filter to show a single
+  rally's stages. The stages of a game's rally weekend are grouped into one rally on
+  their own, named after the weekend (*Greece Weekend Short*), following the weekend's
+  calendar: a lobby that runs the weekend again starts a new rally. The host can still
+  ungroup or regroup them. Grouping is host-defined and shared with every viewer. The
+  board shows the rally being run by default, with the weekend's stages still to come
+  as empty columns; a viewer can pick another rally or *All stages*. A driver who
+  started none of the selected stages is not listed.
 - **Result exports** — three buttons on the page export exactly what is displayed:
   copy as text, CSV (Excel-ready, locale-aware separator) and PNG image. On the host
   side, an optional **Discord webhook** (Discord panel) posts to your channel in one
@@ -133,9 +138,8 @@ being run; below: the same session once it is over, on each tab.</sub>
   permanent for the rally: later stage times remain visible but no longer contribute
   to a general-classification total. Finishers stay ahead of every DNF; DNF ties use
   completed stages before the first abandon, then their real cumulative time on
-  those stages. A driver with no start in the rally is DNS. This mode replaces the
-  penalty cap for the selected stages, while ranked DNF remain eligible for
-  championship points.
+  those stages. This mode replaces the penalty cap for the selected stages, while
+  ranked DNF remain eligible for championship points.
 - **Live stage progression** — a horizontal track above the board shows every
   driver's live position along the current stage. By default the track spans a
   **fixed configurable range** behind the leader (a stable scale); unchecking
@@ -150,9 +154,19 @@ being run; below: the same session once it is over, on each tab.</sub>
   markers may stay anonymous for a while and the board fills in as the first splits
   arrive. Everything is complete from the next stage on.
 - **Lobby & stage header** — the page header shows the current lobby phase (Loading,
-  Racing, Results, Service park…), the stage's **in-game start time** (time of day)
-  and its **weather forecast**, all decoded from the replicated weather timeline and
-  the lobby state machine.
+  Racing, Results, Service park…) and the stage being run: its place in a rally
+  weekend, length, **in-game start time** (time of day), whether a service park comes
+  before it, its weather options (start and target weather, chance of change, grip,
+  wetness, snow, time speed) and the temperature its forecast gives at the start, all
+  decoded from the game's race settings, the replicated weather and the lobby state
+  machine. A **Next stage** line gives the same for the next stage: throughout a rally
+  weekend, otherwise once a stage is over. In a rally weekend its **Rally weather**
+  button unfolds every stage of the weekend with its length, start time and weather,
+  the service parks between them, and the game's forecast for each stage the app saw
+  loading (the game sends it only then, so not for the stages to come, nor for those
+  loaded before the app or the player arrived); elsewhere its **Forecast** button
+  unfolds the game's forecast (temperature, clouds, rain, fog, wind every ten minutes
+  at the realistic time speed, further apart when time runs faster).
 - **Shareable web view** — embedded web server for the LAN, plus an optional public
   `https://….trycloudflare.com` link. The `cloudflared` binary is downloaded from
   Cloudflare's official releases (refreshed at most once a month) and its
@@ -460,7 +474,9 @@ Timing knows no server of its own and contacts none until you pair.
 
 What is sent is raw facts — each driver's status, time, penalty, sectors and car
 per stage, with their pseudonym and **SteamID/EOS ID** — never a classification:
-the server builds its own. A copy of every send is kept in the `results` folder
+the server builds its own. Each stage also carries its weather options and the
+game's forecast, and a rally run in a rally weekend carries the weekend's calendar.
+A copy of every send is kept in the `results` folder
 next to the app (📂 opens it), and with no server on ▶ the button becomes **Save…** to write
 the same results to a JSON file. The pairing token is stored encrypted for your
 Windows account.
@@ -514,15 +530,17 @@ If you would rather not trust a prebuilt binary at all, clone the repo and run
 | DNF detection | ✅ live on the running stage (car's *Retire/Disqualify* phase); each car's fate is snapshotted at stage close (retired or vanished mid-run), peer-finish inference kept as fallback; the replicated results' retirement and disqualification flags are decoded too, so even a zero-split quit is listed as DNF and a disqualification stands even after the line |
 | Live stage progression | ✅ horizontal track above the board, fixed range behind the leader by default (leader↔tail auto-fit as an option); markers named at spawn (PlayerState identity block), first-split fallback — can be partial during the first stage after lock-on |
 | Per-viewer web settings | ✅ stage exclusion, penalty %, progression window + fixed range, hide nations, Hide split times, rally filter, column sorting, light/dark theme — recomputed client-side from raw per-stage data; session-only, one-click reset to host config; the OBS widget URLs to copy |
-| Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names; independent per-rally classification and championship points, shared with every viewer |
+| Rally grouping · Standings tab · points | ✅ host-defined stage groups with editable names, rally weekends grouped automatically; independent per-rally classification and championship points, shared with every viewer |
 | Result exports | ✅ copy / CSV / PNG buttons on the page; host-side Discord webhook (live alert, standings board, rally results) |
-| Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header |
+| Lobby phase · stage start time · weather forecast | ✅ decoded and shown in the page header; next stage with its weather options and forecast once a stage is over |
+| Rally weekend calendar | ✅ stages, start times and weather options; rallies split along it, stages to come shown on the board, sent to results servers |
 | Live positions / gaps | 🟡 per-car live position decoded, not yet surfaced as a ranking |
 
-Built against **Assetto Corsa Rally 0.6** (Unreal Engine 5.6.1). A game update that changes the wire format
-— or turns on encryption — can break the decoding at any time. The tool reads
-**cleartext only** and will never attempt to decrypt an encrypted stream: if ACR
-encrypts its traffic, it says so and live timing simply stops working.
+Built against **Assetto Corsa Rally 0.7** (Unreal Engine 5.6.1), single stages and rally
+weekends alike. A game update that changes the wire format — or turns on encryption —
+can break the decoding at any time. The tool reads **cleartext only** and will never
+attempt to decrypt an encrypted stream: if ACR encrypts its traffic, it says so and
+live timing simply stops working.
 
 ## Project layout
 

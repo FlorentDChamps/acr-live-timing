@@ -232,14 +232,60 @@
             "type": "struct",
             "struct": "RaceParticipantRallyResultEntry"
           }
-        },
-        {
-          "name": "MaxResults",
-          "type": "int32"
         }
       ],
       "wireNames": [
         "RaceEventRallyResults"
+      ]
+    },
+    "RaceEventRallyWeekendResultsComponent": {
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "ParticipantsResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallySessionResultsEntry"
+          }
+        },
+        {
+          "name": "ParticipantsPartialResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallyPartialResult"
+          }
+        },
+        {
+          "name": "BestParticipantsResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallyResultEntry"
+          }
+        },
+        {
+          "name": "ParticipantsWeekendResults",
+          "type": "array",
+          "element": {
+            "type": "struct",
+            "struct": "RaceParticipantRallyWeekendResultsEntry"
+          }
+        }
+      ],
+      "wireNames": [
+        "RaceEventRallyWeekendResults"
       ]
     },
     "RaceEventDataComponent": {
@@ -292,6 +338,62 @@
       ],
       "wireNames": [
         "RaceEventData"
+      ]
+    },
+    "RaceEventRallyWeekendDataComponent": {
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "GameModeClass",
+          "type": "softobject"
+        },
+        {
+          "name": "RaceEventType",
+          "type": "name"
+        },
+        {
+          "name": "RaceEventConfigurationId",
+          "type": "name"
+        },
+        {
+          "name": "TrackId",
+          "type": "name"
+        },
+        {
+          "name": "DisciplineId",
+          "type": "name"
+        },
+        {
+          "name": "ForcedCarId",
+          "type": "name"
+        },
+        {
+          "name": "EligibleCars",
+          "type": "struct",
+          "struct": "RaceEventEligibleCars"
+        },
+        {
+          "name": "RPCTiresAllocation",
+          "type": "struct",
+          "struct": "RPCTiresAllocation"
+        },
+        {
+          "name": "RaceSubEventIndex",
+          "type": "int32"
+        }
+      ],
+      "wireNames": [
+        "RaceEventRallyWeekendData"
       ]
     },
     "RaceLobbyDataComponent": {
@@ -814,6 +916,181 @@
       "wireNames": [
         "Default__BC_RacePlayerState_C"
       ]
+    },
+    "RaceEventRaceSettingsRallyComponent": {
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RaceOptions",
+          "type": "struct",
+          "struct": "RaceOptions"
+        },
+        {
+          "name": "LobbyOptions",
+          "type": "struct",
+          "struct": "LobbyOptions"
+        },
+        {
+          "name": "HardCoreOptions",
+          "type": "struct",
+          "struct": "HardCoreOptions"
+        },
+        {
+          "name": "WeatherOptions",
+          "type": "struct",
+          "struct": "WeatherOptions"
+        },
+        {
+          "name": "<unknown31>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown32>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown33>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown34>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown35>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown36>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown37>",
+          "type": "unknown"
+        },
+        {
+          "name": "RacePenaltyOptions",
+          "type": "struct",
+          "struct": "RacePenaltyOptions"
+        },
+        {
+          "name": "<unknown39>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown40>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown41>",
+          "type": "unknown"
+        }
+      ],
+      "wireNames": [
+        "RaceEventRaceSettingsSingleEvent",
+        "RaceEventRaceSettingsTimeAttack",
+        "RaceEventRaceSettingsFreePractice",
+        "RaceEventRaceSettingsChampionship",
+        "RaceEventRaceSettingsRally"
+      ]
+    },
+    "RaceEventRaceSettingsRallyWeekendComponent": {
+      "baseVerified": true,
+      "properties": [
+        {
+          "name": "bReplicates",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "bIsActive",
+          "type": "bool",
+          "inherited": true
+        },
+        {
+          "name": "RaceOptions",
+          "type": "struct",
+          "struct": "RaceOptions"
+        },
+        {
+          "name": "LobbyOptions",
+          "type": "struct",
+          "struct": "LobbyOptions"
+        },
+        {
+          "name": "HardCoreOptions",
+          "type": "struct",
+          "struct": "HardCoreOptions"
+        },
+        {
+          "name": "WeatherOptions",
+          "type": "struct",
+          "struct": "WeatherOptions"
+        },
+        {
+          "name": "<unknown31>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown32>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown33>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown34>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown35>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown36>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown37>",
+          "type": "unknown"
+        },
+        {
+          "name": "RacePenaltyOptions",
+          "type": "struct",
+          "struct": "RacePenaltyOptions"
+        },
+        {
+          "name": "<unknown39>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown40>",
+          "type": "unknown"
+        },
+        {
+          "name": "<unknown41>",
+          "type": "unknown"
+        },
+        {
+          "name": "RallyWeekendCalendar",
+          "type": "struct",
+          "struct": "RallyWeekendCalendar"
+        }
+      ],
+      "wireNames": [
+        "RaceEventRaceSettingsRallyWeekend"
+      ]
     }
   },
   "structs": {
@@ -1019,6 +1296,39 @@
         "struct": "RaceParticipantRallyResult"
       }
     ],
+    "RaceParticipantRallyWeekendResultsEntry": [
+      {
+        "name": "ParticipantId",
+        "type": "name"
+      },
+      {
+        "name": "Results",
+        "type": "array",
+        "element": {
+          "type": "struct",
+          "struct": "RaceParticipantRallyWeekendResultEntry"
+        }
+      }
+    ],
+    "RaceParticipantRallyWeekendResultEntry": [
+      {
+        "name": "ParticipantId",
+        "type": "name"
+      },
+      {
+        "name": "RaceSubEventIndex",
+        "type": "int32"
+      },
+      {
+        "name": "RaceSubEventResultPenaltyTime",
+        "type": "float"
+      },
+      {
+        "name": "Result",
+        "type": "struct",
+        "struct": "RaceParticipantRallyResult"
+      }
+    ],
     "RaceEventEligibleCars": [
       {
         "name": "CarClasses",
@@ -1069,6 +1379,241 @@
       {
         "name": "AttachComponent",
         "type": "object"
+      }
+    ],
+    "WeatherPresetOption": [
+      {
+        "name": "WeatherType",
+        "type": "enum",
+        "bits": 4
+      },
+      {
+        "name": "RandomUniform",
+        "type": "float"
+      },
+      {
+        "name": "bRandom",
+        "type": "bool"
+      }
+    ],
+    "WeatherOptions": [
+      {
+        "name": "Preset",
+        "type": "struct",
+        "struct": "WeatherPresetOption"
+      },
+      {
+        "name": "TargetPreset",
+        "type": "struct",
+        "struct": "WeatherPresetOption"
+      },
+      {
+        "name": "TargetWeatherProbability",
+        "type": "enum",
+        "bits": 3
+      },
+      {
+        "name": "WeatherPersistency",
+        "type": "enum",
+        "bits": 3
+      },
+      {
+        "name": "bDynamicWeather",
+        "type": "bool"
+      },
+      {
+        "name": "StartingTime",
+        "type": "float"
+      },
+      {
+        "name": "TimeSpeed",
+        "type": "enum",
+        "bits": 3
+      },
+      {
+        "name": "Seed",
+        "type": "int32"
+      },
+      {
+        "name": "StartingWetness",
+        "type": "float"
+      },
+      {
+        "name": "StartingAccumulatedSnow",
+        "type": "float"
+      },
+      {
+        "name": "StartingGripLevel",
+        "type": "enum",
+        "bits": 3
+      }
+    ],
+    "RallyWeekendSubEvent": [
+      {
+        "name": "Day",
+        "type": "int32"
+      },
+      {
+        "name": "TrackId",
+        "type": "name"
+      },
+      {
+        "name": "WeatherOptions",
+        "type": "struct",
+        "struct": "WeatherOptions"
+      },
+      {
+        "name": "DefaultWeatherOptions",
+        "type": "struct",
+        "struct": "WeatherOptions"
+      },
+      {
+        "name": "PreRaceZoneConfigurationId",
+        "type": "name"
+      }
+    ],
+    "Guid": [
+      {
+        "name": "A",
+        "type": "uint32"
+      },
+      {
+        "name": "B",
+        "type": "uint32"
+      },
+      {
+        "name": "C",
+        "type": "uint32"
+      },
+      {
+        "name": "D",
+        "type": "uint32"
+      }
+    ],
+    "RallyWeekendCalendar": [
+      {
+        "name": "CalendarPresetId",
+        "type": "name"
+      },
+      {
+        "name": "RallyWeekendSubEvents",
+        "type": "array",
+        "element": {
+          "type": "struct",
+          "struct": "RallyWeekendSubEvent"
+        }
+      },
+      {
+        "name": "CustomPresetName",
+        "type": "str"
+      },
+      {
+        "name": "bIsCustomPreset",
+        "type": "bool"
+      },
+      {
+        "name": "CalendarInstanceId",
+        "type": "struct",
+        "struct": "Guid"
+      }
+    ],
+    "TyreManagementOptions": [
+      {
+        "name": "bTyresConsumption",
+        "type": "bool"
+      },
+      {
+        "name": "TyresDamage",
+        "type": "enum",
+        "bits": 3
+      }
+    ],
+    "RespawnOptions": [
+      {
+        "name": "ManualRespawn",
+        "type": "enum",
+        "bits": 2
+      }
+    ],
+    "FuelManagementOptions": [
+      {
+        "name": "bFuelConsumption",
+        "type": "bool"
+      }
+    ],
+    "CarDamageOptions": [
+      {
+        "name": "Collisions",
+        "type": "enum",
+        "bits": 3
+      },
+      {
+        "name": "Wear",
+        "type": "enum",
+        "bits": 3
+      },
+      {
+        "name": "MechanicalFailures",
+        "type": "enum",
+        "bits": 3
+      },
+      {
+        "name": "bDamagesEnabled",
+        "type": "bool"
+      },
+      {
+        "name": "bGraphicalDamages",
+        "type": "bool"
+      }
+    ],
+    "RaceOptions": [
+      {
+        "name": "TyreManagement",
+        "type": "struct",
+        "struct": "TyreManagementOptions"
+      },
+      {
+        "name": "Respawn",
+        "type": "struct",
+        "struct": "RespawnOptions"
+      },
+      {
+        "name": "FuelManagement",
+        "type": "struct",
+        "struct": "FuelManagementOptions"
+      },
+      {
+        "name": "CarDamage",
+        "type": "struct",
+        "struct": "CarDamageOptions"
+      }
+    ],
+    "LobbyOptions": [
+      {
+        "name": "MaxPlayers",
+        "type": "int32"
+      },
+      {
+        "name": "CarSelectionOption",
+        "type": "enum",
+        "bits": 2
+      },
+      {
+        "name": "Password",
+        "type": "text"
+      }
+    ],
+    "HardCoreOptions": [
+      {
+        "name": "bHardCore",
+        "type": "bool"
+      }
+    ],
+    "RacePenaltyOptions": [
+      {
+        "name": "RacePenalty",
+        "type": "enum",
+        "bits": 2
       }
     ]
   }

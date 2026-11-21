@@ -127,6 +127,24 @@ public sealed class ReplicationDecoder
     public string? TravelTrackId { get; private set; }     // AAcrGameState.TravelTrackId
     public string? EventTrackId { get; private set; }      // RaceEventDataComponent.TrackId
     public string? PendingTrackId { get; private set; }    // RaceLobbyDataComponent.PendingTrackId
+    /// <summary>The rally weekend's results component, which lives for the whole
+    /// weekend: its stages are one rally. 0 while the results come from a single
+    /// event's component.</summary>
+    public long WeekendResults { get; private set; }
+    /// <summary>Counts the weekends run on that component: the game empties its
+    /// classification as each weekend starts, a relaunch of the same one included.</summary>
+    public int WeekendRun { get; private set; }
+    private bool _weekendEmptied;
+    /// <summary>The rally weekend's calendar (null outside a weekend, or until the
+    /// settings component is seen).</summary>
+    public RallyCalendar? Calendar { get; private set; }
+    /// <summary>Index in the <see cref="Calendar"/> of the stage being run, -1 when
+    /// unknown. The settings component takes the weather options of each stage
+    /// in turn, and each stage of the calendar has its own weather seed.</summary>
+    public int WeekendStage { get; private set; } = -1;
+    /// <summary>Weather options of the stage being run (or loaded), from the race
+    /// settings of any event type; null until received.</summary>
+    public StageWeatherOptions? StageSettings { get; private set; }
 
     // rally results component: three arrays, elements merged across deltas
 
@@ -149,6 +167,11 @@ public sealed class ReplicationDecoder
         _layoutByGuid.Clear(); _actorLayout.Clear(); _orphanVotes.Clear(); _merged.Clear();
         Participants.Clear(); Players.Clear(); Cars.Clear(); CarSectors.Clear(); _sectorsOwner.Clear();
         TravelTrackId = EventTrackId = PendingTrackId = null;
+        WeekendResults = 0;
+        _weekendEmptied = false;
+        Calendar = null;
+        WeekendStage = -1;
+        StageSettings = null;
         ClearOutputs();
         BlocksDecoded = BlocksSkipped = 0;
     }
@@ -260,6 +283,42 @@ public sealed class ReplicationDecoder
         return winner;
     }
 
+    private void ApplyRaceSettings(RepObject state, bool weekend)
+    {
+        StageSettings = StageWeatherOptions.From(state, "WeatherOptions.");
+        if (!weekend)
+        {
+            // a single stage: no calendar, whatever weekend the lobby ran before
+            Calendar = null;
+            WeekendStage = -1;
+            return;
+        }
+        if (state.GetArray("RallyWeekendCalendar.RallyWeekendSubEvents") is not RepArray subEvents) return;
+        var stages = new List<CalendarStage>(subEvents.Count);
+        for (int i = 0; i < subEvents.Count; i++)
+        {
+            var e = subEvents.Elements.GetValueOrDefault(i) ?? new RepObject();
+            // A calendar arrives as the changes from the one before it (the lobby's
+            // previous weekend): merged into what the lobby sent first, it is whole.
+            // Joined later than that, a field never sent stays unknown.
+            stages.Add(new CalendarStage(e.GetString("TrackId") ?? "", e.Get<int>("Day") ?? 0,
+                e.GetString("PreRaceZoneConfigurationId") ?? "",
+                StageWeatherOptions.From(e, "WeatherOptions.") ?? new StageWeatherOptions()));
+        }
+        var calendar = new RallyCalendar(state.GetString("RallyWeekendCalendar.CalendarPresetId") ?? "",
+            state.GetString("RallyWeekendCalendar.CustomPresetName") ?? "",
+            state.Get<bool>("RallyWeekendCalendar.bIsCustomPreset") ?? false, stages);
+        if (!calendar.SameAs(Calendar)) Calendar = calendar;
+        // the stage's own weather seed tells which stage of the calendar it is
+        var matches = Enumerable.Range(0, stages.Count)
+            .Where(i => StageSettings?.Seed != null && stages[i].Weather.Seed == StageSettings.Seed)
+            .ToList();
+        if (matches.Count > 1)
+            matches = [.. matches.Where(i => stages[i].Weather.StartTime == StageSettings!.StartTime)];
+        WeekendStage = matches.Count == 1 ? matches[0] : -1;
+    }
+
+
     private RepObject Merge(long key, RepObject delta)
     {
         if (!_merged.TryGetValue(key, out var state)) _merged[key] = state = new RepObject();
@@ -318,12 +377,18 @@ public sealed class ReplicationDecoder
             case "BC_RacePlayerState_C": ApplyPlayerState(key, state); break;
             case "RaceStateData": ApplyRaceState(key, state); break;
             case "RaceSectorsPlayerData": ApplySectors(key, delta); break;
-            case "RaceEventRallyResultsComponent": ApplyResults(delta, state); break;
+            case "RaceEventRallyResultsComponent": WeekendResults = 0; ApplyResults(delta, state); break;
+            case "RaceEventRallyWeekendResultsComponent": WeekendResults = key; ApplyResults(delta, state); break;
             case "BC_RaceGameState_C":
                 if (delta.GetString("TravelTrackId") is string travel && travel != TravelTrackId)
                 { TravelTrackId = travel; TrackChanged = true; }
                 break;
+            case "RaceEventRaceSettingsRallyComponent":
+            case "RaceEventRaceSettingsRallyWeekendComponent":
+                ApplyRaceSettings(state, layout.ClassName == "RaceEventRaceSettingsRallyWeekendComponent");
+                break;
             case "RaceEventDataComponent":
+            case "RaceEventRallyWeekendDataComponent":
                 if (delta.GetString("TrackId") is string track && track != EventTrackId)
                 { EventTrackId = track; TrackChanged = true; }
                 break;
@@ -466,6 +531,14 @@ public sealed class ReplicationDecoder
                     ResultUpdates.Add(new ResultUpdate(ResultSource.Session, r));
                 }
             }
+        }
+
+        // the game empties the weekend's classification as each weekend starts
+        if (delta.GetArray("ParticipantsWeekendResults") != null
+            && state.GetArray("ParticipantsWeekendResults") is RepArray weekend)
+        {
+            if (weekend.Count == 0 && !_weekendEmptied) WeekendRun++;
+            _weekendEmptied = weekend.Count == 0;
         }
 
         if (state.GetArray("BestParticipantsResults") is RepArray best && delta.GetArray("BestParticipantsResults") is RepArray bestDelta)

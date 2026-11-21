@@ -2,6 +2,8 @@ using System.Globalization;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using ACRLiveTiming.Content;
+using ACRLiveTiming.Decode;
 
 namespace ACRLiveTiming.Submission;
 
@@ -55,9 +57,13 @@ public static class ResultsPayload
                 if (stage.StartedAtUtc is DateTime started) w.WriteString("startedAt", Iso(started));
                 if (stage.InGameStartTime != null) w.WriteString("inGameStartTime", stage.InGameStartTime);
                 if (stage.Weather != null) w.WriteString("weather", stage.Weather);
+                if (stage.CalendarIndex is int index) w.WriteNumber("calendarOrder", index + 1);
+                if (stage.Conditions != null) WriteConditions(w, stage.Conditions);
+                if (stage.Forecast is { Count: > 0 } forecast) WriteForecast(w, forecast);
                 w.WriteEndObject();
             }
             w.WriteEndArray();
+            if (snapshot.Calendar != null) WriteCalendar(w, snapshot.Calendar);
 
             w.WriteStartArray("participants");
             foreach (var driver in snapshot.Drivers)
@@ -108,6 +114,73 @@ public static class ResultsPayload
         }
         w.WriteEndObject();
     }
+
+    // The weather options a stage is run with, under the game's own names.
+    private static void WriteConditions(Utf8JsonWriter w, StageWeatherOptions o)
+    {
+        w.WriteStartObject("conditions");
+        if (o.StartClock is string start) w.WriteString("startTime", start);
+        w.WriteString("weatherType", Type(o.Type));
+        w.WriteBoolean("randomWeatherType", o.RandomType);
+        w.WriteString("targetWeatherType", Type(o.TargetType));
+        w.WriteBoolean("randomTargetWeatherType", o.RandomTargetType);
+        w.WriteString("targetWeatherProbability", StageWeatherOptions.Name(StageWeatherOptions.ProbabilityValues, o.TargetProbability));
+        w.WriteString("weatherPersistency", StageWeatherOptions.Name(StageWeatherOptions.PersistencyValues, o.Persistency));
+        w.WriteBoolean("dynamicWeather", o.Dynamic);
+        w.WriteString("timeSpeed", StageWeatherOptions.Name(StageWeatherOptions.TimeSpeedValues, o.TimeSpeed));
+        w.WriteNumber("startingWetness", Math.Round(o.Wetness, 3));
+        w.WriteNumber("startingAccumulatedSnow", Math.Round(o.Snow, 3));
+        w.WriteString("startingGripLevel", StageWeatherOptions.Name(StageWeatherOptions.GripValues, o.Grip));
+        if (o.Seed is int seed) w.WriteNumber("seed", seed);
+        w.WriteEndObject();
+    }
+
+    private static void WriteForecast(Utf8JsonWriter w, IReadOnlyList<ForecastSlot> slots)
+    {
+        w.WriteStartArray("forecast");
+        foreach (var slot in slots)
+        {
+            w.WriteStartObject();
+            w.WriteString("time", TimeSpan.FromSeconds(Math.Clamp(slot.Time, 0f, 86399f)).ToString(@"hh\:mm", CultureInfo.InvariantCulture));
+            w.WriteString("weatherType", Type(slot.Type));
+            w.WriteNumber("temperature", Math.Round(slot.Temperature, 1));
+            w.WriteNumber("cloudCover", Math.Round(slot.CloudCover, 3));
+            w.WriteNumber("rain", Math.Round(slot.Rain, 3));
+            w.WriteNumber("snow", Math.Round(slot.Snow, 3));
+            w.WriteNumber("fog", Math.Round(slot.Fog, 3));
+            w.WriteNumber("wind", Math.Round(slot.Wind, 3));
+            w.WriteNumber("lightning", Math.Round(slot.Lightning, 3));
+            w.WriteEndObject();
+        }
+        w.WriteEndArray();
+    }
+
+    private static void WriteCalendar(Utf8JsonWriter w, RallyCalendar calendar)
+    {
+        w.WriteStartObject("calendar");
+        w.WriteString("presetId", calendar.PresetId);
+        if (calendar.Custom) w.WriteBoolean("customPreset", true);
+        if (calendar.CustomName.Length > 0) w.WriteString("customPresetName", calendar.CustomName);
+        w.WriteStartArray("stages");
+        for (int i = 0; i < calendar.Stages.Count; i++)
+        {
+            var stage = calendar.Stages[i];
+            w.WriteStartObject();
+            w.WriteNumber("order", i + 1);
+            w.WriteString("routeId", stage.RouteId);
+            w.WriteString("name", ContentCatalog.StageName(stage.RouteId));
+            if (ContentCatalog.StageLengthKm(stage.RouteId) is double km) w.WriteNumber("lengthKm", Math.Round(km, 3));
+            w.WriteNumber("day", stage.Day);
+            if (stage.PreRaceZone.Length > 0) w.WriteString("preRaceZone", stage.PreRaceZone);
+            WriteConditions(w, stage.Weather);
+            w.WriteEndObject();
+        }
+        w.WriteEndArray();
+        w.WriteEndObject();
+    }
+
+    private static string Type(int type)
+        => WeatherForecast.TypeValues.ElementAtOrDefault(type) ?? type.ToString(CultureInfo.InvariantCulture);
 
     private static void WriteSectors(Utf8JsonWriter w, List<long> sectors)
     {

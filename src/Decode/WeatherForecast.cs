@@ -9,7 +9,8 @@ namespace ACRLiveTiming.Decode;
 /// element k occupies handles k*11+1 .. k*11+11 in one flat ascending
 /// RepLayout stream <c>[IntPacked handle][value]…</c>:
 ///   +1  WeatherTime   f32  in-game seconds-of-day of the slot
-///   +2  Timespan      f32  cumulative horizon (600, 1200, 1800, …)
+///   +2  Timespan      f32  cumulative horizon (600, 1200, 1800, … at the
+///                          realistic time speed; scaled with the speed)
 ///   +3..+9  FLocalWeatherCondition: CloudCover Rain Snow Fog Wind
 ///           Lightning (0..1) and Temperature (°C), all f32
 ///   +10 CloserWeatherType  4-bit EWeatherType (ceil(log2(WT_MAX=11)))
@@ -33,12 +34,12 @@ public static class WeatherForecast
         => ContentCatalog.WeatherName(TypeValues[type]) ?? TypeValues[type];
 
     /// <summary>
-    /// Scan a raw payload for a forecast table; returns the FIRST slot
-    /// (earliest time) as (weather type, temperature °C), or null if the
-    /// packet carries no table. Gates are strict (exact ascending handles,
-    /// value sanity per field), so false positives are practically impossible.
+    /// Scan a raw payload for a forecast table; returns its slots from the first
+    /// one, as long as they follow each other whole, or null if the packet carries
+    /// no table. Gates are strict (exact ascending handles, value sanity per
+    /// field), so false positives are practically impossible.
     /// </summary>
-    public static (int type, float temp)? FirstSlot(byte[] payload)
+    public static List<ForecastSlot>? Slots(byte[] payload)
     {
         int totBits = payload.Length * 8;
         // element 0 minimum size: 10 handles + 9 f32 + 4 bits ≈ 372 bits
@@ -69,34 +70,47 @@ public static class WeatherForecast
                 for (int i = 0; i < 32; i++) { int b = Bit(); if (b < 0) return float.NaN; v |= (uint)(b << i); }
                 return BitConverter.Int32BitsToSingle((int)v);
             }
-
-            // cheap gate first: handle 1, then a plausible slot time + horizon
-            if (IntPacked() != 1) continue;
-            float t = F32();
-            if (!(t >= 0f && t <= 86400f && t % 60f == 0f)) continue;
-            if (IntPacked() != 2) continue;
-            float span = F32();
-            if (!(span >= 60f && span <= 14400f && span % 60f == 0f)) continue;
-
-            bool ok = true;
-            float temp = float.NaN;
-            for (int j = 0; j < 7 && ok; j++)
+            ForecastSlot? Element(int k)
             {
-                if (IntPacked() != 3 + j) { ok = false; break; }
-                float v = F32();
-                if (j < 6)
+                int h = k * 11;
+                // cheap gate first: the slot time + horizon
+                if (IntPacked() != h + 1) return null;
+                float t = F32();
+                if (!(t >= 0f && t <= 86400f && t % 60f == 0f)) return null;
+                if (IntPacked() != h + 2) return null;
+                float span = F32();
+                // the horizon grows with the time speed: ten minutes a slot when
+                // realistic, a hundred when fast
+                if (!(span >= 60f && span <= 7 * 86400f && span % 60f == 0f)) return null;
+                var c = new float[7];
+                for (int j = 0; j < 7; j++)
                 {
-                    ok = v >= -0.01f && v <= 1.5f;      // 0..1 condition scalars
+                    if (IntPacked() != h + 3 + j) return null;
+                    float v = F32();
+                    bool ok = j < 6
+                        ? v >= -0.01f && v <= 1.5f      // 0..1 condition scalars
+                        : v > -40f && v < 55f;          // temperature °C
+                    if (!ok) return null;
+                    c[j] = v;
                 }
-                else { ok = v > -40f && v < 55f; temp = v; }   // temperature °C
+                if (IntPacked() != h + 10) return null;
+                int ty = 0;
+                for (int i = 0; i < 4; i++) { int b = Bit(); if (b < 0) return null; ty |= b << i; }
+                if (ty >= TypeValues.Length) return null;
+                return new ForecastSlot(t, span, c[0], c[1], c[2], c[3], c[4], c[5], c[6], ty);
             }
-            if (!ok) continue;
-            if (IntPacked() != 10) continue;
-            int ty = 0;
-            for (int i = 0; i < 4; i++) { int b = Bit(); if (b < 0) { ty = -1; break; } ty |= b << i; }
-            if (ty < 0 || ty >= TypeValues.Length) continue;
 
-            return (ty, temp);
+            if (Element(0) is not ForecastSlot first) continue;
+            var slots = new List<ForecastSlot> { first };
+            // the slot's location (handle +11, 192 bits), then the next slot
+            while (pos + 200 <= totBits && IntPacked() == slots.Count * 11)
+            {
+                pos += 192;
+                int at = pos;
+                if (Element(slots.Count) is not ForecastSlot next || next.Span <= slots[^1].Span) { pos = at; break; }
+                slots.Add(next);
+            }
+            return slots;
         }
         return null;
     }

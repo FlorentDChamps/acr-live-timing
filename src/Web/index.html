@@ -248,6 +248,28 @@
   td.ignored { color: var(--faint); font-style: italic; }
   /* live cumulative split: visible for comparison, never counted as a finish */
   td.split { color: var(--dim); }
+  /* a rally weekend's stages still to come */
+  th.upcoming, td.upcoming { color: var(--dim); background: transparent; }
+  th.upcoming .stagename { color: var(--dim); }
+  /* the next stage, once the last one is over */
+  .nextstage { padding: 8px 20px 0; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+  .nextstage .nexthead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .nextstage .nexttag { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+                        color: var(--dim); }
+  .nextstage .nextname { font-weight: 600; }
+  .nextstage .forecast { border-collapse: collapse; font-size: 12px; margin-top: 2px; align-self: flex-start; }
+  .nextstage .forecastbtn { font: inherit; font-size: 12px; color: var(--dim); background: none;
+                            border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; cursor: pointer; }
+  .nextstage .forecastbtn:hover, .nextstage .forecastbtn[aria-expanded="true"] { color: var(--txt); }
+  .nextstage .forecast th, .nextstage .forecast td { padding: 1px 10px 1px 0; text-align: left;
+                                                    position: static; background: none; border: 0;
+                                                    font-weight: 400; white-space: nowrap;
+                                                    text-transform: none; letter-spacing: normal; height: auto; }
+  .nextstage .forecast th { color: var(--dim); }
+  .nextstage .rallyweather tr.done td { color: var(--dim); }
+  .nextstage .rallyweather tr.next td { font-weight: 600; }
+  .nextstage .rallyweather tr.park td { color: var(--dim); font-style: italic; font-size: 11px; }
+  .nextstage .rallyweather tr.fc td { color: var(--dim); font-size: 11px; font-weight: 400; padding-bottom: 3px; }
   /* started the stage but never crossed the line -> light grey italic, like a penalized time */
   td.dnf { color: var(--faint); font-style: italic; letter-spacing: .5px; }
   .gold { color: var(--gold); }
@@ -275,7 +297,7 @@
   /* overlays never scroll — content is clipped to the window (resize to reveal) */
   body.overlay .table-scroll { max-height: none; overflow: hidden; }
   body.overlay .table-hscroll { display: none !important; }
-  body.overlay header, body.overlay .stagebar, body.overlay footer { display: none !important; }
+  body.overlay header, body.overlay .stagebar, body.overlay .nextstage, body.overlay footer { display: none !important; }
   body.view-classification .progwrap { display: none !important; }
   body.view-classification .boardbar { display: none !important; }
   body.view-classification .wrap { padding: 0; }
@@ -413,7 +435,7 @@
   body.view-classification .groupfilter { display: none !important; }
   /* A browser-saved page is a static final result: live status, current stage
      and the live progression have no useful meaning once it is offline. */
-  body.saved-page #connectionstatus, body.saved-page .stagebar,
+  body.saved-page #connectionstatus, body.saved-page .stagebar, body.saved-page .nextstage,
   body.saved-page .progwrap { display: none !important; }
   /* a saved page has no server behind it to load a widget from */
   body.saved-page #obssec { display: none !important; }
@@ -519,6 +541,7 @@
     <span class="curstage" id="curstage"></span>
     <span class="meta" id="stagemeta"></span>
   </div>
+  <div class="nextstage" id="nextstage" style="display:none"></div>
   <div class="progwrap" id="progwrap" style="display:none">
     <div class="progtrack" id="progtrack">
       <div class="progline"></div>
@@ -889,11 +912,14 @@ let sectorStageId = null;       // stage shown in the Sectors tab (null: the lat
 let sectorSortKey = "stage";    // "stage" (stage classification) or a sector index
 let groupSelection = new Set();
 const seenStageIds = new Set();
+// Until the viewer picks a rally or stages, the board follows the rally being run.
+let groupAuto = true;
+let autoGroupKey = "";
 
 const hasOverride = () =>
-  ov.discarded !== null || ov.pct !== null || ov.dnfNoRejoin !== null || ov.hideSplits !== null ||
+  (ov.discarded !== null && !groupAuto) || ov.pct !== null || ov.dnfNoRejoin !== null || ov.hideSplits !== null ||
   ov.hideNations !== null || ov.theme !== null || ov.progKm !== null ||
-  ov.progFixed !== null || ov.groupFilter !== null;
+  ov.progFixed !== null || (ov.groupFilter !== null && !groupAuto);
 
 const hostDiscarded = v => new Set((v.allStages || []).filter(s => s.discarded).map(s => s.id));
 const effDiscarded  = v => ov.discarded !== null ? ov.discarded : hostDiscarded(v);
@@ -1043,14 +1069,14 @@ function computeView(v, cfg, withPositionChange = true) {
     const timed = cells.some(c => c.final);
     const status = cfg.dnfNoRejoin
       ? (firstDnf >= 0 ? "dnf" : incl.length === 0 ? "pending"
-        : !participated ? "dns" : timed ? "finisher" : "pending")
+        : timed ? "finisher" : "pending")
       : (timed ? "classified" : "unclassified");
-    return { driver: r.driver, cells, total, totalSubstituted, timed,
+    return { driver: r.driver, participated, cells, total, totalSubstituted, timed,
              classified: cfg.dnfNoRejoin ? status === "finisher" || status === "dnf" : timed,
              pointEligible: cfg.dnfNoRejoin ? status === "finisher" || status === "dnf" : timed,
              status, completedBeforeDnf, timeBeforeDnf,
              nation: r.nation, nationFlag: r.nationFlag, nationName: r.nationName, cars };
-  });
+  }).filter(r => r.participated);   // a driver who started none of the stages is not listed
 
   // Legacy mode keeps the capped-total order. No Rejoin puts every finisher before
   // DNF, then orders DNF by stages completed before the first abandon and by the
@@ -1082,8 +1108,7 @@ function computeView(v, cfg, withPositionChange = true) {
     const previous = i > 0 ? rows[i - 1] : null;
     const tiedDnf = cfg.dnfNoRejoin && previous && r.status === "dnf" && previous.status === "dnf" &&
       r.completedBeforeDnf === previous.completedBeforeDnf && r.timeBeforeDnf === previous.timeBeforeDnf;
-    const tiedDns = cfg.dnfNoRejoin && previous && r.status === "dns" && previous.status === "dns";
-    r.rank = tiedDnf || tiedDns ? previous.rank : i + 1;
+    r.rank = tiedDnf ? previous.rank : i + 1;
   });
 
   // General-classification movement since the previous selected stage. Re-run the
@@ -1287,9 +1312,11 @@ function initPanel() {
     if (!lastServer) return;
     const all = (lastServer.allStages || []).map(s => s.id);
     groupSelection = all.some(id => !groupSelection.has(id)) ? new Set(all) : new Set();
+    groupAuto = false;
     ov.groupFilter = null; applyStageSelection(lastServer);
   });
   cfgEls.groupSelect.addEventListener("change", () => {
+    groupAuto = false;
     ov.groupFilter = cfgEls.groupSelect.value === "" ? null : Number(cfgEls.groupSelect.value);
     sortKey = "total";
     if (lastServer) {
@@ -1315,6 +1342,8 @@ function initPanel() {
     applyTheme("system");
     syncThemeButton();
     groupSelection.clear(); seenStageIds.clear(); sortKey = "total";
+    groupAuto = true; autoGroupKey = "";
+    if (lastServer) followCurrentGroup(lastServer);
     reRender();
   });
   initObsLinks();
@@ -1374,6 +1403,7 @@ function buildStages(v) {
       cb.type = "checkbox"; cb.dataset.id = s.id;
       cb.addEventListener("change", () => {
         if (cb.checked) groupSelection.add(s.id); else groupSelection.delete(s.id);
+        groupAuto = false;
         ov.groupFilter = null; applyStageSelection(v);
       });
       const span = document.createElement("span");
@@ -1408,6 +1438,46 @@ function buildStages(v) {
 }
 function updateGroupToggle(all) {
   cfgEls.groupToggle.textContent = all.some(s => !groupSelection.has(s.id)) ? "Select all" : "Unselect all";
+}
+// The rally being run, selected as if the viewer had picked it; back to the
+// host's selection when the latest stage belongs to no rally.
+function followCurrentGroup(v) {
+  if (!groupAuto) return;
+  const all = v.allStages || [];
+  const group = v.currentGroup || 0;
+  if (group > 0) {
+    const off = hostDiscarded(v);
+    const ids = all.filter(s => effGroups(v).get(s.id) === group && !off.has(s.id)).map(s => s.id);
+    const key = group + ":" + ids.join(",");
+    if (key === autoGroupKey) return;
+    autoGroupKey = key;
+    ov.groupFilter = group;
+    groupSelection = new Set(ids);
+    ov.discarded = new Set(all.filter(s => !groupSelection.has(s.id)).map(s => s.id));
+  } else if (autoGroupKey !== "") {
+    autoGroupKey = "";
+    ov.groupFilter = null;
+    ov.discarded = null;
+    groupSelection = new Set(all.filter(s => !hostDiscarded(v).has(s.id)).map(s => s.id));
+  }
+}
+// A rally run in a game's rally weekend: its stages still to come, as columns
+// numbered after the last stage of the session. Only the rally being run has
+// any: one left before its end keeps none.
+function upcomingStages(v, group) {
+  const cal = (v.calendars || []).find(c => c.group === group);
+  if (!cal) return [];
+  const run = cal.stages.filter(s => s.columnId).map(s => s.index);
+  if (!run.length) return [];   // the stages run could not be placed in the calendar
+  const after = Math.max(...run);
+  let n = Math.max(0, ...(v.allStages || []).map(s => {
+    const m = /^SS(\d+)\b/.exec(s.name);
+    return m ? Number(m[1]) : 0;
+  }));
+  return cal.stages.filter(s => !s.columnId && s.index > after).map(s => ({
+    upcoming: true, id: "upcoming-" + s.index, name: "SS" + (++n) + " " + s.name,
+    index: s.index, count: cal.stages.length
+  }));
 }
 function applyStageSelection(v) {
   ov.discarded = new Set((v.allStages || []).filter(s => !groupSelection.has(s.id)).map(s => s.id));
@@ -1505,8 +1575,99 @@ function applyServer(v) {
     document.title = (v.title || "ACR Live Timing") + " " + date;
   }
   writeStateCache(v);
+  followCurrentGroup(v);
   render(displayedView(v));
   syncPanel(v);
+}
+
+// The next stage once the last one is over: route, start time and weather
+// options from the race settings (a rally weekend's calendar knows them as soon
+// as the previous stage ends), then the game's forecast once it loads.
+let nextForecastOpen = false;
+// The weather options of a stage, in a few words; with its forecast, the
+// temperature at the start.
+function weatherFacts(w, pct, slots) {
+  const facts = [];
+  if (w.name) facts.push(w.name + (w.random ? " (random)" : ""));
+  if (slots && slots.length) facts.push(slots[0].temp.toFixed(1) + " °C");
+  if (w.targetType && w.targetType !== w.type)
+    facts.push(`may turn ${w.targetName}${w.randomTarget ? " (random)" : ""} (${(w.probability || "").toLowerCase()} chance)`);
+  if (w.dynamic) facts.push("dynamic weather");
+  if (w.grip) facts.push("grip " + w.grip.toLowerCase());
+  facts.push("wetness " + pct(w.wetness));
+  if (w.snow > 0) facts.push("snow " + pct(w.snow));
+  if (w.timeSpeed && w.timeSpeed !== "Realistic") facts.push("time " + w.timeSpeed.toLowerCase());
+  return facts;
+}
+const pct = x => Math.round((x || 0) * 100) + "%";
+const kmText = km => km ? km.toFixed(1).replace(/\.0$/, "") + " km" : "";
+// A stage's facts, for the next stage and the current one alike: its place in the
+// weekend, length, start time, service park, weather.
+function stageFacts(stage, withLength) {
+  const w = stage.weather || {};
+  const facts = [];
+  if (stage.count) facts.push(`Stage ${stage.index + 1}/${stage.count}`);
+  if (withLength && stage.lengthKm) facts.push(kmText(stage.lengthKm));
+  if (w.start) facts.push("Start " + w.start);
+  if (stage.servicePark) facts.push("after a service park");
+  facts.push(...weatherFacts(w, pct, stage.forecast));
+  return facts;
+}
+// One line per forecast slot: time, weather, temperature, and rain or snow if any.
+function forecastLine(slots) {
+  return slots.map(x => x.time + " " + x.name + " " + x.temp.toFixed(1) + " °C" +
+    (x.rain > 0.005 ? " rain " + pct(x.rain) : "") + (x.snow > 0.005 ? " snow " + pct(x.snow) : "")).join(" · ");
+}
+function renderNextStage(next) {
+  const box = document.getElementById("nextstage");
+  if (!next) { box.style.display = "none"; box.innerHTML = ""; box.dataset.html = ""; return; }
+  const facts = stageFacts(next, true);
+  const slots = next.forecast || [];
+  const rally = next.rally || [];
+  const label = rally.length ? "Rally weather" : "Forecast";
+  let html = '<div class="nexthead"><span class="nexttag">Next stage</span>' +
+    '<span class="nextname">' + esc(next.name || "Not known yet") + "</span>" +
+    '<span class="meta">' + esc(facts.join(" · ")) + "</span>" +
+    (rally.length || slots.length ? '<button type="button" class="forecastbtn" aria-expanded="' + nextForecastOpen +
+      '" aria-controls="nextforecast">' + label + " " + (nextForecastOpen ? "▴" : "▾") + "</button>" : "") + "</div>";
+  if (nextForecastOpen && rally.length) {
+    // every stage of the rally weekend: the ones run (dimmed), the next one, the
+    // ones to come, with the service parks between them
+    const all = (lastServer && lastServer.allStages) || [];
+    let n = Math.max(0, ...all.map(s => { const m = /^SS(\d+)\b/.exec(s.name); return m ? Number(m[1]) : 0; }));
+    const rows = rally.map(stage => {
+      const run = stage.columnId ? all.find(s => s.id === stage.columnId) : null;
+      const ss = run ? (/^(SS\d+)\b/.exec(run.name) || [""])[0] : stage.index >= next.index ? "SS" + (++n) : "";
+      const cls = stage.index === next.index ? "next" : stage.index < next.index ? "done" : "";
+      const sw = stage.weather || {};
+      const fc = stage.forecast || [];
+      return (stage.servicePark ? '<tr class="park"><td></td><td colspan="4">Service park</td></tr>' : "") +
+        '<tr class="' + cls + '"><td>' + esc(ss) + "</td><td>" + esc(stage.name) + "</td><td>" +
+        esc(kmText(stage.lengthKm)) + "</td><td>" + esc(sw.start || "") + "</td><td>" +
+        esc(weatherFacts(sw, pct, fc).join(" · ")) + "</td></tr>" +
+        (fc.length ? '<tr class="fc ' + cls + '"><td></td><td colspan="4">Forecast ' + esc(forecastLine(fc)) + "</td></tr>" : "");
+    }).join("");
+    html += '<table class="forecast rallyweather" id="nextforecast" aria-label="Rally weather">' + rows + "</table>";
+  }
+  // a rally weekend gives each stage's forecast on its line; a lone stage, in full
+  if (nextForecastOpen && slots.length && !rally.length) {
+    const row = (title, f) => "<tr><th>" + title + "</th>" + slots.map(x => "<td>" + esc(f(x)) + "</td>").join("") + "</tr>";
+    html += '<table class="forecast" id="nextforecast" aria-label="Weather forecast">' +
+      row("Forecast", x => x.time) + row("Weather", x => x.name) +
+      row("Temperature", x => x.temp.toFixed(1) + " °C") + row("Clouds", x => pct(x.cloud)) +
+      row("Rain", x => pct(x.rain)) + (slots.some(x => x.snow > 0) ? row("Snow", x => pct(x.snow)) : "") +
+      row("Fog", x => pct(x.fog)) + row("Wind", x => pct(x.wind)) + "</table>";
+  }
+  if (box.dataset.html !== html) {
+    box.innerHTML = html;
+    box.dataset.html = html;
+    const button = box.querySelector(".forecastbtn");
+    if (button) button.addEventListener("click", () => {
+      nextForecastOpen = !nextForecastOpen;
+      renderNextStage(next);
+    });
+  }
+  box.style.display = "";
 }
 
 // While a stage is running (Racing through Spectating) the stage history is
@@ -1674,16 +1835,23 @@ function render(v) {
       (v.phase === "Racing" ? " racing" :
        v.phase === "Results" || v.phase === "Finishing" ? " results" : "");
     document.getElementById("curstage").textContent = v.currentStageName || v.currentStage || "";
-    // route length (content catalog) + in-game start time (weather timeline) +
-    // stage weather forecast
+    // route length (content catalog), then what the stage was run in, as the next
+    // stage line shows it; without its settings, the start time and forecast
+    // replicated while it runs
     const meta = [];
-    if (v.currentStageLengthKm) meta.push(v.currentStageLengthKm.toFixed(1).replace(/\.0$/, "") + " km");
-    if (v.stageStart) meta.push("Start " + v.stageStart);
-    if (v.stageWeather) meta.push(v.stageWeather);
+    if (v.currentConditions) meta.push(...stageFacts(v.currentConditions, true));
+    else {
+      if (v.currentStageLengthKm) meta.push(kmText(v.currentStageLengthKm));
+      // once the game loads the next stage, the start time and forecast are its own
+      const loaded = v.nextStage && v.nextStage.loaded;
+      if (v.stageStart && !loaded) meta.push("Start " + v.stageStart);
+      if (v.stageWeather && !loaded) meta.push(v.stageWeather);
+    }
     document.getElementById("stagemeta").textContent = meta.join(" · ");
   } else {
     bar.style.display = "none";
   }
+  renderNextStage(v.nextStage);
 
   renderProgress(v.progress, progKmOf(v), progFixedOf(v));
   syncTabBar();
@@ -1716,7 +1884,9 @@ function render(v) {
   const stageCols = live
     ? liveBoard.columns.map((column, cellIndex) => ({ ...column, cellIndex }))
     : stages.map((stage, cellIndex) => ({ ...stage, cellIndex }))
-        .filter(stage => ov.groupFilter == null || stage.group === ov.groupFilter);
+        .filter(stage => ov.groupFilter == null || stage.group === ov.groupFilter)
+        .concat(ov.groupFilter == null || ov.groupFilter !== (lastServer || v).currentGroup ? []
+          : upcomingStages(lastServer || v, ov.groupFilter));
   document.body.classList.toggle("live-latest-ready", live && stageCols.some(stage => stage.latest));
   if (!live && sortKey !== "total" && !stageCols.some(stage => stage.id === sortKey)) sortKey = "total";
   const tbl = document.getElementById("tbl");
@@ -1751,6 +1921,11 @@ function render(v) {
   // line above it keeps sorting the column.
   const withSectors = live ? new Set() : new Set(sectorStages(lastServer || v).map(stage => stage.id));
   stageCols.forEach(stage => {
+    if (stage.upcoming) {
+      addTh(stageHeaderHtml(stage.name), "cell upcoming", null);
+      head.lastChild.title = `Stage ${stage.index + 1} of ${stage.count} of the rally weekend — not run yet`;
+      return;
+    }
     const m = /^(SS\d+)\s+(.+)$/.exec(stage.name);
     if (live || !m || !withSectors.has(stage.id)) {
       addTh(live ? esc(stage.name) : stageHeaderHtml(stage.name),
@@ -1800,8 +1975,9 @@ function render(v) {
     });
 
   // per stage column: the 3 fastest real times get gold/silver/bronze
-  const stageMedal = stageCols.map(({ cellIndex, medals }) => {
+  const stageMedal = stageCols.map(({ cellIndex, medals, upcoming }) => {
     if (live) return medals;
+    if (upcoming) return new Map();
     // finish times only — an intermediate split never takes a podium slot
     const finishes = rows.map(r => {
       const c = r.cells ? r.cells[cellIndex] : null;
@@ -1811,8 +1987,9 @@ function render(v) {
   });
 
   // per stage column: fastest real time (reference for the small gap line)
-  const stageFastest = stageCols.map(({ cellIndex, fastest }) => {
+  const stageFastest = stageCols.map(({ cellIndex, fastest, upcoming }) => {
     if (live) return fastest;
+    if (upcoming) return null;
     let best = Infinity;
     rows.forEach(r => {
       const c = r.cells && r.cells[cellIndex];
@@ -1856,9 +2033,6 @@ function render(v) {
     if (v.dnfNoRejoin && r.status === "dnf") {
       setCell(tdTot, "DNF", "");
       tdTot.title = "Did not finish — no general-classification total";
-    } else if (v.dnfNoRejoin && r.status === "dns") {
-      setCell(tdTot, "DNS", "");
-      tdTot.title = "Did not start any selected stage";
     } else if (!r.timed) {
       setCell(tdTot, "", "");
       tdTot.title = "No stage time yet";
@@ -1869,7 +2043,13 @@ function render(v) {
     }
     tr.appendChild(tdTot);
 
-    stageCols.forEach(({ cellIndex, latest }, s) => {
+    stageCols.forEach(({ cellIndex, latest, upcoming }, s) => {
+      if (upcoming) {
+        const td = document.createElement("td");
+        td.className = "cell upcoming";
+        tr.appendChild(td);
+        return;
+      }
       const cell = live ? r.liveValues[cellIndex] : r.cells && r.cells[cellIndex];
       const td = document.createElement("td");
       td.classList.add("cell");

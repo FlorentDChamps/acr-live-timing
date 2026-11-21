@@ -14,6 +14,13 @@ public class ContentCatalogTests
     public void ReducesLikeTheCatalog(string value, string reduced)
         => Assert.Equal(reduced, ContentCatalog.Reduce(value));
 
+    [Theory]
+    [InlineData("MontecarloWeekendShort", "Monte Carlo Weekend Short")]
+    [InlineData("GreeceWeekendShort", "Greece Weekend Short")]
+    [InlineData("SomewhereWeekendLong", "Somewhere Weekend Long")]
+    public void NamesARallyWeekendAfterItsPreset(string preset, string name)
+        => Assert.Equal(name, ContentCatalog.WeekendName(preset));
+
     [Fact]
     public void ShowsTheGameNamesNotTheTranslations()
     {

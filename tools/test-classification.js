@@ -49,8 +49,10 @@ const result = computeView(view, cfg, false);
 const byName = new Map(result.rows.map(value => [value.driver, value]));
 assert.deepStrictEqual(result.rows.map(value => value.driver), [
   "Fast finisher", "Slow finisher", "Alpha tied DNF", "Echo tied DNF",
-  "Later DNF", "One-stage DNF", "Missed-stage DNF", "Zero-stage DNF", "Never started"
+  "Later DNF", "One-stage DNF", "Missed-stage DNF", "Zero-stage DNF"
 ]);
+// a driver who started none of the selected stages is not listed
+assert.strictEqual(byName.has("Never started"), false);
 assert.strictEqual(byName.get("Fast finisher").status, "finisher");
 assert.strictEqual(byName.get("Alpha tied DNF").status, "dnf");
 assert.strictEqual(byName.get("Alpha tied DNF").completedBeforeDnf, 2);
@@ -63,7 +65,6 @@ assert.strictEqual(byName.get("Later DNF").rank, 5);
 assert.strictEqual(byName.get("Missed-stage DNF").cells[1].dnf, true);
 assert.strictEqual(byName.get("Missed-stage DNF").completedBeforeDnf, 1);
 assert.strictEqual(byName.get("Zero-stage DNF").status, "dnf");
-assert.strictEqual(byName.get("Never started").status, "dns");
 assert.strictEqual(byName.get("Alpha tied DNF").pointEligible, true);
 
 const withoutDnfStage = computeView(view, {

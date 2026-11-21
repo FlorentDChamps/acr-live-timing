@@ -98,14 +98,20 @@ chaque onglet.</sub>
   le nom d'une spéciale dans l'onglet **Stages** pour l'ouvrir directement. Chaque
   spéciale de la session est disponible une fois terminée ; celle en cours reste sur
   le tableau en direct.
-- **Rallyes, classement général & points de championnat** — regroupez les spéciales
-  en rallyes nommés depuis le panneau hôte (*Stages — select to group* : cochez les
+- **Rallyes, classement général & points de championnat** — regroupez les spéciales en
+  rallyes nommés depuis le panneau hôte (*Stages — select to group* : cochez les
   spéciales, cliquez **Group**, renommez sur place). La page web gagne un onglet
   **Standings** : un classement indépendant par rallye plus des points de championnat
   (barème 25-18-15-12-10-8-6-4-2-1 par rallye), triable par rallye ou par total de
-  points ; le tableau principal gagne un filtre pour n'afficher que les spéciales
-  d'un rallye. Le groupement est défini par l'hôte et partagé avec tous les
-  spectateurs.
+  points ; le tableau principal gagne un filtre pour n'afficher que les spéciales d'un
+  rallye. Les spéciales d'un rally weekend du jeu sont regroupées d'elles-mêmes en un
+  rallye, nommé d'après le weekend (*Greece Weekend Short*) et découpé d'après son
+  calendrier : un lobby qui relance le weekend ouvre un nouveau rallye. L'hôte peut
+  toujours les dégrouper ou les regrouper autrement. Le groupement est défini par
+  l'hôte et partagé avec tous les spectateurs. Le tableau montre par défaut le rallye
+  en cours, avec les spéciales du weekend encore à courir en colonnes vides ; un
+  spectateur peut choisir un autre rallye ou *All stages*. Un pilote qui n'a commencé
+  aucune des spéciales sélectionnées n'est pas listé.
 - **Exports de résultats** — trois boutons sur la page exportent exactement ce qui
   est affiché : copie en texte, CSV (prêt pour Excel, séparateur selon la locale) et
   image PNG. Côté hôte, un **webhook Discord** optionnel (panneau Discord) poste dans
@@ -146,9 +152,9 @@ chaque onglet.</sub>
   les temps des spéciales suivantes restent visibles mais ne contribuent plus à un
   total général. Tous les finishers précèdent les DNF ; ceux-ci sont départagés par
   le nombre de spéciales terminées avant le premier abandon, puis par leur temps réel
-  cumulé sur ces seules spéciales. Un pilote sans aucun départ dans le rallye est DNS.
-  Ce mode remplace le plafond de pénalité pour les spéciales sélectionnées, tandis
-  que les DNF classés restent éligibles aux points de championnat.
+  cumulé sur ces seules spéciales. Ce mode remplace le plafond de pénalité pour les
+  spéciales sélectionnées, tandis que les DNF classés restent éligibles aux points de
+  championnat.
 - **Progression de spéciale en direct** — une piste horizontale au-dessus du tableau
   montre la position live de chaque pilote sur la spéciale en cours. Par défaut la
   piste couvre une **portée fixe configurable** derrière le leader (échelle stable) ;
@@ -165,9 +171,21 @@ chaque onglet.</sub>
   moment et le tableau se remplit au fil des premiers splits. Tout est complet dès
   la spéciale suivante.
 - **En-tête lobby & spéciale** — l'en-tête de la page affiche la phase de lobby en
-  cours (Chargement, Course, Résultats, Parc d'assistance…), l'**heure de départ en
-  jeu** de la spéciale (heure du jour) et sa **prévision météo**, le tout décodé
-  depuis la timeline météo répliquée et la machine à états du lobby.
+  cours (Chargement, Course, Résultats, Parc d'assistance…) et la spéciale courue : sa
+  place dans un rally weekend, sa longueur, son **heure de départ en jeu** (heure du
+  jour), si un parc d'assistance la précède, ses options météo (météo de départ et
+  météo visée, probabilité du changement, adhérence, humidité, neige, vitesse du
+  temps) et la température que sa prévision donne au départ, le tout décodé depuis les
+  réglages de course du jeu, la météo répliquée et la machine à états du lobby. Une
+  ligne **Next stage** donne la même chose pour la spéciale suivante : pendant tout un
+  rally weekend, sinon une fois une spéciale terminée. En rally weekend, son bouton
+  **Rally weather** déroule toutes les spéciales du weekend avec leur longueur, leur
+  heure de départ et leur météo, les parcs d'assistance entre elles, et la prévision
+  du jeu pour chaque spéciale dont l'app a vu le chargement (le jeu ne l'envoie qu'à
+  ce moment-là : pas pour les spéciales à venir, ni pour celles chargées avant
+  l'arrivée de l'app ou du joueur) ; ailleurs, son bouton **Forecast** déroule la
+  prévision du jeu (température, nuages, pluie, brouillard, vent toutes les dix
+  minutes à la vitesse réaliste, plus espacés quand le temps passe plus vite).
 - **Vue web partageable** — serveur web embarqué pour le LAN, plus un lien public
   `https://….trycloudflare.com` optionnel. Le binaire `cloudflared` est téléchargé
   depuis les releases officielles de Cloudflare (rafraîchi au plus une fois par mois)
@@ -505,7 +523,9 @@ contacte aucun tant que vous ne vous êtes pas associé.
 
 Ce qui part, ce sont des faits bruts — statut, temps, pénalité, secteurs et voiture
 de chaque pilote par spéciale, avec son pseudo et son **SteamID/EOS ID** — jamais un
-classement : le serveur fait le sien. Une copie de chaque envoi est gardée dans le
+classement : le serveur fait le sien. Chaque spéciale porte aussi ses options météo
+et la prévision du jeu, et un rallye couru en rally weekend porte le calendrier du
+weekend. Une copie de chaque envoi est gardée dans le
 dossier `results` à côté de l'application (📂 l'ouvre), et sans serveur en ▶ le bouton devient
 **Save…** pour écrire les mêmes résultats dans un fichier JSON. Le jeton
 d'association est stocké chiffré pour votre compte Windows.
@@ -562,16 +582,17 @@ lancez `publish.bat` — l'exe obtenu est l'exe que vous exécutez.
 | Détection DNF | ✅ en direct sur la spéciale en cours (phase *Retire/Disqualify* de la voiture) ; le sort de chaque voiture est mémorisé à la clôture de la spéciale (abandon ou disparition en cours de run), déduction par les arrivées des autres gardée en repli ; les drapeaux d'abandon et de disqualification des résultats répliqués sont décodés aussi, donc même un abandon à zéro split est listé DNF et une disqualification tient même après la ligne |
 | Progression de spéciale en direct | ✅ piste horizontale au-dessus du tableau, portée fixe derrière le leader par défaut (auto-ajustement leader↔dernier en option) ; marqueurs nommés dès le spawn (bloc d'identité PlayerState), repli premier split — peut être partielle pendant la première spéciale après accroche |
 | Réglages web par spectateur | ✅ exclusion de spéciales, pénalité %, fenêtre de progression + portée fixe, masquer nations, Hide split times, filtre rallye, tri des colonnes, thème clair/sombre — recalculés côté client depuis les données brutes par spéciale ; propres à la session, reset vers la config hôte en un clic ; les URL des widgets OBS à copier |
-| Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
+| Groupement en rallyes · onglet Standings · points | ✅ groupes définis par l'hôte, noms modifiables, rally weekends regroupés automatiquement ; classement indépendant par rallye et points de championnat, partagés avec tous les spectateurs |
 | Exports de résultats | ✅ boutons copie / CSV / PNG sur la page ; webhook Discord côté hôte (alerte live, tableau des points, résultats de rallye) |
-| Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page |
+| Phase lobby · heure de départ · prévision météo | ✅ décodés et affichés dans l'en-tête de la page ; spéciale suivante avec ses options météo et sa prévision une fois une spéciale terminée |
+| Calendrier du rally weekend | ✅ spéciales, heures de départ et options météo ; rallyes découpés d'après lui, spéciales à venir affichées sur le tableau, envoyé aux serveurs de résultats |
 | Positions / écarts live | 🟡 position live par voiture décodée, pas encore affichée en classement |
 
-Développé contre **Assetto Corsa Rally 0.6** (Unreal Engine 5.6.1). Une mise à jour du jeu qui change le
-format réseau — ou active un chiffrement — peut casser le décodage à tout moment.
-L'outil lit **uniquement du clair** et ne tentera jamais de déchiffrer un flux
-chiffré : si ACR chiffre son trafic, il le signale et le live timing s'arrête,
-simplement.
+Développé contre **Assetto Corsa Rally 0.7** (Unreal Engine 5.6.1), en spéciale unique comme en
+rally weekend. Une mise à jour du jeu qui change le format réseau — ou active un
+chiffrement — peut casser le décodage à tout moment. L'outil lit **uniquement du
+clair** et ne tentera jamais de déchiffrer un flux chiffré : si ACR chiffre son
+trafic, il le signale et le live timing s'arrête, simplement.
 
 ## Structure du projet
 

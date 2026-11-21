@@ -44,6 +44,7 @@ public static partial class ContentCatalog
 
     private sealed class Catalog
     {
+        public List<Item> Locations { get; set; } = [];
         public List<Item> Tracks { get; set; } = [];
         public List<Stage> Stages { get; set; } = [];
         public List<Item> Cars { get; set; } = [];
@@ -54,6 +55,7 @@ public static partial class ContentCatalog
     private sealed class Tables
     {
         // reduced id or alias -> item, one table per list
+        public Dictionary<string, Item> Locations = new(StringComparer.Ordinal);
         public Dictionary<string, Item> Tracks = new(StringComparer.Ordinal);
         public Dictionary<string, Stage> Stages = new(StringComparer.Ordinal);
         public Dictionary<string, Item> Cars = new(StringComparer.Ordinal);
@@ -122,6 +124,20 @@ public static partial class ContentCatalog
     /// <summary>The track a route drives, from the catalog; null when the route is unknown.</summary>
     public static string? TrackOfRoute(string route) => Find(Data.Value.Stages, route)?.Track;
 
+    /// <summary>A display name for a rally weekend calendar, from its preset id:
+    /// its words, the first one (a location) by its catalog name.
+    /// "MontecarloWeekendShort" → "Monte Carlo Weekend Short".</summary>
+    public static string WeekendName(string presetId)
+    {
+        var words = PresetWords().Matches(presetId).Select(m => m.Value).ToList();
+        if (words.Count == 0) return presetId;
+        if (Find(Data.Value.Locations, words[0])?.Display is string location) words[0] = location;
+        return string.Join(" ", words);
+    }
+
+    [GeneratedRegex(@"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])")]
+    private static partial Regex PresetWords();
+
     /// <summary>Converts an internal column label such as "SS2 WalesS3…" while
     /// preserving the run prefix used by the timing board.</summary>
     public static string StageLabelName(string label)
@@ -149,6 +165,7 @@ public static partial class ContentCatalog
             using var stream = assembly.GetManifestResourceStream(resource);
             var catalog = stream == null ? null : JsonSerializer.Deserialize<Catalog>(stream, JsonOptions);
             if (catalog == null) return tables;
+            Index(tables.Locations, catalog.Locations);
             Index(tables.Tracks, catalog.Tracks);
             Index(tables.Stages, catalog.Stages);
             Index(tables.Cars, catalog.Cars);

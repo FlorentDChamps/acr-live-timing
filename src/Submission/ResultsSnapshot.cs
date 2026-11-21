@@ -1,3 +1,5 @@
+using ACRLiveTiming.Decode;
+
 namespace ACRLiveTiming.Submission;
 
 public enum CellStatus { Finished, Dnf, NotStarted }
@@ -16,6 +18,9 @@ public sealed class SnapshotStage
     public DateTime? StartedAtUtc { get; init; }
     public string? InGameStartTime { get; init; }
     public string? Weather { get; init; }
+    public int? CalendarIndex { get; init; }                  // place in the weekend's calendar
+    public StageWeatherOptions? Conditions { get; init; }    // weather options it was run with
+    public IReadOnlyList<ForecastSlot>? Forecast { get; init; }
 }
 
 public sealed class SnapshotCell
@@ -48,6 +53,7 @@ public sealed class ResultsSnapshot
     public string RunId { get; init; } = "";
     public int Group { get; init; }
     public string? GroupName { get; init; }
+    public RallyCalendar? Calendar { get; init; }   // the rally weekend the group was run in
     public List<SnapshotStage> Stages { get; init; } = [];
     public List<SnapshotDriver> Drivers { get; init; } = [];
     public List<string> Problems { get; init; } = [];

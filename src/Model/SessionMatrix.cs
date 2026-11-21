@@ -61,6 +61,8 @@ public sealed class StageInfo
     public bool Discarded { get; set; }
     public int Group { get; set; }             // 0 = ungrouped; positive values are host group ids
     public string GroupName { get; set; } = ""; // host-set rally name (empty = default "Rally N")
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? CalendarIndex { get; set; }    // place in its rally weekend's calendar
 }
 
 public sealed class CarProgressView
@@ -100,6 +102,13 @@ public sealed class MatrixView
     // Events of the active results-server associations, filled by the host: the
     // server's name (or its host, never the port or URL) and the event name.
     public List<EventView> Events { get; set; } = [];
+    public int CurrentGroup { get; set; }          // rally group of the latest stage (0: none)
+    public List<CalendarView> Calendars { get; set; } = [];   // rally groups run in a weekend
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public NextStageView? NextStage { get; set; }  // once the last stage is over
+    // what the current stage (the last column) was run in, as the next stage shows it
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public NextStageView? CurrentConditions { get; set; }
 }
 
 public sealed record EventView(string Server, string Name);
@@ -190,6 +199,8 @@ public sealed partial class SessionMatrix
     private readonly HashSet<string> _discarded = [];                       // ids
     private readonly Dictionary<string, int> _groups = [];                  // id -> group id (0/absent = ungrouped)
     private readonly Dictionary<int, string> _groupNames = [];              // group id -> host-set label
+    // id -> rally weekend it was driven in, and its place in the weekend's calendar (-1: unknown)
+    private readonly Dictionary<string, (string Weekend, int Stage)> _weekendOf = [];
     private readonly Dictionary<string, string?> _nations = [];
     // Latest known car is carried to the next stage when its first time arrives;
     // the per-column map preserves the car actually used on each stage.
@@ -225,7 +236,11 @@ public sealed partial class SessionMatrix
     // stage's, a submission needs every stage's.
     // Timestamp: Stopwatch time of a start seen live in this run of the app; null
     // for a start read from a file (a loaded session), which only has its Utc.
-    private sealed class ColumnStart { public DateTime Utc; public long? Timestamp; public string InGame = ""; public string Weather = ""; }
+    private sealed class ColumnStart
+    {
+        public DateTime Utc; public long? Timestamp; public string InGame = ""; public string Weather = "";
+        public StageWeatherOptions? Conditions; public List<ForecastSlot>? Forecast;
+    }
     private readonly Dictionary<string, ColumnStart> _columnStarts = [];
     // runId of each rally group, and of the "All stages" selection for this
     // session. Random, never the group number: group ids restart from 1.
@@ -356,6 +371,7 @@ public sealed partial class SessionMatrix
         {
             if (_lobbyPhase == phase) return;
             _lobbyPhase = phase;
+            if (IsRunPhase(phase)) _settingsRan = true;
         }
         RaiseChanged();
     }
@@ -402,7 +418,9 @@ public sealed partial class SessionMatrix
                 Utc = _packetUtc == default ? DateTime.UtcNow : _packetUtc,
                 Timestamp = _packetRecorded ? null : Stopwatch.GetTimestamp(),
                 InGame = _stageStart,
-                Weather = _stageWeather
+                Weather = _stageWeather,
+                Conditions = _stageSettings,
+                Forecast = ForecastFor(_stageSettings?.StartTime)
             };
         }
         RaiseChanged();
@@ -1043,6 +1061,7 @@ public sealed partial class SessionMatrix
             _discarded.Clear();
             _groups.Clear();
             _groupNames.Clear();
+            _weekendOf.Clear();
             _nations.Clear();
             _lastCars.Clear();
             _carsByColumn.Clear();
@@ -1067,6 +1086,7 @@ public sealed partial class SessionMatrix
             _columnStarts.Clear();
             _groupRunIds.Clear();
             _sessionRunId = Guid.NewGuid().ToString();
+            ClearConditions(keepRaceSettings: false);
         }
         RaiseChanged();
     }
@@ -1101,6 +1121,7 @@ public sealed partial class SessionMatrix
             _discarded.Clear();
             _groups.Clear();
             _groupNames.Clear();
+            _weekendOf.Clear();
             _carsByColumn.Clear();
             _finishes.Clear();
             _sessionOut.Clear();
@@ -1114,6 +1135,7 @@ public sealed partial class SessionMatrix
             _columnStarts.Clear();
             _groupRunIds.Clear();
             _sessionRunId = Guid.NewGuid().ToString();
+            ClearConditions(keepRaceSettings: true);
         }
         RaiseChanged();
     }
@@ -1187,6 +1209,53 @@ public sealed partial class SessionMatrix
             _groupNames[next] = string.IsNullOrWhiteSpace(name) ? $"Rally {next}" : name.Trim();
             _groupRunIds[next] = Guid.NewGuid().ToString();
             RemoveUnusedGroups();
+        }
+        RaiseChanged();
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>Put a stage driven in a rally weekend in that weekend's rally.
+    /// <paramref name="weekend"/> names one run of the weekend (a relaunch of the
+    /// same calendar is another one); <paramref name="stage"/> is its place in
+    /// the weekend's calendar of <paramref name="stageCount"/> stages (-1:
+    /// unknown): a stage that comes
+    /// before the previous one starts the weekend again, so it opens a new
+    /// rally, and a last stage seen without the ones before it stays out of any
+    /// rally. Done once per stage, so a host's later ungrouping or regrouping
+    /// stands; a stage after one the host took out of the rally opens a new one.</summary>
+    public void JoinWeekend(string columnId, string weekend, int stage, int stageCount)
+    {
+        lock (_lock)
+        {
+            int index = _columnOrder.IndexOf(columnId);
+            if (index < 0 || _weekendOf.ContainsKey(columnId)) return;
+            string? previous = _columnOrder.Take(index)
+                .LastOrDefault(id => _weekendOf.TryGetValue(id, out var w) && w.Weekend == weekend);
+            _weekendOf[columnId] = (weekend, stage);
+            if (_calendar != null) _columnCalendars[columnId] = _calendar;
+            if (_groups.ContainsKey(columnId)) return;   // already placed by the host
+
+            int after = previous == null ? -1 : _weekendOf[previous].Stage;
+            // the same place again is the stage run once more, still in the same rally;
+            // another calendar is another weekend, whatever the place
+            bool sameCalendar = _columnCalendars.GetValueOrDefault(previous ?? "") is not { } before
+                                || _calendar == null || before == _calendar;
+            bool sameRally = previous != null && sameCalendar && (stage < 0 || after < 0 || stage >= after);
+            if (sameRally && _groups.TryGetValue(previous!, out int group))
+            {
+                _groups[columnId] = group;
+            }
+            else if (stage >= 0 && stage == stageCount - 1)
+            {
+                return;   // nothing can follow it: no rally to make
+            }
+            else
+            {
+                group = _groups.Count == 0 ? 1 : _groups.Values.Max() + 1;
+                _groups[columnId] = group;
+                _groupNames[group] = WeekendGroupName(group);
+                _groupRunIds[group] = Guid.NewGuid().ToString();
+            }
         }
         RaiseChanged();
         SettingsChanged?.Invoke();
@@ -1350,8 +1419,12 @@ public sealed partial class SessionMatrix
                     LengthKm = route == null ? null : ContentCatalog.StageLengthKm(route),
                     StartTimestamp = start?.Timestamp,
                     StartedAtUtc = start?.Utc,
-                    InGameStartTime = string.IsNullOrEmpty(start?.InGame) ? null : start.InGame,
-                    Weather = string.IsNullOrEmpty(start?.Weather) ? null : start.Weather
+                    InGameStartTime = start?.Conditions?.StartClock
+                                      ?? (string.IsNullOrEmpty(start?.InGame) ? null : start.InGame),
+                    Weather = string.IsNullOrEmpty(start?.Weather) ? null : start.Weather,
+                    CalendarIndex = CalendarIndex(id),
+                    Conditions = start?.Conditions,
+                    Forecast = start?.Forecast
                 });
                 if (route == null) warnings.Add($"{shown}: route never received.");
                 if (id == lastColumn && running) problems.Add($"{shown} is still running.");
@@ -1445,6 +1518,7 @@ public sealed partial class SessionMatrix
                 RunId = group == 0 ? _sessionRunId : _groupRunIds.GetValueOrDefault(group, _sessionRunId),
                 Group = group,
                 GroupName = group == 0 ? null : _groupNames.GetValueOrDefault(group, $"Rally {group}"),
+                Calendar = group == 0 ? null : GroupCalendar(group),
                 Stages = stages,
                 Drivers = drivers,
                 Problems = problems,
@@ -1488,7 +1562,8 @@ public sealed partial class SessionMatrix
                         Discarded = _discarded.Contains(id),
                         Group = _groups.TryGetValue(id, out int group) ? group : 0,
                         GroupName = _groups.TryGetValue(id, out group)
-                            ? _groupNames.GetValueOrDefault(group, $"Rally {group}") : ""
+                            ? _groupNames.GetValueOrDefault(group, $"Rally {group}") : "",
+                        CalendarIndex = CalendarIndex(id)
                     };
                 })
                 .ToList();
@@ -1629,7 +1704,11 @@ public sealed partial class SessionMatrix
                 ProgressFixed = _progressFixed,
                 HasRaceState = _hasRaceState,
                 HideSplits = _hideSplits,
-                Version = AppInfo.Version
+                Version = AppInfo.Version,
+                CurrentGroup = _columnOrder.Count > 0 ? _groups.GetValueOrDefault(_columnOrder[^1]) : 0,
+                Calendars = BuildCalendars(),
+                NextStage = BuildNextStage(),
+                CurrentConditions = BuildCurrentConditions()
             };
         }
     }

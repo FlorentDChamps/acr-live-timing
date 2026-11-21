@@ -316,6 +316,7 @@ The selection's stages that have data, in run order: every stage of the rally gr
 | `startedAt` | UTC start, from the Windows clock when the client received it. Absent when the start was not seen. |
 | `inGameStartTime` | In-game time of day at the start, `HH:mm`, when received. |
 | `weather` | Forecast label as on the page (`Light Rain · 12°C`), when received. |
+| `calendarOrder`, `conditions`, `forecast` | See below. |
 
 `startedAfterPairing`: a stage starts when the client sees its run start (the
 start sequence that opens its column on the board; a stage joined while it was
@@ -326,6 +327,44 @@ precedes every stage of this run. A stage the client rebuilt from a session file
 `startedAt` is compared with the time of the exchange instead. The value is computed
 per destination when the payload is built, never stored with the stage. A stage
 whose start was not seen is `false`.
+
+### `conditions`, `forecast` and `calendar`
+
+Optional fields, added within version 1.0: a server ignores the fields it does not
+know. They are absent when the game did not send them in this session.
+
+`stages[].conditions` holds the weather options the stage was run with, as the
+game's race settings carry them. Enumerations keep **the game's own names**.
+
+| Field | Rule |
+|---|---|
+| `startTime` | In-game time of day at the start, `HH:mm`. |
+| `weatherType`, `targetWeatherType` | Weather at the start, and the weather it can turn to (`WT_CLEAR`, `WT_LIGHT_RAIN`…). |
+| `randomWeatherType`, `randomTargetWeatherType` | `true` when the game draws that weather at random. |
+| `targetWeatherProbability` | Chance of the change: `Low`, `Medium`, `High`, `Maximum`. |
+| `weatherPersistency` | `Zero`, `Decreased`, `Standard`, `Increased`. |
+| `dynamicWeather` | Weather evolving during the stage. |
+| `timeSpeed` | Speed of the in-game clock (`WT_SPEEDREALISTIC`…). |
+| `startingWetness`, `startingAccumulatedSnow` | 0 to 1. |
+| `startingGripLevel` | `Dirty`, `Slow`, `Green`, `Fast`, `Optimal`. |
+| `seed` | Weather seed, when received. |
+
+`stages[].forecast` is the game's weather forecast for the stage: slots of ten
+in-game minutes at the realistic time speed (longer when time runs faster: twenty
+minutes when accelerated, a hundred when fast), the first one a slot after the
+start, each with `time` (`HH:mm`), `weatherType`, `temperature` (°C) and
+`cloudCover`, `rain`, `snow`, `fog`, `wind`, `lightning` (0 to 1).
+
+`stages[].calendarOrder` is the stage's place (1, 2, 3…) in the rally weekend's
+calendar, and `calendar`, beside `stages`, is that calendar when the group was run
+in one of the game's rally weekends: `presetId`, `customPreset` (`true` for a
+calendar built by the host) and `customPresetName` when set, and `stages[]` with
+`order`, `routeId`, `name`, `lengthKm`, `day`, `preRaceZone` (`ServiceParkDefault`:
+a service park before the stage; `NoZone`: none) and `conditions` as above. The
+calendar lists every stage of the weekend, run or not. The game sends a new
+calendar as its changes from the lobby's previous one: a client that joined the
+lobby after it sent the first one may miss a start time or a `preRaceZone`, which
+are then absent.
 
 ### `participants[]`
 
